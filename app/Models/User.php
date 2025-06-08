@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,7 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject , MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
@@ -60,7 +60,7 @@ class User extends Authenticatable implements JWTSubject
     {
         $profile = $this->profile;
         $roles = $this->roles->pluck('name')->toArray();
-        
+
         return [
             'user_id' => $this->id,
             'email' => $this->email,
@@ -188,7 +188,7 @@ class User extends Authenticatable implements JWTSubject
             if (!$this->profile) {
                 return 'user_profile';
             }
-            
+
             if (!$this->profile->nid_front_image || !$this->profile->nid_back_image) {
                 return 'nid_upload';
             }
@@ -206,7 +206,7 @@ class User extends Authenticatable implements JWTSubject
         if ($this->isCompany() && $this->companyProfile) {
             return $this->companyProfile->company_name;
         }
-        
+
         return $this->profile ? $this->profile->full_name : $this->email;
     }
 }
