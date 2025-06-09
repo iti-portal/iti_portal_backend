@@ -4,7 +4,7 @@ use App\Http\Controllers\Auth\ExternalAuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Admin\UserManagementController;
-use App\Http\Controllers\Auth\PasswordRestController;
+use App\Http\Controllers\Auth\PasswordResetController;
 
 // Public API routes
 Route::post('auth/register', [RegistrationController::class, 'initialRegister']);
@@ -13,8 +13,11 @@ Route::post('auth/login', [AuthController::class, 'login']);
 
 
 // Reset password routes
-Route::post('auth/forgot-password',[PasswordRestController::class,'forgotPassword'])->name('password.request');
-Route::post('auth/reset-password',[PasswordRestController::class,'resetPassword'])->name('password.reset');
+Route::prefix('auth')->middleware('guest')->group(function () {
+    Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword'])->name('password.request');
+    Route::post('reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.reset');
+});
+
 // Sanctum only routes (authenticated but allow unverified)
 Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::post('user-status', [RegistrationController::class, 'showRegistrationStep']);

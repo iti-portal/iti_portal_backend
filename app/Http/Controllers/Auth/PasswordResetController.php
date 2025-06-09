@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 
-class PasswordRestController extends Controller
+class PasswordResetController extends Controller
 {
     public function forgotPassword(Request $request)
     {
@@ -21,7 +21,7 @@ class PasswordRestController extends Controller
             'message' => __($status),
         ], 200) : response()->json([
             'message' => __($status),
-        ],400);
+        ], 400);
     }
     public function resetPassword(Request $request)
     {
@@ -40,10 +40,10 @@ class PasswordRestController extends Controller
             }
 
         );
-        return $status === Password::PasswordReset ? response()->json([
+        return $status === Password::PASSWORD_RESET ? response()->json([
             'message' => __($status),
         ], 200) : response()->json([
-           'message' => __($status),
+            'message' => __($status),
         ], 400);
 
     }

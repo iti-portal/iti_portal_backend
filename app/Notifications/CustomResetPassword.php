@@ -33,7 +33,7 @@ class CustomResetPassword extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $frontendBaseUrl = 'http://localhost:3000/reset-password';
+       $frontendBaseUrl = config('app.frontend_url') . '/reset-password';
         $token = $this->token;
         $email = urlencode($notifiable->email);
 
