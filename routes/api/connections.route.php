@@ -21,4 +21,8 @@ Route::middleware([])->group(function () {
     Route::put('/connections/{id}/reject', function (Request $request, $id) {
         return response()->json(['message' => "Connection request with ID: $id rejected successfully"]);
     })->name('connections.reject.request');
+    // route for listing connection requests
+    Route::get('/connections/requests', function (Request $request) {
+        return response()->json(['message' => 'List of connection requests']);
+    });
 });

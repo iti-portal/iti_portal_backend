@@ -23,6 +23,11 @@ Route::middleware([])->group(function () {
 Route::middleware([])->delete('/articles/like/{id}', function (Request $request, $id) {
     return response()->json(['message' => "Like on article with ID: $id cancelled successfully"]);
 })->name('articles.cancel.like');
+// route for getting featured articles
+Route::get('/articles/featured', function (Request $request) {
+    return response()->json(['message' => 'List of featured articles']);
+})->name('articles.featured');
+
 
 // route for managing articles
 Route::middleware([])->group(function () {

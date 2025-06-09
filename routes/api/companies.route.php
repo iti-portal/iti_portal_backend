@@ -13,7 +13,7 @@ Route::middleware([])->group(function () {
     Route::put('/company', function (Request $request) {
         return response()->json(['message' => 'Company details updated successfully']);
     })->name('company.profile.update');
-    // This route for deleting company details
+    // This route for deleting company profile
     Route::delete('/company', function (Request $request) {
         return response()->json(['message' => 'Company details deleted successfully']);
     })->name('company.profile.delete');

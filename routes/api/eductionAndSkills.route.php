@@ -32,11 +32,11 @@ Route::middleware([])->group(function(){
         return response()->json(['message' => 'List of all skills']);
     })->name('skills.all');
     // this route for updating skill
-    Route::put('/skills/{id}/admin', function (Request $request, $id) {
+    Route::put('/manage-skills/{id}', function (Request $request, $id) {
         return response()->json(['message' => "Skill with ID: $id updated by admin successfully"]);
     })->name('skills.admin.update');
     // this route for deleting skill
-    Route::delete('/skills/{id}/admin', function (Request $request, $id) {
+    Route::delete('/manage-skills/{id}', function (Request $request, $id) {
         return response()->json(['message' => "Skill with ID: $id deleted by admin successfully"]);
     })->name('skills.admin.delete');
     // this route for getting skill's categories

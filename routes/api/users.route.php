@@ -35,22 +35,11 @@ Route::middleware([])->group(function () {
     
     // routes for user's management by admin and staff
     Route::middleware([])->group(function () {
-    // this route for listing pending user profiles
-    Route::get('/users/pending', function (Request $request) {
-        return response()->json(['message' => 'List of pending user profiles']);
-    })->name('users.pending');
-    // this route for approving a user profile
-    Route::post('/users/{id}/approve', function (Request $request, $id) {
-        return response()->json(['message' => "User profile with ID: $id approved successfully"]);
-    })->name('users.approve');
-    // This route for creating a new user
-    Route::post('/users', function (Request $request) {
-        return response()->json(['message' => 'User created successfully']);
-    })->name('users.create');
-    // This route for updating a user
-    Route::put('/users/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "User with ID: $id updated successfully"]);
-    })->name('users.update');
+//    route for suspending a user
+    Route::post('/suspend-user/{id}', function (Request $request, $id) {
+        return response()->json(['message' => "User with ID: $id suspended successfully"]);
+    })->name('users.suspend');
+    
     // This route for deleting a user
     Route::delete('/users/{id}', function (Request $request, $id) {
         return response()->json(['message' => "User with ID: $id deleted successfully"]);
@@ -68,14 +57,6 @@ Route::middleware([])->group(function () {
     Route::get('/staff', function (Request $request) {
         return response()->json(['message' => 'List of all staff members']);
     })->name('staff.list');
-    // This route for creating a new staff member
-    Route::post('/staff', function (Request $request) {
-        return response()->json(['message' => 'Staff member created successfully']);
-    })->name('staff.create');
-    // This route for updating a staff member
-    Route::put('/staff/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "Staff member with ID: $id updated successfully"]);
-    })->name('staff.update');
     // This route for deleting a staff member
     Route::delete('/staff/{id}', function (Request $request, $id) {
         return response()->json(['message' => "Staff member with ID: $id deleted successfully"]);
