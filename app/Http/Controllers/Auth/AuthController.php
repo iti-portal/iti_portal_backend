@@ -20,17 +20,17 @@ class AuthController extends Controller
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $user = Auth::user();
-            
+
             // Check registration completion
             $step = $user->getRegistrationStep();
-            
+
             if ($step === 'email_verification') {
                 return response()->json([
                     'message' => 'Please verify your email.',
                     'step' => $step,
                 ]);
             }
-            
+
             $token = $user->createToken('auth-token')->plainTextToken;
 
             if ($step !== 'completed') {
@@ -86,4 +86,5 @@ class AuthController extends Controller
     {
         //
     }
+   
 }
