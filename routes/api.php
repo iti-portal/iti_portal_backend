@@ -4,11 +4,19 @@ use App\Http\Controllers\Auth\ExternalAuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Auth\PasswordResetController;
 
 // Public API routes
 Route::post('auth/register', [RegistrationController::class, 'initialRegister']);
 Route::post('auth/login', [AuthController::class, 'login']);
 
+
+
+// Reset password routes
+Route::prefix('auth')->middleware('guest')->group(function () {
+    Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword'])->name('password.request');
+    Route::post('reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.reset');
+});
 
 // Sanctum only routes (authenticated but allow unverified)
 Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
@@ -21,10 +29,10 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 Route::middleware(['auth:sanctum', 'email.verified'])->group(function () {
     Route::post('registration/complete-profile', [RegistrationController::class, 'completeProfile'])
         ->middleware('role:student|alumni', 'allow.step:user_profile');
-    
+
     Route::post('registration/complete-company-profile', [RegistrationController::class, 'completeCompanyProfile'])
         ->middleware('role:company', 'allow.step:company_profile');
-    
+
     Route::post('registration/upload-nid', [RegistrationController::class, 'uploadNid'])
         ->middleware('role:student|alumni', 'allow.step:nid_upload');
 });
@@ -32,7 +40,7 @@ Route::middleware(['auth:sanctum', 'email.verified'])->group(function () {
 // Protected API routes
 Route::middleware('auth:sanctum', 'account.approved')->group(function () {
     Route::get('auth/user', [AuthController::class, 'user']);
-    
+
     // User Management routes
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         Route::get('pending-users', [UserManagementController::class, 'pendingUsers']);
