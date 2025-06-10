@@ -16,6 +16,7 @@ require __DIR__ . '/api/achievments.route.php';
 require __DIR__ . '/api/articles.route.php';
 require __DIR__ . '/api/services.route.php';
 require __DIR__ . '/api/connections.route.php';
+require __DIR__ . '/api/skills.route.php';
 
 
 
