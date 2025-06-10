@@ -34,7 +34,7 @@ class SkillController extends Controller
         $user_id = $request->user()->id;
         
         try {
-            $validator = \Validator::make($request->all(), [
+            $validator = validator($request->all(), [
                 'skill_id' => 'sometimes|required_without:skill_name|integer|exists:skills,id',
                 'skill_name' => 'sometimes|required_without:skill_id|string|min:2|max:50|regex:/^[a-zA-Z0-9\s]+$/'
             ], [
