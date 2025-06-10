@@ -19,6 +19,9 @@ class SkillController extends Controller
                 ->where('user_skills.user_id', $user_id)
                 ->select('skills.*')
                 ->get();
+            if ($skills->isEmpty()) {
+            return $this->responseWithSuccess([], 'You Have No Skills Added Yet');
+        }
 
             return $this->responseWithSuccess((new Collection($skills))->toArray(), 'Skills retrieved successfully');
         } catch (\Exception $e) {
@@ -31,28 +34,27 @@ class SkillController extends Controller
         $user_id = $request->user()->id;
         
         try {
-            // Check if request has skill_id
+            $validator = \Validator::make($request->all(), [
+                'skill_id' => 'sometimes|required_without:skill_name|integer|exists:skills,id',
+                'skill_name' => 'sometimes|required_without:skill_id|string|min:2|max:50|regex:/^[a-zA-Z0-9\s]+$/'
+            ], [
+                'skill_id.exists' => 'Skill not found',
+                'skill_name.regex' => 'Skill name can only contain letters, numbers and spaces'
+            ]);
+
+            if ($validator->fails()) {
+                return $this->responseWithError($validator->errors()->first(), 400);
+            }
+
             if ($request->has('skill_id')) {
                 $skill_id = $request->input('skill_id');
                 $skill = Skill::find($skill_id);
-                
-                // If skill_id is provided but skill doesn't exist, return error
-                if (!$skill) {
-                    return $this->responseWithError('Skill not found', 404);
-                }
-            } 
-            // If skill_name is provided, find or create the skill
-            else if ($request->has('skill_name')) {
-                $skill_name = $request->input('skill_name');
-                
-                // Find or create the skill
+            } else {
+                $skill_name = trim($request->input('skill_name'));
                 $skill = Skill::firstOrCreate(
                     ['name' => $skill_name]
                 );
-                
                 $skill_id = $skill->id;
-            } else {
-                return $this->responseWithError('Either skill_id or skill_name is required', 400);
             }
             
             // Check if skill already exists for user
@@ -71,47 +73,30 @@ class SkillController extends Controller
         }
     }
 
-    public function deleteSkill(Request $request): JsonResponse
+    public function deleteSkill(Request $request, $skill_id): JsonResponse
     {
-        $user_id = $request->user()->id;
+        $user = $request->user();
         
         try {
-            // Check if request has skill_id
-            if ($request->has('skill_id')) {
-                $skill_id = $request->input('skill_id');
-                
-                // Delete user skill by skill_id
-                $deleted = UserSkill::where('user_id', $user_id)
-                    ->where('skill_id', $skill_id)
-                    ->delete();
-                
-                if (!$deleted) {
-                    return $this->responseWithError('Skill not found for this user', 404);
-                }
-            } 
-            // If skill_name is provided, find skill by name then delete
-            else if ($request->has('skill_name')) {
-                $skill_name = $request->input('skill_name');
-                
-                // Find the skill by name
-                $skill = Skill::where('name', $skill_name)->first();
-                
-                if (!$skill) {
-                    return $this->responseWithError('Skill not found with name: ' . $skill_name, 404);
-                }
-                
-                // Delete user skill by skill_id
-                $deleted = UserSkill::where('user_id', $user_id)
-                    ->where('skill_id', $skill->id)
-                    ->delete();
-                
-                if (!$deleted) {
-                    return $this->responseWithError('User does not have this skill', 404);
-                }
-            } else {
-                return $this->responseWithError('Either skill_id or skill_name is required', 400);
+            if (!is_numeric($skill_id)) {
+                return $this->responseWithError('Invalid skill ID', 400);
             }
 
+            $userSkill = UserSkill::where('user_id', $user->id)
+                            ->where('skill_id', $skill_id)
+                            ->first();
+            
+            if (!$userSkill) {
+                return $this->responseWithError('Skill not found for this user', 404);
+            }
+            
+            // Allow deletion if user is admin OR owns the skill
+            if (!$user->hasRole('admin') && $userSkill->user_id !== $user->id) {
+                return $this->responseWithError('Unauthorized to delete this skill', 403);
+            }
+            
+            $userSkill->delete();
+            
             return $this->responseWithSuccess([], 'Skill deleted successfully');
         } catch (\Exception $e) {
             return $this->responseWithError('Failed to delete skill: ' . $e->getMessage(), 500);

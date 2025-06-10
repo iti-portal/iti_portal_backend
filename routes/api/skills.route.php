@@ -8,9 +8,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Get all skills for a specific user
     Route::get('/user-skills/{id}', [SkillController::class, 'getAllSkillsForUser']);
     
-    // Add a skill (with skill_id or skill_name)
+    // Add a skill
     Route::post('/user-skills', [SkillController::class, 'addSkill']);
     
-    // Delete a user skill
+    // Delete a user skill (now using URL parameter)
     Route::delete('/user-skills/{id}', [SkillController::class, 'deleteSkill']);
 });
