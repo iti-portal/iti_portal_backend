@@ -17,9 +17,7 @@ require __DIR__ . '/api/articles.route.php';
 require __DIR__ . '/api/services.route.php';
 require __DIR__ . '/api/connections.route.php';
 
-Route::get('test/seccess', [TestController::class, 'index'])
-    ->name('test.success');
-Route::get('test/error', [TestController::class, 'error']);
+
 
 
 // Public API routes

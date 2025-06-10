@@ -18,11 +18,12 @@ return new class extends Migration
             $table->enum('type', ['award', 'certification', 'job', 'project']);
             $table->string('title');
             $table->text('description')->nullable();
-            $table->string('organization')->nullable();
-            $table->date('achieved_at')->nullable();
+            $table->string('organization');
+            $table->date('achieved_at');
             $table->string('image_path')->nullable();
             $table->string('certificate_url')->nullable();
             $table->string('project_url')->nullable();
+        
             $table->integer('like_count')->default(0);
             $table->integer('comment_count')->default(0);
         });

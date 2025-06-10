@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 class Controller
 {
     //
-    protected function responseWithSuccess($data, $message = null, $code = 200)
+    protected function responseWithSuccess($data, $message = null,
+     $code = 200)
     {
         return response()->json([
             'success' => true,
