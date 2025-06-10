@@ -56,7 +56,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'delete articles',
             'publish articles',
             'manage articles',
-            // 'like articles' permission removed as requested
+            // 'like articles5' permission removed as requested
 
             // Skills & Categories Management (Admin/Staff)
             'manage skills', // For managing the global list of skills

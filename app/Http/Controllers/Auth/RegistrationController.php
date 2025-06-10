@@ -22,6 +22,7 @@ class RegistrationController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
             'role' => 'required|in:student,alumni,company',
         ]);
+       
 
         DB::beginTransaction();
         try {
@@ -72,6 +73,7 @@ class RegistrationController extends Controller
     public function completeProfile(Request $request)
     {
         $user = $request->user();
+        
 
         $validation = [
             'first_name' => 'required|string|max:255',
