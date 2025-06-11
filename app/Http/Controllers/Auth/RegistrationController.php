@@ -22,7 +22,7 @@ class RegistrationController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
             'role' => 'required|in:student,alumni,company',
         ]);
-       
+
 
         DB::beginTransaction();
         try {
@@ -38,10 +38,10 @@ class RegistrationController extends Controller
             if (!$role) {
                 throw new \Exception("Role '{$request->role}' not found");
             }
-            
+
             $user->assignRole($role);
 
-            // event(new Registered($user)); //for email verification
+            event(new Registered($user));
 
             DB::commit();
 
@@ -57,7 +57,7 @@ class RegistrationController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
-        
+
     }
 
     public function showRegistrationStep(Request $request)
@@ -73,7 +73,7 @@ class RegistrationController extends Controller
     public function completeProfile(Request $request)
     {
         $user = $request->user();
-        
+
 
         $validation = [
             'first_name' => 'required|string|max:255',
@@ -191,7 +191,7 @@ class RegistrationController extends Controller
                 'nid_front' => 'required|image|mimes:jpeg,png,jpg|max:2048',
                 'nid_back' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             ]);
-            
+
             $frontPath = $request->file('nid_front')->store('nid-images', 'public');
             $backPath = $request->file('nid_back')->store('nid-images', 'public');
 

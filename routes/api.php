@@ -26,6 +26,14 @@ use App\Http\Controllers\Auth\PasswordResetController;
 Route::post('auth/register', [RegistrationController::class, 'initialRegister']);
 Route::post('auth/login', [AuthController::class, 'login']);
 
+// Email verification routes
+Route::get('auth/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+// Route::post('auth/resend-verification', [AuthController::class, 'resendVerificationEmail'])
+//     ->middleware('throttle:6,1')
+//     ->name('verification.send');
+
 
 
 // Reset password routes
@@ -37,7 +45,9 @@ Route::prefix('auth')->middleware('guest')->group(function () {
 // Sanctum only routes (authenticated but allow unverified)
 Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::post('user-status', [RegistrationController::class, 'showRegistrationStep']);
-    Route::post('resend-verification', [AuthController::class, 'resendVerificationEmail']);
+    Route::post('resend-verification', [AuthController::class, 'resendVerificationEmail'])
+    ->middleware('throttle:6,1')
+    ->name('verification.send');
     Route::post('logout', [AuthController::class, 'logout']);
 });
 
