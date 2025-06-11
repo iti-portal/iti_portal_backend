@@ -31,6 +31,7 @@ class StudentRegistrationRequest extends FormRequest
             'first_name' => 'required|string|max:100|min:3',
             'last_name' => 'required|string|max:100|min:3',
             'username' => 'required|string|regex:/^[A-Za-z0-9_]+$/|unique:user_profiles,username|max:30|min:3',
+            'role' => 'required|in:student,alumni',
             'phone' => 'required|string|regex:/^01[0125][0-9]{8}$/',
             'governorate' => 'required|string|max:100',
             'track' => 'nullable|string|max:100',
@@ -63,6 +64,9 @@ class StudentRegistrationRequest extends FormRequest
             // Password
             'password.required' => 'Password is required.',
             'password.confirmed' => 'Password confirmation does not match.',
+
+            // Role
+            'role.required' => 'Role is required.',
 
             // First Name
             'first_name.required' => 'First name is required.',
