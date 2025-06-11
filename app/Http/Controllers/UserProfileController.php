@@ -31,15 +31,21 @@ class UserProfileController extends Controller
 
             // Search by first name, last name, username, phone
             if ($request->has('search')) {
-                $searchTerm = $request->input('search');
-                // For better performance, consider using a full-text search index
-                // or at least avoid leading wildcards when possible
-                $query->where(function ($q) use ($searchTerm) {
-                    $q->where('first_name', 'like', $searchTerm . '%') // Using right wildcard is more index-friendly
-                      ->orWhere('last_name', 'like', $searchTerm . '%')
-                      ->orWhere('phone', 'like', $searchTerm . '%')
-                      ->orWhere('username', 'like', $searchTerm . '%');
-                });
+                $searchTerm = trim($request->input('search'));
+                
+                // Skip search if search term is too short (optional)
+                if (strlen($searchTerm) >= 2) {
+                    // For better performance, consider using a full-text search index
+                    // or at least avoid leading wildcards when possible
+                    $query->where(function ($q) use ($searchTerm) {
+                        $q->where('first_name', 'like', $searchTerm . '%') // Using right wildcard is more index-friendly
+                          ->orWhere('last_name', 'like', $searchTerm . '%')
+                          // Add this for combined name matching
+                          ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", [$searchTerm . '%'])
+                          ->orWhere('phone', 'like', $searchTerm . '%')
+                          ->orWhere('username', 'like', $searchTerm . '%');
+                    });
+                }
             }
 
             // Filter by skill - using join instead of nested whereHas
@@ -63,9 +69,22 @@ class UserProfileController extends Controller
 
             // Implement pagination
             $perPage = $request->input('per_page', 15); // Default 15 items per page
-            $userProfiles = $query->paginate($perPage);
-
-            return $this->responseWithSuccess('User profiles retrieved successfully', $userProfiles);
+            $paginatedResults = $query->paginate($perPage);
+            
+            // Extract just the data without pagination metadata
+            $userProfiles = $paginatedResults->items();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'User profiles retrieved successfully',
+                'data' => $userProfiles,
+                'meta' => [
+                    'current_page' => $paginatedResults->currentPage(),
+                    'total' => $paginatedResults->total(),
+                    'per_page' => $paginatedResults->perPage(),
+                    'last_page' => $paginatedResults->lastPage()
+                ]
+            ]);
         } catch (\Exception $e) {
             return $this->responseWithError('An error occurred while searching user profiles: ' . $e->getMessage(), 500);
         }
