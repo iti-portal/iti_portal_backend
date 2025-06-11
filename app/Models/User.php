@@ -128,23 +128,9 @@ class User extends Authenticatable implements JWTSubject
     public function scopePending($query)
     {
         return $query->where('status', 'pending')
-                     ->where(function ($q) {
-                         // For companies: must have company profile
-                         $q->whereHas('roles', function ($roleQuery) {
-                             $roleQuery->where('name', 'company');
-                         })->whereHas('companyProfile')
-                         ->orWhere(function ($userQuery) {
-                             // For non-companies: must have profile and NID images
-                             $userQuery->whereDoesntHave('roles', function ($roleQuery) {
-                                 $roleQuery->where('name', 'company');
-                             })
-                             ->whereHas('profile', function ($profileQuery) {
-                                 $profileQuery->whereNotNull('nid_front_image')
-                                             ->whereNotNull('nid_back_image');
-                             });
-                         });
-                     })
-                     ->whereNotNull('email_verified_at'); // Ensure email is verified
+                     ->whereHas('roles', function ($roleQuery) {
+                         $roleQuery->whereIn('name', ['student', 'alumni', 'company']);
+                     });
     }
 
     public function scopeByRole($query, $role)
@@ -153,6 +139,11 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // Helper Methods
+    public function isVerified()
+    {
+        return $this->email_verified_at !== NULL;
+    }
+
     public function isApproved()
     {
         return $this->status === 'approved';
@@ -176,33 +167,6 @@ class User extends Authenticatable implements JWTSubject
     public function isStaff()
     {
         return $this->hasRole('staff');
-    }
-
-    public function getRegistrationStep()
-    {
-        if (!$this->hasVerifiedEmail()) {
-            return 'email_verification';
-        }
-
-        if ($this->isCompany()) {
-            if (!$this->companyProfile) {
-                return 'company_profile';
-            }
-        } else {
-            if (!$this->profile) {
-                return 'user_profile';
-            }
-
-            if (!$this->profile->nid_front_image || !$this->profile->nid_back_image) {
-                return 'nid_upload';
-            }
-        }
-
-        if ($this->status === 'pending') {
-            return 'pending_approval';
-        }
-
-        return 'completed';
     }
 
     public function getFullNameAttribute()
