@@ -6,7 +6,7 @@ use App\Http\Controllers\WorkExperienceController;
 
 // Custom work experience management routes
 
-Route::middleware(['auth:sanctum','role:student|alumni'] )->group(function () {
+Route::middleware(['auth:sanctum'] )->group(function () {
     // Get all work experiences for a specific user
     Route::get('/user-work-experiences', [WorkExperienceController::class, 'index']);
 
