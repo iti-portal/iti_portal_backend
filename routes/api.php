@@ -17,8 +17,7 @@ require __DIR__ . '/api/articles.route.php';
 require __DIR__ . '/api/services.route.php';
 require __DIR__ . '/api/connections.route.php';
 require __DIR__ . '/api/skills.route.php';
-
-
+require __DIR__ . '/api/workExperience.route.php';
 
 use App\Http\Controllers\Auth\PasswordResetController;
 
