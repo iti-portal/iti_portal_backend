@@ -29,4 +29,11 @@ class UpdateWorkExperienceRequest extends FormRequest
             'position'     => 'sometimes|string|max:255',
         ];
     }
+    public function messages(): array
+    {
+        return [
+           'end_date.after'     => 'The end date must be after the start date.',
+           'is_current.boolean' => 'Current job flag must be true or false',
+        ];
+    }
 }

@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreWorkExperienceRequest;
 use App\Http\Requests\UpdateWorkExperienceRequest;
+use App\Models\User;
 use App\Models\WorkExperience;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,7 +42,7 @@ class WorkExperienceController extends Controller
             return $this->respondWithSuccess($experience, 'Work experience added successfully', 201);
 
         } catch (\Exception $e) {
-           return $this->respondWithError($e->getMessage(), 500);
+            return $this->respondWithError($e->getMessage(), 500);
         }
 
     }
@@ -74,6 +75,18 @@ class WorkExperienceController extends Controller
             return $this->respondWithSuccess([], 'Work experience deleted successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to delete work experience', 500);
+        }
+    }
+    public function showUserExperiences(User $user): JsonResponse
+    {
+        try {
+            $workExperiences = $user->workExperiences()->get();
+            if ($workExperiences->isEmpty()) {
+                return $this->respondWithError('This user has no work experiences', 404);
+            }
+            return $this->respondWithSuccess($workExperiences, 'User work experiences retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to retrieve user work experiences', 500);
         }
     }
 }

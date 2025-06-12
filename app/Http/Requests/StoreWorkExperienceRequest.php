@@ -32,9 +32,12 @@ class StoreWorkExperienceRequest extends FormRequest
     public function messages()
     {
         return [
-
             'end_date.after'     => 'The end date must be after the start date.',
             'is_current.boolean' => 'Current job flag must be true or false',
+            'company_name.required' => 'Company name is required.',
+            'start_date.required' => 'Start date is required.',
+            'position.required' => 'Position is required.',
+
 
         ];
     }
