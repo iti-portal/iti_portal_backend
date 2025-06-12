@@ -1,10 +1,9 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class UserProfileController extends Controller
 {
@@ -17,7 +16,6 @@ class UserProfileController extends Controller
     public function searchAndFilter(Request $request)
     {
         try {
-            // Use select to only fetch needed fields from the database
             $query = UserProfile::select([
                 'user_profiles.id',
                 'user_profiles.first_name',
@@ -29,64 +27,58 @@ class UserProfileController extends Controller
                 'user_profiles.user_id'
             ]);
 
-            // Search by first name, last name, username, phone
-            if ($request->has('search')) {
+            // Apply same filters as above...
+            if ($request->has('search') && $request->filled('search')) {
                 $searchTerm = trim($request->input('search'));
-                
-                // Skip search if search term is too short (optional)
                 if (strlen($searchTerm) >= 2) {
-                    // For better performance, consider using a full-text search index
-                    // or at least avoid leading wildcards when possible
-                    $query->where(function ($q) use ($searchTerm) {
-                        $q->where('first_name', 'like', $searchTerm . '%') // Using right wildcard is more index-friendly
-                          ->orWhere('last_name', 'like', $searchTerm . '%')
-                          // Add this for combined name matching
-                          ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", [$searchTerm . '%'])
-                          ->orWhere('phone', 'like', $searchTerm . '%')
-                          ->orWhere('username', 'like', $searchTerm . '%');
+                    $escapedSearchTerm = str_replace(['%', '\\'], ['\%', '\\\\'], $searchTerm);
+                    $query->where(function ($q) use ($escapedSearchTerm) {
+                        $q->where('first_name', 'like', $escapedSearchTerm . '%')
+                          ->orWhere('last_name', 'like', $escapedSearchTerm . '%')
+                          ->orWhere('username', 'like', $escapedSearchTerm . '%')
+                          ->orWhere('phone', 'like', $escapedSearchTerm . '%');
                     });
                 }
             }
 
-            // Filter by skill - using join instead of nested whereHas
-            if ($request->has('skill')) {
+            if ($request->has('skill') && $request->filled('skill')) {
                 $skillTerm = $request->input('skill');
-                $query->join('user_skills', 'user_profiles.user_id', '=', 'user_skills.user_id')
-                      ->join('skills', 'user_skills.skill_id', '=', 'skills.id')
-                      ->where('skills.name', 'like', $skillTerm . '%')
-                      ->distinct(); // Avoid duplicate results
+                $query->whereExists(function ($subQuery) use ($skillTerm) {
+                    $subQuery->select(DB::raw(1))
+                             ->from('user_skills')
+                             ->join('skills', 'user_skills.skill_id', '=', 'skills.id')
+                             ->whereColumn('user_skills.user_id', 'user_profiles.user_id')
+                             ->where('skills.name', 'like', $skillTerm . '%');
+                });
             }
 
-            // Filter by track
-            if ($request->has('track')) {
-                $query->where('track', $request->input('track'));
+            if ($request->has('track') && $request->filled('track')) {
+                $query->where('track', '=', $request->input('track'));
             }
 
-            // Filter by intake
-            if ($request->has('intake')) {
-                $query->where('intake', $request->input('intake'));
+            if ($request->has('intake') && $request->filled('intake')) {
+                $query->where('intake', '=', $request->input('intake'));
             }
 
-            // Implement pagination
-            $perPage = $request->input('per_page', 15); // Default 15 items per page
-            $paginatedResults = $query->paginate($perPage);
+            $query->orderBy('user_profiles.id');
+            $perPage = min((int)$request->input('per_page', 15), 100);
             
-            // Extract just the data without pagination metadata
-            $userProfiles = $paginatedResults->items();
+            // Use simplePaginate - much faster, no total count
+            $paginatedResults = $query->simplePaginate($perPage);
             
             return response()->json([
                 'success' => true,
                 'message' => 'User profiles retrieved successfully',
-                'data' => $userProfiles,
+                'data' => $paginatedResults->items(),
                 'meta' => [
                     'current_page' => $paginatedResults->currentPage(),
-                    'total' => $paginatedResults->total(),
                     'per_page' => $paginatedResults->perPage(),
-                    'last_page' => $paginatedResults->lastPage()
+                    'has_more_pages' => $paginatedResults->hasMorePages()
                 ]
             ]);
+            
         } catch (\Exception $e) {
             return $this->responseWithError('An error occurred while searching user profiles: ' . $e->getMessage(), 500);
         }
-}
-}
+    }
+    }
