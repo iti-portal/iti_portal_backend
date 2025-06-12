@@ -89,13 +89,19 @@ class AuthController extends Controller
                 'message' => 'Invalid verification link.',
             ], 403);
         }
+        // Check if the user is already verified
+        if ($user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Email already verified.',
+            ], 400);
+        }
         // Mark email as verified
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
 
-        // return response()->json(['message' => 'Email verified successfully!']);
-        return redirect()->to(config('app.frontend_url') . '/login?email_verified=true');
+        return response()->json(['message' => 'Email verified successfully!']);
+
 
     }
 
