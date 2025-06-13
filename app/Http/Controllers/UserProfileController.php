@@ -1,13 +1,138 @@
 <?php
+
 namespace App\Http\Controllers;
+
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Date;
 
 class UserProfileController extends Controller
 {
-    /**
+    //
+    public function getUserProfile(Request $request)
+    {
+        $user = $request->user();
+        try {
+            $user = $request->user();
+            if(!$user){
+                return $this->respondWithError('User not found', 404);
+            }
+            $profile = $user->load('profile',
+                'workExperiences',
+                'educations',
+                'projects',
+                'skills',
+                'awards',
+                'certificates'
+            );
+           
+            if(!$user->profile){
+                return $this->respondWithError('User profile not found', 404);
+            } 
+            $user->profile->makeHidden([
+                'nid_front_image',
+                'nid_back_image',
+            ]);
+    
+            return $this->respondWithSuccess([
+                'user' => $user->makeHidden(['password', 'remember_token']),
+            ],
+        
+ 'User profile retrieved successfully');
+
+        }catch (\Exception $e) {
+            $this->respondWithError($e->getMessage(), 500);
+        }
+
+    }
+    // public function updateUserProfile(UpdateProfileRequest $request){
+    //     $user = $request->user();
+    //     try {
+    //         if(!$user){
+    //             return $this->respondWithError('User not found', 404);
+    //         }
+    //         $profile = $user->profile;
+    //         if(!$profile){
+    //             return $this->respondWithError('User profile not found', 404);
+    //         }
+            
+    //         if (isset($request->graduation_date) && $request->graduation_date > now()) {
+    //             return $this->respondWithError('Graduation date cannot be in the future', 400);
+    //         }
+    //         $profile->update(
+    //             $request->only([
+    //                 'username',
+    //                 'email',
+    //                 'password',
+    //                 'first_name',
+    //                 'last_name',
+    //                 'phone',
+    //                 'governorate',
+    //                 'track',
+    //                 'intake',
+    //                 'graduation_date',
+    //                 'student_status',
+    //                 'username',
+    //                 'summery',
+    //                 'whatsapp',
+    //                 'linkedin',
+    //                 'github',
+    //                 'portfolio_url',
+    //                 'governorate',
+    //                 'student_status',
+    //                 // 'graduation_date',
+    //                 // 'track',
+    //                 // 'intake',
+    //             ])
+    //             );
+            
+    //     }catch (\Exception $e) {
+    //         return $this->respondWithError($e->getMessage(), 500);
+    //     }
+    // }
+
+
+    public function updateUserProfileImage(Request $request)
+    {
+        $user = $request->user();
+        try {
+            if(!$user){
+                return $this->respondWithError('User not found', 404);
+            }
+            $profile = $user->profile;
+            if(!$profile){
+                return $this->respondWithError('User profile not found', 404);
+            }
+            $request->validate(['profile_picture' => 'required|image|mimes:jpeg,png,jpg,svg|max:2048']);
+                $image = $request->file('profile_picture');
+                $path = $image->store('profile_images', 'public');
+                $profile->update(['profile_picture' => $path]);
+            
+            return $this->respondWithSuccess(['profile_picture'=> $profile->profile_picture], 'Profile image updated successfully');
+        }catch (\Exception $e) {
+            return $this->respondWithError($e->getMessage(), 500);
+        }
+    }
+    public function updateUserCoverPhoto(Request $request){
+        $user = $request->user();
+        try {
+            if(!$user){
+                return $this->respondWithError('User not found', 404);
+            }
+            $profile = $user->profile;
+            if(!$profile){
+                return $this->respondWithError('User profile not found', 404);
+            }
+            $request->validate(['cover_photo' => 'required|image|mimes:jpeg,png,jpg,svg,webp|max:2048|dimensions:min_width=400,min_height=400']);
+            $image = $request->file('cover_photo');
+            $path = $image->store('cover_photos', 'public');
+            $profile->update(['cover_photo' => $path]);
+            return $this->respondWithSuccess(['cover_photo'=> $profile->cover_photo], 'Cover photo updated successfully');
+        }catch (\Exception $e) {
+            return $this->respondWithError($e->getMessage(), 500);
+        }
+    } /**
      * Perform advanced search and filtering on User Profiles.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -78,7 +203,7 @@ class UserProfileController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            return $this->responseWithError('An error occurred while searching user profiles: ' . $e->getMessage(), 500);
+            return $this->respondWithError('An error occurred while searching user profiles: ' . $e->getMessage(), 500);
         }
     }
     }

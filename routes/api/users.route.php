@@ -1,14 +1,15 @@
 <?php
 
+use App\Http\Controllers\UserProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Sanctum;
 
 // display and management user details
-Route::middleware([])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     // Routes for current user
     // This route for getting user profile
-    Route::get('/profile', fn(Request $request)
-        => response()->json(['message' => 'This is the profile route']))
+    Route::get('/profile', [UserProfileController::class, 'getUserProfile'])
         ->name('profile');
     // This route for updating user profile
     Route::put('/profile', fn (Request $request)=>
@@ -31,7 +32,16 @@ Route::middleware([])->group(function () {
     Route::get('/staff', function (Request $request) {
         return response()->json(['message' => 'List of staff members']);
     })->name('staff.list');
+
+    // route for update profile picture
+    Route::post('/profile-picture', [UserProfileController::class, 'updateUserProfileImage'])
+        ->name('profile.picture.update');
+
+    // route for update cover photo
+    Route::post('/cover-photo', [UserProfileController::class, 'updateUserCoverPhoto'])
+        ->name('profile.cover.update');
     });
+    
     
     // routes for user's management by admin and staff
     Route::middleware([])->group(function () {

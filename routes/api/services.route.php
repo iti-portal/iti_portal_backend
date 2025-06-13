@@ -1,38 +1,37 @@
 <?php
 
+use App\Http\Controllers\ServicesController;
+use App\Models\AlumniService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
+// This route for adding a new service
+Route::middleware(['auth:sanctum', 'permission:offer alumni services'])->post('/service', 
+[ServicesController::class, 'createService'])->name('services.add');
+
 // adding service and manage it for alunmini
-Route::middleware([])->group(function () {
+Route::middleware(['auth:sanctum', 'permission:manage alumni services'])->group(function () {
     // this route for listing all user services
-    Route::get('/service', function (Request $request) {
-        return response()->json(['message' => 'List of user services']);
-    })->name('services.list');
-    // This route for adding a new service
-    Route::post('/service', function (Request $request) {
-        return response()->json(['message' => 'Service added successfully']);
-    })->name('services.add');
+    Route::get('/service', [ServicesController::class, 'listUserServices'])
+    ->name('services.list');
     // route for update existing service
-    Route::put('/service/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "Service with ID: $id updated successfully"]);
-    })->name('services.update');
+    Route::put(
+        '/service',
+        [ServicesController::class, 'updateService']
+    )->name('services.update');
     // route for delete service
-    Route::delete('/service/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "Service with ID: $id deleted successfully"]);
-    })->name('services.delete');
+    Route::delete('/service/{id}', [ServicesController::class, 'deleteService'])->name('services.delete');
 });
 
 // route for managing service by admin and staff
-Route::middleware([])->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin|staff'])->group(function () {
     // this route for listing all services
-    Route::get('/services/all', function (Request $request) {
-        return response()->json(['message' => 'List of all services']);
-    })->name('services.all');
+    Route::get('/all-services', [ServicesController::class, 'listAllServices'])->name('services.all');
+    // route for getting service by id
+    Route::get('/service/{id}', [ServicesController::class, 'getServiceDetails'])->name('services.get');
     // this route for updating service
-    Route::put('/manage-service/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "Service with ID: $id updated by admin successfully"]);
-    })->name('services.admin.update');
+    Route::put('/evaluate-service/{id}', [ServicesController::class, 'evaluateService'])->name('services.admin.update');
     //route for deleting service can be as for alumini above
 
 });

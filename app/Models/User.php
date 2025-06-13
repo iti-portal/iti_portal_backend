@@ -17,6 +17,7 @@ class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
@@ -77,6 +78,11 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // Relationships
+
+    public function alumniServices()
+    {
+        return $this->hasMany(AlumniService::class, 'alumni_id');
+    }
     public function profile()
     {
         return $this->hasOne(UserProfile::class);
@@ -115,8 +121,11 @@ class User extends Authenticatable implements JWTSubject
     public function skills()
     {
         return $this->belongsToMany(Skill::class, 'user_skills')
-                    ->withPivot('proficiency_level')
                     ->withTimestamps();
+    }
+    public function awards()
+    {
+        return $this->hasMany(Award::class);
     }
 
     // Scopes
