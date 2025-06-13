@@ -20,40 +20,16 @@ class AuthController extends Controller
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $user = Auth::user();
 
-<<<<<<< feature/emai-verification
-            // Check registration completion
-            $step = $user->getRegistrationStep();
-
-            if ($step === 'email_verification') {
-                return response()->json([
-                    'message' => 'Please verify your email.',
-                    'step'    => $step,
-                ]);
-=======
             $message = 'Login successful';
             if (!$user->isVerified()){
                 $message = 'Please verify your email to complete the login.';
             } else if (!$user->isApproved()){
                 $message = 'Your account is not approved yet. You will receive an email once it is approved.';
->>>>>>> development
             }
 
             $token = $user->createToken('auth-token')->plainTextToken;
 
-<<<<<<< feature/emai-verification
-            if ($step !== 'completed') {
-                return response()->json([
-                    'message' => 'Please complete your registration.',
-                    'step'    => $step,
-                    'token'   => $token,
-                ]);
-            }
-
-            if (! $user->isApproved()) {
-                Auth::logout();
-=======
             if ($user->hasRole('admin') || $user->hasRole('staff')) {
->>>>>>> development
                 return response()->json([
                     'success' => true,
                     'message' => ucfirst($user->getRoleNames()->first()) . ' login successfully.',
@@ -65,12 +41,6 @@ class AuthController extends Controller
             }
 
             return response()->json([
-<<<<<<< feature/emai-verification
-                'message' => 'Login successful',
-                'user'    => $user->load('profile', 'companyProfile'),
-                'token'   => $token,
-            ]);
-=======
                 'success' => true,
                 'message' => $message,
                 'data' => [
@@ -80,7 +50,6 @@ class AuthController extends Controller
                     'token' => $token,
                 ],
             ], 200);
->>>>>>> development
         }
 
         return response()->json([
@@ -94,13 +63,9 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-<<<<<<< feature/emai-verification
-            'message' => 'Logged out successfully',
-=======
             'success' => true,
             'message' => 'Logged out successfully',
             'data' => null,
->>>>>>> development
         ]);
     }
 
