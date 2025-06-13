@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
+use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -10,42 +11,54 @@ use Illuminate\Support\Facades\Date;
 class UserProfileController extends Controller
 {
     //
+    private function getProfileData(User $user){
+        if(!$user){
+            return $this->respondWithError('User not found', 404);
+        }
+        try{
+        $profile = $user->load('profile',
+            'workExperiences',
+            'educations',
+            'projects',
+            'skills',
+            'awards',
+            'certificates'
+        );
+       
+        if(!$user->profile){
+            return $this->respondWithError('User profile not found', 404);
+        } 
+        $user->profile->makeHidden([
+            'nid_front_image',
+            'nid_back_image',
+        ]);
+
+        return $this->respondWithSuccess([
+            'user' => $user->makeHidden(['password', 'remember_token']),
+        ],
+    
+    'User profile retrieved successfully');
+    }catch (\Exception $e) {
+        $this->respondWithError("Something went wrong", 500);
+    }
+
+    }
     public function getUserProfile(Request $request)
     {
         $user = $request->user();
-        try {
-            $user = $request->user();
-            if(!$user){
-                return $this->respondWithError('User not found', 404);
-            }
-            $profile = $user->load('profile',
-                'workExperiences',
-                'educations',
-                'projects',
-                'skills',
-                'awards',
-                'certificates'
-            );
-           
-            if(!$user->profile){
-                return $this->respondWithError('User profile not found', 404);
-            } 
-            $user->profile->makeHidden([
-                'nid_front_image',
-                'nid_back_image',
-            ]);
-    
-            return $this->respondWithSuccess([
-                'user' => $user->makeHidden(['password', 'remember_token']),
-            ],
+        return $this->getProfileData($user);
         
- 'User profile retrieved successfully');
-
-        }catch (\Exception $e) {
-            $this->respondWithError($e->getMessage(), 500);
-        }
-
     }
+    public function getUserProfileById(Request $request, $id){
+        try {
+            $user = User::findOrFail($id);
+            return $this->getProfileData($user);
+        } catch (\Exception $e) {
+            return $this->respondWithError('User not found', 404);
+        }
+    }
+
+    
     // public function updateUserProfile(UpdateProfileRequest $request){
     //     $user = $request->user();
     //     try {
@@ -91,6 +104,24 @@ class UserProfileController extends Controller
     //         return $this->respondWithError($e->getMessage(), 500);
     //     }
     // }
+    public function deleteUserProfile(Request $request)
+    {
+        $user = $request->user();
+        try {
+            if(!$user){
+                return $this->respondWithError('User not found', 404);
+            }
+            $profile = $user->profile;
+            if(!$profile){
+                return $this->respondWithError('User profile not found', 404);
+            }
+            $profile->delete();
+            $user->delete();
+            return $this->respondWithSuccess([], 'User profile deleted successfully');
+        }catch (\Exception $e) {
+            return $this->respondWithError($e->getMessage(), 500);
+        }
+    }
 
 
     public function updateUserProfileImage(Request $request)

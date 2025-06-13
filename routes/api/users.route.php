@@ -21,9 +21,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     )->name('profile.delete');
     
     // This route for getting user profile details by ID
-    Route::get('/profile/{id}', fn(Request $request, $id) 
-        => response()->json(['message' => "Profile details for user with ID: $id"]))
+    Route::get('/profile/{id}', [UserProfileController::class, 'getUserProfileById'])
         ->name('profile.details');
+
+        
     // This route for listing all users
     Route::get('/itians', function (Request $request) {
         return response()->json(['message' => 'List of ITIans']);
