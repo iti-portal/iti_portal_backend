@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StaffRegistrationRequest;
 use App\Models\User;
 use App\Models\StaffProfile;
 use Illuminate\Support\Facades\Hash;
@@ -14,50 +15,81 @@ class UserManagementController extends Controller
 {
     public function pendingUsers()
     {
-        $users = User::with(['profile', 'companyProfile', 'roles'])
+        $users = User::with(['roles', 'profile', 'companyProfile'])
                     ->pending()
                     ->paginate(15);
 
         return response()->json([
             'success' => true,
+            'message' => 'Pending users retrieved successfully.',
             'data' => $users,
         ]);
     }
 
     public function approveUser(User $user)
     {
-        $user->update(['status' => 'approved']);
+        try{
+            $user->update(['status' => 'approved']);
 
-        return response()->json([
-            'message' => "User {$user->full_name} has been approved.",
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => "User '{$user->getFullNameAttribute()}' has been approved successfully.",
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'full_name' => $user->getFullNameAttribute(),
+                        'email' => $user->email,
+                        'status' => $user->status,
+                        'role' => $user->getRoleNames()->first(),
+                    ]
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User approval failed.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function rejectUser(User $user)
     {
-        $user->update(['status' => 'rejected']);
+        try{
+            $user->update(['status' => 'rejected']);
 
-
-        return response()->json([
-            'message' => "User {$user->full_name} has been rejected.",
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => "User '{$user->getFullNameAttribute()}' has been rejected successfully.",
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'full_name' => $user->getFullNameAttribute(),
+                        'email' => $user->email,
+                        'status' => $user->status,
+                        'role' => $user->getRoleNames()->first(),
+                    ]
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User rejection failed.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    public function createStaff(Request $request)
+
+    public function createStaff(StaffRegistrationRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
-            'full_name' => 'required|string|max:255',
-            'position' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
-        ]);
+        $validatedData = $request->validated();
 
         DB::beginTransaction();
         try {
             $user = User::create([
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
+                'email' => $validatedData['email'],
+                'password' => Hash::make($validatedData['password']),
                 'status' => 'approved',
                 'email_verified_at' => now(),
             ]);
@@ -66,21 +98,25 @@ class UserManagementController extends Controller
 
             StaffProfile::create([
                 'user_id' => $user->id,
-                'full_name' => $request->full_name,
-                'position' => $request->position,
-                'department' => $request->department,
+                'full_name' => $validatedData['full_name'],
+                'position' => $validatedData['position'],
+                'department' => $validatedData['department'],
             ]);
 
             DB::commit();
 
             return response()->json([
+                'success' => true,
                 'message' => 'Staff member created successfully.',
-                'user' => $user->load('staffProfile'),
+                'data' => [
+                    'user' => $user->load('staffProfile'),
+                ],
             ], 201);
 
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json([
+                'success' => false,
                 'message' => 'Staff creation failed.',
                 'error' => $e->getMessage(),
             ], 500);

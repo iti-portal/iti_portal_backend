@@ -46,4 +46,12 @@ class UserProfile extends Model
     {
         return trim($this->first_name . ' ' . $this->last_name);
     }
+    
+    public function skills()
+    {
+        return $this->hasMany(UserSkill::class, 'user_id')
+            ->with(['skill' => function($q) {
+                $q->select('id', 'name', 'description');
+            }]);
+    }
 }

@@ -17,13 +17,13 @@ require __DIR__ . '/api/articles.route.php';
 require __DIR__ . '/api/services.route.php';
 require __DIR__ . '/api/connections.route.php';
 require __DIR__ . '/api/skills.route.php';
-
-
+require __DIR__. '/api/userprofiles.route.php';
 
 use App\Http\Controllers\Auth\PasswordResetController;
 
 // Public API routes
-Route::post('auth/register', [RegistrationController::class, 'initialRegister']);
+Route::post('auth/register', [RegistrationController::class, 'registerIndividual']);
+Route::post('auth/register-company', [RegistrationController::class, 'registerCompany']);
 Route::post('auth/login', [AuthController::class, 'login']);
 
 // Email verification routes

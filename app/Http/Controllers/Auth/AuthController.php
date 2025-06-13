@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use GrahamCampbell\ResultType\Success;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
@@ -19,6 +20,7 @@ class AuthController extends Controller
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $user = Auth::user();
 
+<<<<<<< feature/emai-verification
             // Check registration completion
             $step = $user->getRegistrationStep();
 
@@ -27,10 +29,18 @@ class AuthController extends Controller
                     'message' => 'Please verify your email.',
                     'step'    => $step,
                 ]);
+=======
+            $message = 'Login successful';
+            if (!$user->isVerified()){
+                $message = 'Please verify your email to complete the login.';
+            } else if (!$user->isApproved()){
+                $message = 'Your account is not approved yet. You will receive an email once it is approved.';
+>>>>>>> development
             }
 
             $token = $user->createToken('auth-token')->plainTextToken;
 
+<<<<<<< feature/emai-verification
             if ($step !== 'completed') {
                 return response()->json([
                     'message' => 'Please complete your registration.',
@@ -41,21 +51,41 @@ class AuthController extends Controller
 
             if (! $user->isApproved()) {
                 Auth::logout();
+=======
+            if ($user->hasRole('admin') || $user->hasRole('staff')) {
+>>>>>>> development
                 return response()->json([
-                    'message' => 'Your account is not approved yet.',
-                ], 403);
+                    'success' => true,
+                    'message' => ucfirst($user->getRoleNames()->first()) . ' login successfully.',
+                    'data' => [
+                        'role' => $user->getRoleNames()->first(),
+                        'token' => $token,
+                    ],
+                ],200);
             }
 
-            // For API requests, return token
             return response()->json([
+<<<<<<< feature/emai-verification
                 'message' => 'Login successful',
                 'user'    => $user->load('profile', 'companyProfile'),
                 'token'   => $token,
             ]);
+=======
+                'success' => true,
+                'message' => $message,
+                'data' => [
+                    'role' => $user->getRoleNames()->first(),
+                    'isVerified' => $user->isVerified(),
+                    'isApproved' => $user->isApproved(),
+                    'token' => $token,
+                ],
+            ], 200);
+>>>>>>> development
         }
 
         return response()->json([
-            'message' => 'Invalid credentials',
+            'success' => false,
+            'message' => 'Invalid credentials.',
         ], 401);
     }
 
@@ -64,14 +94,25 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
+<<<<<<< feature/emai-verification
             'message' => 'Logged out successfully',
+=======
+            'success' => true,
+            'message' => 'Logged out successfully',
+            'data' => null,
+>>>>>>> development
         ]);
     }
 
     public function user(Request $request)
     {
         return response()->json([
-            'user' => $request->user()->load('profile', 'companyProfile', 'roles', 'permissions'),
+            'success' => true,
+            'message' => 'User retrieved successfully',
+            'data' => [
+                'role' => $request->user()->getRoleNames()->first(),
+                'user' => $request->user()->load('profile', 'companyProfile'),
+            ],
         ]);
     }
 
