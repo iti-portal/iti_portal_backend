@@ -31,9 +31,6 @@ Route::post('auth/login', [AuthController::class, 'login']);
 Route::get('auth/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
     ->middleware(['signed', 'throttle:6,1'])
     ->name('verification.verify');
-// Route::post('auth/resend-verification', [AuthController::class, 'resendVerificationEmail'])
-//     ->middleware('throttle:6,1')
-//     ->name('verification.send');
 
 
 

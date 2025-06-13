@@ -19,33 +19,6 @@ class RegistrationController extends Controller
 {
     public function registerIndividual(StudentRegistrationRequest $request)
     {
-<<<<<<< feature/emai-verification
-        $request->validate([
-            'email' => 'required|email|unique:users',
-            'password' => ['required', 'confirmed', Password::defaults()],
-            'role' => 'required|in:student,alumni,company',
-        ]);
-
-
-        DB::beginTransaction();
-        try {
-            $user = User::create([
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'status' => 'pending',
-            ]);
-
-            // Assign role using Spatie
-            $role = Role::findByName($request->role);
-
-            if (!$role) {
-                throw new \Exception("Role '{$request->role}' not found");
-            }
-
-            $user->assignRole($role);
-
-            event(new Registered($user));
-=======
         $validatedData = $request->validated();
 
         DB::beginTransaction();
@@ -53,9 +26,10 @@ class RegistrationController extends Controller
             $user = $this->createUserWithRole($validatedData, $validatedData['role']);
             $this->createUserProfile($user, $validatedData, $request);
             $this->handleNidUpload($user, $request);
->>>>>>> development
 
             DB::commit();
+
+            event(new Registered($user));
 
             $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -82,36 +56,13 @@ class RegistrationController extends Controller
                 'error' => $e->getMessage(), // remove this in production
             ], 500);
         }
-<<<<<<< feature/emai-verification
-
-=======
->>>>>>> development
     }
 
 
     public function registerCompany(CompanyRegistrationRequest $request)
     {
-<<<<<<< feature/emai-verification
-        $user = $request->user();
-
-
-        $validation = [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'governorate' => 'required|string',
-            'track' => 'nullable|string',
-            'intake' => 'nullable|string',
-            'graduation_date' => 'nullable|date',
-            'student_status' => 'nullable|in:current,graduate',
-        ];
-
-        $request->validate($validation);
-
-=======
         $validatedData = $request->validated();
     
->>>>>>> development
         DB::beginTransaction();
         try {
             // Create user and assign role
@@ -121,6 +72,8 @@ class RegistrationController extends Controller
             $this->createCompanyProfile($user, $validatedData, $request);
         
             DB::commit();
+
+            event(new Registered($user));
         
             $token = $user->createToken('auth-token')->plainTextToken;
             $data = [
@@ -168,28 +121,6 @@ class RegistrationController extends Controller
 
     private function createUserProfile($user, $validatedData, $request)
     {
-<<<<<<< feature/emai-verification
-        $user = $request->user();
-
-        try {
-            $request->validate([
-                'nid_front' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-                'nid_back' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            ]);
-
-            $frontPath = $request->file('nid_front')->store('nid-images', 'public');
-            $backPath = $request->file('nid_back')->store('nid-images', 'public');
-
-            $user->profile->update([
-                'nid_front_image' => $frontPath,
-                'nid_back_image' => $backPath,
-            ]);
-
-            return response()->json([
-                'message' => 'NID images uploaded successfully. Your account is now pending approval.',
-                'next_step' => $user->fresh()->getRegistrationStep(),
-            ]);
-=======
         UserProfile::create([
             'user_id' => $user->id,
             'first_name' => $validatedData['first_name'],
@@ -208,7 +139,6 @@ class RegistrationController extends Controller
             'summary' => $validatedData['summary'] ?? null,
             'username' => $validatedData['username'],
         ]);
->>>>>>> development
 
         // Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
