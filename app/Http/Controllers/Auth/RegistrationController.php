@@ -29,6 +29,8 @@ class RegistrationController extends Controller
 
             DB::commit();
 
+            event(new Registered($user));
+
             $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json([
@@ -70,6 +72,8 @@ class RegistrationController extends Controller
             $this->createCompanyProfile($user, $validatedData, $request);
         
             DB::commit();
+
+            event(new Registered($user));
         
             $token = $user->createToken('auth-token')->plainTextToken;
             $data = [
