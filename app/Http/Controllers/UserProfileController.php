@@ -249,4 +249,20 @@ class UserProfileController extends Controller
             return $this->respondWithError('An error occurred while searching user profiles: ' . $e->getMessage(), 500);
         }
     }
+    public function suspendUser($request, $user){
+        try {
+            $user = User::findOrFail($user);
+            if(!$user){
+                return $this->respondWithError('User not found', 404);
+            }
+            if($user->status === 'suspended'){
+                return $this->respondWithError('User is already suspended', 400);
+            }
+            $user->update(['status' => 'suspended']);
+            return $this->respondWithSuccess([], 'User suspended successfully');
+        }catch (\Exception $e) {
+            return $this->respondWithError($e->getMessage(), 500);
+
+        }
+    }
     }
