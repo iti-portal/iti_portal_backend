@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\UserProfileController;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Sanctum;
@@ -16,15 +17,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         response()->json(['message' => 'Profile updated successfully'])
     )->name('profile.update');
     // This route for deleting user profile
-    Route::delete('/profile', fn (Request $request)=>
-        response()->json(['message' => 'Profile deleted successfully'])
+    Route::delete('/profile', [UserProfileController::class, 'deleteUserProfile'])
+        ->middleware('can:delete-profile') 
+        ->withoutMiddleware(['auth:sanctum']
     )->name('profile.delete');
     
     // This route for getting user profile details by ID
     Route::get('/profile/{id}', [UserProfileController::class, 'getUserProfileById'])
         ->name('profile.details');
 
-        
+
     // This route for listing all users
     Route::get('/itians', function (Request $request) {
         return response()->json(['message' => 'List of ITIans']);
@@ -52,9 +54,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     })->name('users.suspend');
     
     // This route for deleting a user
-    Route::delete('/users/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "User with ID: $id deleted successfully"]);
-    })->name('users.delete');
+    Route::delete('/users/{id}', [UserProfileController::class, 'deleteUserProfileById'])->name('users.delete');
     // This route for getting user details by ID we can use the same controller in profile.details route above
     Route::get('/users/{id}', function (Request $request, $id) {
         return response()->json(['message' => "Details for user with ID: $id"]);

@@ -29,7 +29,7 @@ Route::middleware(['auth:sanctum', 'role:admin|staff'])->group(function () {
     // this route for listing all services
     Route::get('/all-services', [ServicesController::class, 'listAllServices'])->name('services.all');
     // route for getting service by id
-    Route::get('/service/{id}', [ServicesController::class, 'getServiceDetails'])->name('services.get');
+    Route::get('/alumni-service/{id}', [ServicesController::class, 'getServiceDetails'])->name('services.get');
     // this route for updating service
     Route::put('/evaluate-service/{id}', [ServicesController::class, 'evaluateService'])->name('services.admin.update');
     //route for deleting service can be as for alumini above

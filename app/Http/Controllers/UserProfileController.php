@@ -115,11 +115,23 @@ class UserProfileController extends Controller
             if(!$profile){
                 return $this->respondWithError('User profile not found', 404);
             }
-            $profile->delete();
             $user->delete();
             return $this->respondWithSuccess([], 'User profile deleted successfully');
         }catch (\Exception $e) {
             return $this->respondWithError($e->getMessage(), 500);
+        }
+    }
+    public function deleteUserProfileById(Request $request, $id){
+        try {
+            $user = User::findOrFail($id);
+            $profile = $user->profile;
+            if(!$profile){
+                return $this->respondWithError('User profile not found', 404);
+            }
+            $user->delete();
+            return $this->respondWithSuccess([], 'User profile deleted successfully');
+        } catch (\Exception $e) {
+            return $this->respondWithError('User not found', 404);
         }
     }
 

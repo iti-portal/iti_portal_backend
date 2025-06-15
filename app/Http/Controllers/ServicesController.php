@@ -152,7 +152,7 @@ class ServicesController extends Controller
             return $this->respondWithError('Service not found', 404);
         }
 
-        return $this->respondWithSuccess(['service' => $service]);
+        return $this->respondWithSuccess(['details' => $service]);
 
     }
     public function evaluateService(Request $request, $id)
