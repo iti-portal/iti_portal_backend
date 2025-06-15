@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class JobApplication extends Model
 {
-    //
     use HasFactory;
+
     protected $fillable = [
         'user_id',
         'job_id',
@@ -16,14 +16,18 @@ class JobApplication extends Model
         'cover_letter',
         'company_notes',
         'applied_at',
+        'cv_path', // Added CV field
     ];
+
     protected $casts = [
         'applied_at' => 'datetime',
     ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
     public function job()
     {
         return $this->belongsTo(AvailableJob::class);
