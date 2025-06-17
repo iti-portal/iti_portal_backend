@@ -132,7 +132,7 @@ class ServicesController extends Controller
         ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select('alumni_services.*', 'user_profiles.first_name', 'user_profiles.last_name', 'user_profiles.track', 'user_profiles.intake',
             )
-            ->get();
+            ->get()->paginate(10);
             
         return $this->respondWithSuccess(['services' => $services]);
     }
@@ -147,7 +147,7 @@ class ServicesController extends Controller
         ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select('alumni_services.*', 'user_profiles.first_name', 'user_profiles.last_name', 'user_profiles.track', 'user_profiles.intake',
             )
-            ->get();
+            ->get()->paginate(10);
             
         return $this->respondWithSuccess(['services' => $services]);
     }

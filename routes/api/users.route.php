@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\UserProfileController;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Sanctum;
@@ -27,9 +28,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     // This route for listing all users
-    Route::get('/itians', function (Request $request) {
-        return response()->json(['message' => 'List of ITIans']);
-    })->name('itians.list');
+    Route::get('/itians', [UserProfileController::class, 'listItians'])->name('itians.list');
     // this route for listing all staff members
     Route::get('/staff', function (Request $request) {
         return response()->json(['message' => 'List of staff members']);
@@ -51,14 +50,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // This route for deleting a user
     Route::delete('/users/{id}', [UserProfileController::class, 'deleteUserProfileById'])->name('users.delete');
     // This route for getting user details by ID we can use the same controller in profile.details route above
-    Route::get('/users/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "Details for user with ID: $id"]);
-    })->name('users.details');
+    Route::get('/users/{id}', [UserProfileController::class, 'getUserProfileById'])->name('users.details');
     });
-    Route::get('/verify-new-email/{user}', [UserProfileController::class, 'verifyNewEmail'])
-    ->name('verify-new-email')
-    ->middleware('signed');
-
+    
+   
     
     // routes for managing staff members by admin
     Route::middleware([])->group(function () {
@@ -75,3 +70,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return response()->json(['message' => "Details for staff member with ID: $id"]);
     })->name('staff.details');
     });
+    Route::get('/verify-new-email/{user}', [UserProfileController::class, 'verifyNewEmail'])
+    ->name('verify-new-email')
+    ->middleware('signed');

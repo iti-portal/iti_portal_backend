@@ -17,6 +17,32 @@ use Soap\Url;
 class UserProfileController extends Controller
 {
     //
+    public function getStudents($request){
+        try{
+        $users = User::where('role', 'student')->get()
+        ->with('profile')->paginate(10);
+        return $this->respondWithSuccess(['users' => $users]);
+        }catch(\Exception $e){
+            $this->respondWithError("Something went wrong", 500);
+        }
+   }
+   public function getGraduates($request){
+    try{
+        $users = User::where('role', 'graduate')->get()
+        ->with('profile')->paginate(10);
+        return $this->respondWithSuccess(['users' => $users]);
+        }catch(\Exception $e){
+            $this->respondWithError("Something went wrong", 500);
+        }
+   }
+   public function getAllItians($request){
+    try{
+        $users = User::get()->with('profile')->paginate(10);
+        return $this->respondWithSuccess(['users' => $users]);
+        }catch(\Exception $e){
+            $this->respondWithError("Something went wrong", 500);
+        }
+   }
     private function getProfileData(User $user){
         if(!$user){
             return $this->respondWithError('User not found', 404);
