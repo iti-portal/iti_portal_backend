@@ -17,27 +17,29 @@ use Soap\Url;
 class UserProfileController extends Controller
 {
     //
-    public function getStudents($request){
+    public function getStudents(Request $request){
         try{
-        $users = User::where('role', 'student')->get()
+        $users = User::role('student')->with('profile')->paginate(10);
+        return $this->respondWithSuccess(['users' => $users]);
+        }catch(\Exception $e){
+            $this->respondWithError("Something went wrong", 500);
+        }
+   }
+   public function getGraduates(Request $request){
+    try{
+        $users = User::role('alumni')
         ->with('profile')->paginate(10);
         return $this->respondWithSuccess(['users' => $users]);
         }catch(\Exception $e){
             $this->respondWithError("Something went wrong", 500);
         }
    }
-   public function getGraduates($request){
+   public function getAllItians(Request $request){
+    if(!$request->user()){
+        return $this->respondWithError('unauthorized', 401);
+    }
     try{
-        $users = User::where('role', 'graduate')->get()
-        ->with('profile')->paginate(10);
-        return $this->respondWithSuccess(['users' => $users]);
-        }catch(\Exception $e){
-            $this->respondWithError("Something went wrong", 500);
-        }
-   }
-   public function getAllItians($request){
-    try{
-        $users = User::get()->with('profile')->paginate(10);
+        $users = User::role(['alumni', 'student'])->with('profile')->paginate(10);
         return $this->respondWithSuccess(['users' => $users]);
         }catch(\Exception $e){
             $this->respondWithError("Something went wrong", 500);

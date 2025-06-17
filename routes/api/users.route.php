@@ -8,29 +8,36 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Sanctum;
 
 // display and management user details
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'email.verified'])->group(function () {
     // Routes for current user
     // This route for getting user profile
-    Route::get('/profile', [UserProfileController::class, 'getUserProfile'])
+    Route::middleware(['can:view profiles'])->get('/profile', [UserProfileController::class, 'getUserProfile'])
         ->name('profile');
     // This route for updating user profile
-    Route::post('/profile', [UserProfileController::class, 'updateUserProfile']
+    Route::middleware(['can:edit own profile'])->put('/profile', [UserProfileController::class, 'updateUserProfile']
     )->name('profile.update');
     // This route for deleting user profile
-    Route::delete('/profile', [UserProfileController::class, 'deleteUserProfile'])
-        ->middleware('can:delete-profile') 
-        ->withoutMiddleware(['auth:sanctum']
+    Route::middleware(['can:edit own profile'])->delete('/profile', [UserProfileController::class, 'deleteUserProfile']
     )->name('profile.delete');
     
     // This route for getting user profile details by ID
-    Route::get('/profile/{id}', [UserProfileController::class, 'getUserProfileById'])
+    Route::middleware(['can:view profiles'])->get('/profile/{id}', [UserProfileController::class, 'getUserProfileById'])
         ->name('profile.details');
 
 
     // This route for listing all users
-    Route::get('/itians', [UserProfileController::class, 'listItians'])->name('itians.list');
+    Route::middleware(['can:view profiles'])->get('/itians', [UserProfileController::class, 'getAllItians'])->name('itians.list');
+
+     // route for listing all graduates
+     Route::middleware(['can:view alumni profiles'])->get('/iti-graduates', [UserProfileController::class, 'getGraduates'])->name('graduates.list');
+
+     // route for listing all students
+     Route::middleware(['can:view student profiles'])->get('/iti-students', [UserProfileController::class, 'getStudents'])->name('students.list');
+ 
+    
+    
     // this route for listing all staff members
-    Route::get('/staff', function (Request $request) {
+    Route::get('/staffs', function (Request $request) {
         return response()->json(['message' => 'List of staff members']);
     })->name('staff.list');
 
@@ -45,14 +52,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     
     // routes for user's management by admin and staff
-    Route::middleware([])->group(function () {
+    Route::middleware(['auth:sanctum'])->group(function () {
     
     // This route for deleting a user
-    Route::delete('/users/{id}', [UserProfileController::class, 'deleteUserProfileById'])->name('users.delete');
+    Route::middleware(['can:manage users'])->delete('/users/{id}', [UserProfileController::class, 'deleteUserProfileById'])->name('users.delete');
+    
     // This route for getting user details by ID we can use the same controller in profile.details route above
-    Route::get('/users/{id}', [UserProfileController::class, 'getUserProfileById'])->name('users.details');
+    Route::middleware(['can:manage users'])->get('/users/{id}', [UserProfileController::class, 'getUserProfileById'])->name('users.details');
     });
     
+    // route for listing all graduates
+    Route::middleware(['can:view users'])->get('/graduates', [UserProfileController::class, 'getGraduates'])->name('graduates.list');
+
+    // route for listing all students
+    Route::middleware(['can:view users'])->get('/students', [UserProfileController::class, 'getStudents'])->name('students.list');
+
+    // route for listing all users
+    Route::middleware(['can:view users'])->get('/users', [UserProfileController::class, 'getAllItians'])->name('users.list');
+
    
     
     // routes for managing staff members by admin
