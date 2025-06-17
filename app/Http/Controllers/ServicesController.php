@@ -121,14 +121,29 @@ class ServicesController extends Controller
         ]);
     }
 
-    public function listAllServices(Request $request)
+    public function listUsedServices(Request $request)
     {
         $user = $request->user();
         if (!$user || !$user->hasAnyRole(['admin', 'staff'])) {
             return $this->respondWithError('Unauthorized or Forbidden', 401);
         }
 
-        $services = AlumniService::join('users', 'alumni_services.alumni_id', '=', 'users.id')
+        $services = AlumniService::where('service_type', !null)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
+        ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
+            ->select('alumni_services.*', 'user_profiles.first_name', 'user_profiles.last_name', 'user_profiles.track', 'user_profiles.intake',
+            )
+            ->get();
+            
+        return $this->respondWithSuccess(['services' => $services]);
+    }
+    public function listUnusedServices(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !$user->hasAnyRole(['admin', 'staff'])) {
+            return $this->respondWithError('Unauthorized or Forbidden', 401);
+        }
+
+        $services = AlumniService::where('service_type', null)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
         ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select('alumni_services.*', 'user_profiles.first_name', 'user_profiles.last_name', 'user_profiles.track', 'user_profiles.intake',
             )

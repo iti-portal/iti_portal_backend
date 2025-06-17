@@ -27,7 +27,10 @@ Route::middleware(['auth:sanctum', 'permission:manage alumni services'])->group(
 // route for managing service by admin and staff
 Route::middleware(['auth:sanctum', 'role:admin|staff'])->group(function () {
     // this route for listing all services
-    Route::get('/all-services', [ServicesController::class, 'listAllServices'])->name('services.all');
+    Route::get('/used-services', [ServicesController::class, 'listusedServices'])->name('used-services.list');
+
+    Route::get('/unused-services', [ServicesController::class, 'listUnusedServices'])->name('unused-services.list');
+
     // route for getting service by id
     Route::get('/alumni-service/{id}', [ServicesController::class, 'getServiceDetails'])->name('services.get');
     // this route for updating service
