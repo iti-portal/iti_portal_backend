@@ -13,8 +13,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/profile', [UserProfileController::class, 'getUserProfile'])
         ->name('profile');
     // This route for updating user profile
-    Route::put('/profile', fn (Request $request)=>
-        response()->json(['message' => 'Profile updated successfully'])
+    Route::post('/profile', [UserProfileController::class, 'updateUserProfile']
     )->name('profile.update');
     // This route for deleting user profile
     Route::delete('/profile', [UserProfileController::class, 'deleteUserProfile'])
@@ -48,10 +47,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // routes for user's management by admin and staff
     Route::middleware([])->group(function () {
-//    route for suspending a user
-    Route::post('/suspend-user/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "User with ID: $id suspended successfully"]);
-    })->name('users.suspend');
     
     // This route for deleting a user
     Route::delete('/users/{id}', [UserProfileController::class, 'deleteUserProfileById'])->name('users.delete');
@@ -60,7 +55,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return response()->json(['message' => "Details for user with ID: $id"]);
     })->name('users.details');
     });
-    
+    Route::get('/verify-new-email/{user}', [UserProfileController::class, 'verifyNewEmail'])
+    ->name('verify-new-email')
+    ->middleware('signed');
+
     
     // routes for managing staff members by admin
     Route::middleware([])->group(function () {

@@ -3,10 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
+use App\Mail\VerifyNewEmail;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail as FacadesMail;
+use Illuminate\Support\Facades\URL as FacadesURL;
+use Mail;
+use Soap\Url;
 
 class UserProfileController extends Controller
 {
@@ -59,51 +65,80 @@ class UserProfileController extends Controller
     }
 
     
-    // public function updateUserProfile(UpdateProfileRequest $request){
-    //     $user = $request->user();
-    //     try {
-    //         if(!$user){
-    //             return $this->respondWithError('User not found', 404);
-    //         }
-    //         $profile = $user->profile;
-    //         if(!$profile){
-    //             return $this->respondWithError('User profile not found', 404);
-    //         }
+    public function updateUserProfile(UpdateProfileRequest $request){
+        $user = $request->user();
+        DB::beginTransaction();
+        try {
+            if(!$user){
+                return $this->respondWithError('User not found', 404);
+            }
+            $profile = $user->profile;
+            if(!$profile){
+                return $this->respondWithError('User profile not found', 404);
+            }
+ 
+            if ($request->filled('email') && $request->email !== $user->email) {
+                $user->new_email = $request->email;
+                $signedUrl = FacadesURL::temporarySignedRoute(
+                    'verify-new-email',
+                    now()->addHours(24),
+                    ['user' => $user->id]
+                );
+                FacadesMail::to($user->new_email)->send(new VerifyNewEmail($user,$signedUrl));
+            }
+            if($request->hasFile('profile_picture')) {
+                $image = $request->file('profile_picture');
+                $path = $image->store('profile_images', 'public');
+                $profile->profile_picture = $path;
+            }
+            $profile->first_name = $request->first_name ?? $profile->first_name;
+            $profile->last_name = $request->last_name ?? $profile->last_name;   
+            $profile->phone = $request->phone ?? $profile->phone;
+            $profile->governorate = $request->governorate ?? $profile->governorate;
+             $profile->graduation_date = $request->graduation_date ?? $profile->graduation_date;
+            if($request->filled('student_status')&& $request->student_status === 'current' && $profile->student_status === 'graduate'){
+                return $this->respondWithError('You are not a current student', 400);
+            }
+            $profile->student_status = $request->student_status ?? $profile->student_status;
+            $profile->available_for_freelance = $request->available_for_freelance ?? $profile->available_for_freelance;
+            $profile->summary = $request->summery ?? $profile->summary;
+            $profile->whatsapp = $request->whatsapp ?? $profile->whatsapp;
+            $profile->linkedin = $request->linkedin ?? $profile->linkedin;
+            $profile->github = $request->github ?? $profile->github;
             
-    //         if (isset($request->graduation_date) && $request->graduation_date > now()) {
-    //             return $this->respondWithError('Graduation date cannot be in the future', 400);
-    //         }
-    //         $profile->update(
-    //             $request->only([
-    //                 'username',
-    //                 'email',
-    //                 'password',
-    //                 'first_name',
-    //                 'last_name',
-    //                 'phone',
-    //                 'governorate',
-    //                 'track',
-    //                 'intake',
-    //                 'graduation_date',
-    //                 'student_status',
-    //                 'username',
-    //                 'summery',
-    //                 'whatsapp',
-    //                 'linkedin',
-    //                 'github',
-    //                 'portfolio_url',
-    //                 'governorate',
-    //                 'student_status',
-    //                 // 'graduation_date',
-    //                 // 'track',
-    //                 // 'intake',
-    //             ])
-    //             );
+            $profile->username = $request->username ?? $profile->username;
             
-    //     }catch (\Exception $e) {
-    //         return $this->respondWithError($e->getMessage(), 500);
-    //     }
-    // }
+            $user->save();
+            $profile->save();
+            DB::commit();
+            return $this->respondWithSuccess([
+                'user' => $user->makeHidden(['password', 'remember_token']),
+            ]);           
+            
+            }catch (\Exception $e) {
+            DB::rollBack();
+            return $this->respondWithError($e->getMessage(), 500);
+        }
+    }
+    public function verifyNewEmail(Request $request, $user){
+        if(!$request->hasValidSignature()){
+            return $this->respondWithError('Invalid or expired verification link', 400);
+        }
+        
+        try{
+            $user = User::findOrFail($user);
+            if(!$user->new_email){
+                return $this->respondWithError('No pending email found', 404);
+            }
+        $user->email = $user->new_email;
+        $user->new_email = null;
+        $user->save();
+        return $this->respondWithSuccess([], 'Email verified successfully');
+    
+        }catch (\Exception $e) {
+            return $this->respondWithError("Something went wrong", 500);
+        }
+    }
     public function deleteUserProfile(Request $request)
     {
         $user = $request->user();
@@ -249,20 +284,5 @@ class UserProfileController extends Controller
             return $this->respondWithError('An error occurred while searching user profiles: ' . $e->getMessage(), 500);
         }
     }
-    public function suspendUser($request, $user){
-        try {
-            $user = User::findOrFail($user);
-            if(!$user){
-                return $this->respondWithError('User not found', 404);
-            }
-            if($user->status === 'suspended'){
-                return $this->respondWithError('User is already suspended', 400);
-            }
-            $user->update(['status' => 'suspended']);
-            return $this->respondWithSuccess([], 'User suspended successfully');
-        }catch (\Exception $e) {
-            return $this->respondWithError($e->getMessage(), 500);
-
-        }
-    }
+ 
     }
