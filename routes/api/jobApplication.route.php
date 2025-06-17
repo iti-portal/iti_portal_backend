@@ -10,6 +10,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/my-applications', [JobApplicationController::class, 'index']);
         Route::post('/job-applications', [JobApplicationController::class, 'store']);
         Route::get('/job-applications/{id}', [JobApplicationController::class, 'show']);
+        Route::put('/job-applications/{id}/update-cv', [JobApplicationController::class, 'updateCV']);
         Route::delete('/job-applications/{id}', [JobApplicationController::class, 'destroy']);
     });
 
