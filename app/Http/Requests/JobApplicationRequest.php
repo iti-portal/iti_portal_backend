@@ -31,7 +31,7 @@ class JobApplicationRequest extends FormRequest
                 'required',
                 'file',
                 'mimes:pdf,doc,docx',
-                'max:10240', // 10MB max size
+                'max:1536', 
             ],
         ];
     }
