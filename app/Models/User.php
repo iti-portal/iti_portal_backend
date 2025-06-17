@@ -17,7 +17,7 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
-    protected $guard_name = 'web';
+    // protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
