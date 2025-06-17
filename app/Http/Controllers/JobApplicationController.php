@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\JobApplicationRequest;
+use App\Http\Requests\UpdateCVRequest;
 use App\Models\AvailableJob;
 use App\Models\JobApplication;
 use Illuminate\Http\Request;
@@ -214,6 +215,52 @@ class JobApplicationController extends Controller
             return $this->respondWithSuccess($application, 'Application status updated successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to update application status: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update the CV for a job application.
+     * Only allows updating if the application status is still 'applied'
+     */
+    public function updateCV(UpdateCVRequest $request, string $id): JsonResponse
+    {
+        try {
+            $application = JobApplication::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->where('status', 'applied')
+                ->first();
+
+            if (!$application) {
+                return $this->respondWithError('Job application not found or cannot be updated. You can only update CV for applications that haven\'t been processed yet.', 404);
+            }
+
+            DB::beginTransaction();
+
+            // Delete old CV file if it exists
+            if ($application->cv_path && Storage::disk('public')->exists($application->cv_path)) {
+                Storage::disk('public')->delete($application->cv_path);
+            }
+
+            // Upload new CV file
+            $newCvPath = $request->file('cv')->store('cv-documents', 'public');
+
+            // Update application with new CV path
+            $application->update([
+                'cv_path' => $newCvPath,
+            ]);
+
+            DB::commit();
+
+            return $this->respondWithSuccess($application, 'CV updated successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            // Clean up uploaded file if something went wrong
+            if (isset($newCvPath) && Storage::disk('public')->exists($newCvPath)) {
+                Storage::disk('public')->delete($newCvPath);
+            }
+            
+            return $this->respondWithError('Failed to update CV: ' . $e->getMessage(), 500);
         }
     }
 
