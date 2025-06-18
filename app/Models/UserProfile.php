@@ -24,6 +24,7 @@ class UserProfile extends Model
         'cover_photo',
         'governorate',
         'available_for_freelance',
+        'program',
         'track',
         'intake',
         'student_status',
