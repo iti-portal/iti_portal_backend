@@ -121,6 +121,12 @@ class RegistrationController extends Controller
 
     private function createUserProfile($user, $validatedData, $request)
     {
+        if ($validatedData['role'] === 'student') {
+            $validatedData['student_status'] = 'student';
+        } elseif ($validatedData['role'] === 'alumni') {
+            $validatedData['student_status'] = 'graduate';
+        }
+        
         UserProfile::create([
             'user_id' => $user->id,
             'first_name' => $validatedData['first_name'],
@@ -135,7 +141,7 @@ class RegistrationController extends Controller
             'program' => $validatedData['program'],
             'track' => $validatedData['track'],
             'intake' => $validatedData['intake'],
-            'student_status' => $validatedData['student_status'] ?? null,
+            'student_status' => $validatedData['student_status'],
             'summary' => $validatedData['summary'] ?? null,
             'username' => $validatedData['username'],
         ]);
