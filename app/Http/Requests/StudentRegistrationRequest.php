@@ -34,7 +34,7 @@ class StudentRegistrationRequest extends FormRequest
             'role' => 'required|in:student,alumni',
             'program' => 'required|in:ptp,itp',
             'phone' => 'required|string|regex:/^01[0125][0-9]{8}$/',
-            'governorate' => 'required|string|max:100',
+            'branch' => 'required|string|max:100',
             'track' => 'nullable|string|max:100',
             'intake' => 'nullable|string|max:100',
             'student_status' => 'nullable|in:current,graduate',

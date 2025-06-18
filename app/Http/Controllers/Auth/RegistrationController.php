@@ -130,7 +130,7 @@ class RegistrationController extends Controller
             'linkedin' => $validatedData['linkedin'] ?? null,
             'github' => $validatedData['github'] ?? null,
             'portfolio_url' => $validatedData['portfolio_url'] ?? null,
-            'governorate' => $validatedData['governorate'],
+            'branch' => $validatedData['branch'],
             'available_for_freelance' => $validatedData['available_for_freelance'] ?? false,
             'program' => $validatedData['program'],
             'track' => $validatedData['track'],

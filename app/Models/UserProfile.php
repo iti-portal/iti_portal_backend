@@ -22,7 +22,7 @@ class UserProfile extends Model
         'portfolio_url',
         'profile_picture',
         'cover_photo',
-        'governorate',
+        'branch',
         'available_for_freelance',
         'program',
         'track',

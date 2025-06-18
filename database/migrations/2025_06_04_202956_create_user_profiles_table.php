@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('portfolio_url')->nullable();
             $table->string('profile_picture')->nullable();
             $table->string('cover_photo')->nullable();
-            $table->string('governorate');
+            $table->string('branch');
             $table->boolean('available_for_freelance')->default(false);
             $table->enum('program', ['ptp', 'itp']);
             $table->string('track');
