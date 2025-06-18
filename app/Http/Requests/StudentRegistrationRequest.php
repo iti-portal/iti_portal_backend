@@ -45,6 +45,7 @@ class StudentRegistrationRequest extends FormRequest
             'summary' => 'nullable|string|max:1000',
             'available_for_freelance' => 'nullable|boolean',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'cover_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
 
             // NID fields
             'nid_front' => 'required|image|mimes:jpeg,png,jpg|max:2048',

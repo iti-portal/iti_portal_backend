@@ -126,7 +126,7 @@ class RegistrationController extends Controller
         } elseif ($validatedData['role'] === 'alumni') {
             $validatedData['student_status'] = 'graduate';
         }
-        
+
         UserProfile::create([
             'user_id' => $user->id,
             'first_name' => $validatedData['first_name'],
@@ -150,6 +150,12 @@ class RegistrationController extends Controller
         if ($request->hasFile('profile_picture')) {
             $path = $request->file('profile_picture')->store('profiles', 'public');
             $user->profile->update(['profile_picture' => $path]);
+        }
+        
+        // Handle cover photo upload
+        if ($request->hasFile('cover_photo')) {
+            $path = $request->file('cover_photo')->store('cover_photos', 'public');
+            $user->profile->update(['cover_photo' => $path]);
         }
     }
 
