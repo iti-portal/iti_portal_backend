@@ -26,14 +26,12 @@ class UserProfile extends Model
         'available_for_freelance',
         'track',
         'intake',
-        'graduation_date',
         'student_status',
         'nid_front_image',
         'nid_back_image',
     ];
 
     protected $casts = [
-        'graduation_date' => 'date',
         'available_for_freelance' => 'boolean',
     ];
 

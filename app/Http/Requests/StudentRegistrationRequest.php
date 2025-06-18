@@ -36,7 +36,6 @@ class StudentRegistrationRequest extends FormRequest
             'governorate' => 'required|string|max:100',
             'track' => 'nullable|string|max:100',
             'intake' => 'nullable|string|max:100',
-            'graduation_date' => 'nullable|date',
             'student_status' => 'nullable|in:current,graduate',
             'whatsapp' => 'nullable|string|regex:/^\+?[0-9]{8,20}$/',
             'linkedin' => 'nullable|url|max:255',

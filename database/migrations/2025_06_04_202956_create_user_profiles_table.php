@@ -29,7 +29,6 @@ return new class extends Migration
             $table->boolean('available_for_freelance')->default(false);
             $table->string('track')->nullable();
             $table->string('intake')->nullable();
-            $table->date('graduation_date')->nullable();
             $table->enum('student_status', ['current', 'graduate'])->nullable();
             $table->string('nid_front_image')->nullable();
             $table->string('nid_back_image')->nullable();

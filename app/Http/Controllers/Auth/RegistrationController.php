@@ -134,7 +134,6 @@ class RegistrationController extends Controller
             'available_for_freelance' => $validatedData['available_for_freelance'] ?? false,
             'track' => $validatedData['track'] ?? null,
             'intake' => $validatedData['intake'] ?? null,
-            'graduation_date' => $validatedData['graduation_date'] ?? null,
             'student_status' => $validatedData['student_status'] ?? null,
             'summary' => $validatedData['summary'] ?? null,
             'username' => $validatedData['username'],
