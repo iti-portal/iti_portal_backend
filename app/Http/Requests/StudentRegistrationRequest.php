@@ -35,8 +35,8 @@ class StudentRegistrationRequest extends FormRequest
             'program' => 'required|in:ptp,itp',
             'phone' => 'required|string|regex:/^01[0125][0-9]{8}$/',
             'branch' => 'required|string|max:100',
-            'track' => 'nullable|string|max:100',
-            'intake' => 'nullable|string|max:100',
+            'track' => 'required|string|max:100',
+            'intake' => 'required|string|max:100',
             'student_status' => 'nullable|in:current,graduate',
             'whatsapp' => 'nullable|string|regex:/^\+?[0-9]{8,20}$/',
             'linkedin' => 'nullable|url|max:255',
@@ -68,6 +68,7 @@ class StudentRegistrationRequest extends FormRequest
 
             // Role
             'role.required' => 'Role is required.',
+            'role.in' => 'Role must be either student or alumni.',
 
             // First Name
             'first_name.required' => 'First name is required.',
@@ -90,18 +91,21 @@ class StudentRegistrationRequest extends FormRequest
             'phone.required' => 'Phone number is required.',
             'phone.regex' => 'Phone number must be a valid Egyptian number starting with 010, 011, 012, or 015.',
 
-            // Governorate
-            'governorate.required' => 'Governorate is required.',
-            'governorate.max' => 'Governorate must not exceed 100 characters.',
+            // Branch
+            'branch.required' => 'Branch is required.',
+            'branch.max' => 'Branch must not exceed 100 characters.',
 
             // Track
+            'track.required' => 'Track is required.',
             'track.max' => 'Track must not exceed 100 characters.',
+            
+            // Program
+            'program.required' => 'Program is required.',
+            'program.in' => 'Program must be either "PTP" or "ITP".',
 
             // Intake
+            'intake.required' => 'Intake is required.',
             'intake.max' => 'Intake must not exceed 100 characters.',
-
-            // Graduation Date
-            'graduation_date.date' => 'Graduation date must be a valid date.',
 
             // Student Status
             'student_status.in' => 'Student status must be either current or graduate.',
@@ -124,6 +128,11 @@ class StudentRegistrationRequest extends FormRequest
             'profile_picture.image' => 'Profile picture must be an image.',
             'profile_picture.mimes' => 'Profile picture must be a jpeg, png, or jpg file.',
             'profile_picture.max' => 'Profile picture must not exceed 2MB.',
+
+            // Cover Photo
+            'cover_photo.image' => 'Cover photo must be an image.',
+            'cover_photo.mimes' => 'Cover photo must be a jpeg, png, or jpg file.',
+            'cover_photo.max' => 'Cover photo must not exceed 2MB.',
 
             // NID Front
             'nid_front.required' => 'Front side of National ID is required.',
