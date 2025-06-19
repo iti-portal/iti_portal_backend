@@ -122,7 +122,7 @@ class RegistrationController extends Controller
     private function createUserProfile($user, $validatedData, $request)
     {
         if ($validatedData['role'] === 'student') {
-            $validatedData['student_status'] = 'student';
+            $validatedData['student_status'] = 'current';
         } elseif ($validatedData['role'] === 'alumni') {
             $validatedData['student_status'] = 'graduate';
         }

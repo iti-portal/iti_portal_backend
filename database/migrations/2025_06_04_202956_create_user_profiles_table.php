@@ -31,8 +31,8 @@ return new class extends Migration
             $table->string('track');
             $table->string('intake');
             $table->enum('student_status', ['current', 'graduate'])->nullable();
-            $table->string('nid_front_image');
-            $table->string('nid_back_image');
+            $table->string('nid_front_image')->nullable();
+            $table->string('nid_back_image')->nullable();
             $table->timestamps();
         });
     }
