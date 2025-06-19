@@ -24,12 +24,12 @@ class AuthController extends Controller
             $message = 'Login successful';
             if (!$user->isVerified()){
                 $message = 'Please verify your email to complete the login.';
+            } else if ($user->isRejected()){
+                $message = 'Your registration request has been rejected. You are not eligible for registration.';
+            } else if ($user->isSuspended()){
+                $message = 'Your account is currently suspended. Contact ITI support for more information.';
             } else if (!$user->isApproved()){
                 $message = 'Your account is not approved yet. You will receive an email once it is approved.';
-            } else if (!$user->isRejected()){
-                $message = 'Your registration request has been rejected. You are not eligible for registration.';
-            } else if (!$user->isSuspended()){
-                $message = 'Your account is currently suspended. Contact ITI support for more information.';
             }
 
             if( ( $user->isVerified() && !$user->isApproved() ) || $user->isRejected() || $user->isSuspended()) {
