@@ -22,9 +22,8 @@ class AuthController extends Controller
             $user = Auth::user();
 
             $message = 'Login successful';
-            if (!$user->isVerified()){
-                $message = 'Please verify your email to complete the login.';
-            } else if ($user->isRejected()){
+
+            if ($user->isRejected()){
                 $message = 'Your registration request has been rejected. You are not eligible for registration.';
             } else if ($user->isSuspended()){
                 $message = 'Your account is currently suspended. Contact ITI support for more information.';
@@ -32,18 +31,19 @@ class AuthController extends Controller
                 $message = 'Your account is not approved yet. You will receive an email once it is approved.';
             }
 
-            if( ( $user->isVerified() && !$user->isApproved() ) || $user->isRejected() || $user->isSuspended()) {
+            // Check if the user is rejected, suspended, or verified and pending approval
+            if( $user->isRejected() || $user->isSuspended() || ( $user->isVerified() && !$user->isApproved() ) ) {
                 $user->tokens()->delete();
 
                 return response()->json([
-                    'success' => true,
+                    'success' => false,
                     'message' => $message,
-                    'data' => [
-                        'role' => $user->getRoleNames()->first(),
-                        'isVerified' => $user->isVerified(),
-                        'approval_status' => $user->status(),
-                    ],
-                ], 200);
+                ], 403);
+            }
+
+            // If the user is not verified, set a message to prompt verification. Only if the user is not rejected or suspended
+            if (!$user->isVerified()){
+                $message = 'Please verify your email to complete the login.';
             }
 
             try{
@@ -63,6 +63,7 @@ class AuthController extends Controller
                 ], 500);
             }
 
+            // Admin/Staff login response
             if ($user->hasRole('admin') || $user->hasRole('staff')) {
                 return response()->json([
                     'success' => true,
@@ -74,21 +75,22 @@ class AuthController extends Controller
                 ],200);
             }
 
+            // Successful user login response
             return response()->json([
                 'success' => true,
                 'message' => $message,
                 'data' => [
                     'role' => $user->getRoleNames()->first(),
                     'isVerified' => $user->isVerified(),
-                    'approval_status' => $user->status(),
                     'token' => $token,
                 ],
             ], 200);
         }
 
+        // If authentication fails, return an error response
         return response()->json([
             'success' => false,
-            'message' => 'Invalid credentials.',
+            'message' => 'Invalid credentials. Email or password is incorrect.',
         ], 401);
     }
 
