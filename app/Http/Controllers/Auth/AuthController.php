@@ -32,6 +32,8 @@ class AuthController extends Controller
             }
 
             if( ( $user->isVerified() && !$user->isApproved() ) || $user->isRejected() || $user->isSuspended()) {
+                $user->tokens()->delete();
+                
                 return response()->json([
                     'success' => true,
                     'message' => $message,
