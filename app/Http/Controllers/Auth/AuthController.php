@@ -6,6 +6,7 @@ use App\Models\User;
 use GrahamCampbell\ResultType\Success;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 
 class AuthController extends Controller
@@ -33,7 +34,7 @@ class AuthController extends Controller
 
             if( ( $user->isVerified() && !$user->isApproved() ) || $user->isRejected() || $user->isSuspended()) {
                 $user->tokens()->delete();
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => $message,
@@ -45,7 +46,22 @@ class AuthController extends Controller
                 ], 200);
             }
 
-            $token = $user->createToken('auth-token')->plainTextToken;
+            try{
+                DB::beginTransaction();
+
+                $token = $user->createToken('auth-token')->plainTextToken;
+
+                $tokenModel = $user->tokens()->latest()->first();
+                $tokenModel->expires_at = now()->addDays(1);
+                $tokenModel->save();
+
+                DB::commit();
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to login. Please try again later.',
+                ], 500);
+            }
 
             if ($user->hasRole('admin') || $user->hasRole('staff')) {
                 return response()->json([
