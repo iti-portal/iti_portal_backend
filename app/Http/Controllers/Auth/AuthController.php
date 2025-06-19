@@ -31,6 +31,18 @@ class AuthController extends Controller
                 $message = 'Your account is currently suspended. Contact ITI support for more information.';
             }
 
+            if( ( $user->isVerified() && !$user->isApproved() ) || $user->isRejected() || $user->isSuspended()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'data' => [
+                        'role' => $user->getRoleNames()->first(),
+                        'isVerified' => $user->isVerified(),
+                        'approval_status' => $user->status(),
+                    ],
+                ], 200);
+            }
+
             $token = $user->createToken('auth-token')->plainTextToken;
 
             if ($user->hasRole('admin') || $user->hasRole('staff')) {
