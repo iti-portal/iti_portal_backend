@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Education;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
-class StoreEducationRequest extends FormRequest
+class UpdateEducationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,12 +24,12 @@ class StoreEducationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // 'user_id' => 'required|exists:users,id',
-            'institution' => 'required|string|max:255',
-            'degree' => 'required|string|max:255',
-            'field_of_study' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'user_id' => 'sometimes|exists:users,id',
+            'institution' => 'sometimes|string|max:255',
+            'degree' => 'sometimes|string|max:255',
+            'field_of_study' => 'sometimes|string|max:255',
+            'start_date' => 'sometimes|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
         ];
     }
@@ -40,28 +40,11 @@ class StoreEducationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            //user_id validation messages
-            'user_id.required' => 'User ID is required',
             'user_id.exists' => 'The selected user does not exist',
-
-            //institution validation messages
-            'institution.required' => 'Institution name is required',
             'institution.max' => 'Institution name cannot exceed 255 characters',
-
-            //degree validation messages
-            'degree.required' => 'Degree is required',
             'degree.max' => 'Degree cannot exceed 255 characters',
-
-            //field_of_study validation messages
-            'field_of_study.required' => 'Field of study is required',
             'field_of_study.max' => 'Field of study cannot exceed 255 characters',
-
-            //start_date and end_date validation messages
-            'start_date.required' => 'Start date is required',
             'start_date.date' => 'Start date must be a valid date',
-
-            // end_date validation messages
-            'end_date.required' => 'End date is required',
             'end_date.date' => 'End date must be a valid date',
             'end_date.after_or_equal' => 'End date must be after or equal to start date',
         ];

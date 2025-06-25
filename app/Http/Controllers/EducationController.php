@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreEducationRequest;
-use App\Http\Requests\UpdateEducationRequest;
+use App\Http\Requests\Education\StoreEducationRequest;
+use App\Http\Requests\Education\UpdateEducationRequest;
 use App\Models\Education;
 use App\Models\User;
 use Illuminate\Http\Request;
