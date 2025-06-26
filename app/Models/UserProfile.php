@@ -26,6 +26,7 @@ class UserProfile extends Model
         'available_for_freelance',
         'track',
         'intake',
+        'job_profile', // Add this line
         'graduation_date',
         'student_status',
         'nid_front_image',
