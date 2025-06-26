@@ -212,7 +212,7 @@ class ConnectionController extends Controller
     /**
      * Remove/Disconnect from an existing connection
      */
-    public function unconnect(Request $request): JsonResponse
+    public function disconnect(Request $request): JsonResponse
     {
         $request->validate([
             'user_id' => 'required|exists:users,id'

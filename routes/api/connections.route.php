@@ -16,7 +16,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         // Reject/Decline connection request
         Route::put('/reject', [ConnectionController::class, 'rejectConnection']);
         // Remove/Disconnect from existing connection
-        Route::delete('/disconnect', [ConnectionController::class, 'unconnect']);
+        Route::delete('/disconnect', [ConnectionController::class, 'disconnect']);
         // Get connected users (accepted connections)
         Route::get('/connected', [ConnectionController::class, 'getConnectedUsers']);
         // Get pending connection requests (received)
