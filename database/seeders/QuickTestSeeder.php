@@ -55,7 +55,6 @@ class QuickTestSeeder extends Seeder
             UserSkill::create([
                 'user_id' => $studentUser->id,
                 'skill_id' => $skill->id,
-                'proficiency_level' => 'intermediate',
             ]);
         }
         
