@@ -115,7 +115,6 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
     public function skills()
     {
         return $this->belongsToMany(Skill::class, 'user_skills')
-                    ->withPivot('proficiency_level')
                     ->withTimestamps();
     }
 
