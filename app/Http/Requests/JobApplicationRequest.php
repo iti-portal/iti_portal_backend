@@ -45,7 +45,7 @@ class JobApplicationRequest extends FormRequest
     {
         return [
             'cv.mimes' => 'The CV must be a file of type: PDF, DOC, DOCX.',
-            'cv.max' => 'The CV file size must not exceed 10MB.',
+            'cv.max' => 'The CV file size must not exceed 3MB.',
             'cover_letter.min' => 'The cover letter must be at least 50 characters.',
         ];
     }
