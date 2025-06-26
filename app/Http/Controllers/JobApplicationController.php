@@ -3,33 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\JobApplicationRequest;
-use App\Http\Requests\UpdateCVRequest;
-use App\Models\AvailableJob;
-use App\Models\JobApplication;
+use App\Http\Requests\BatchUpdateStatusRequest;
+use App\Services\ApplicationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 
 class JobApplicationController extends Controller
 {
+    protected ApplicationService $applicationService;
+
+    public function __construct(ApplicationService $applicationService)
+    {
+        $this->applicationService = $applicationService;
+    }
     /**
      * Display a listing of the user's job applications.
      */
     public function index(): JsonResponse
     {
         try {
-            $applications = JobApplication::with('job.company.companyProfile')
-                ->where('user_id', Auth::id())
-                ->latest()
-                ->get();
+            $responseData = $this->applicationService->getUserApplications(Auth::id());
 
-            if ($applications->isEmpty()) {
+            if ($responseData['applications']->isEmpty()) {
                 return $this->respondWithError('You have no job applications yet', 404);
             }
 
-            return $this->respondWithSuccess($applications, 'Job applications retrieved successfully');
+            return $this->respondWithSuccess($responseData, 'Job applications retrieved successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to retrieve job applications: ' . $e->getMessage(), 500);
         }
@@ -40,46 +41,27 @@ class JobApplicationController extends Controller
      */
     public function store(JobApplicationRequest $request): JsonResponse
     {
-        // Check if user has already applied for this job
-        $existingApplication = JobApplication::where('user_id', Auth::id())
-            ->where('job_id', $request->job_id)
-            ->first();
-
-        if ($existingApplication) {
-            return $this->respondWithError('You have already applied for this job.', 422);
-        }
-
-        // Check if job is still accepting applications
         try {
-            $job = AvailableJob::findOrFail($request->job_id);
-
-            if ($job->status !== 'active' || $job->application_deadline < now()) {
-                return $this->respondWithError('This job is no longer accepting applications.', 422);
+            // Check if user has already applied for this job
+            if ($this->applicationService->hasUserAppliedForJob(Auth::id(), $request->job_id)) {
+                return $this->respondWithError('You have already applied for this job.', 422);
             }
 
-            DB::beginTransaction();
-
-            // Handle CV upload
-            $cvPath = $request->file('cv')->store('cv-documents', 'public');
+            // Check if job is still accepting applications
+            $jobValidation = $this->applicationService->isJobAcceptingApplications($request->job_id);
+            if (!$jobValidation['valid']) {
+                return $this->respondWithError($jobValidation['message'], 422);
+            }
 
             // Create application
-            $application = JobApplication::create([
+            $application = $this->applicationService->createApplication([
                 'user_id' => Auth::id(),
                 'job_id' => $request->job_id,
                 'cover_letter' => $request->cover_letter,
-                'cv_path' => $cvPath,
-                'status' => 'applied',
-                'applied_at' => now(),
-            ]);
-
-            // Increment applications count
-            $job->increment('applications_count');
-
-            DB::commit();
+            ], $request->file('cv'));
 
             return $this->respondWithSuccess($application, 'Application submitted successfully.', 201);
         } catch (\Exception $e) {
-            DB::rollBack();
             return $this->respondWithError('Failed to submit application: ' . $e->getMessage(), 500);
         }
     }
@@ -90,10 +72,7 @@ class JobApplicationController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $application = JobApplication::with(['job.company.companyProfile'])
-                ->where('id', $id)
-                ->where('user_id', Auth::id())
-                ->first();
+            $application = $this->applicationService->getUserApplication($id, Auth::id());
 
             if (!$application) {
                 return $this->respondWithError('Job application not found', 404);
@@ -112,33 +91,16 @@ class JobApplicationController extends Controller
     public function destroy(string $id): JsonResponse
     {
         try {
-            $application = JobApplication::where('id', $id)
-                ->where('user_id', Auth::id())
-                ->where('status', 'applied')
-                ->first();
+            $application = $this->applicationService->getWithdrawableApplication($id, Auth::id());
 
             if (!$application) {
                 return $this->respondWithError('Job application not found or cannot be withdrawn', 404);
             }
 
-            DB::beginTransaction();
-
-            // Delete CV file
-            if ($application->cv_path) {
-                Storage::disk('public')->delete($application->cv_path);
-            }
-
-            // Decrement applications count
-            $application->job->decrement('applications_count');
-
-            // Delete application
-            $application->delete();
-
-            DB::commit();
+            $this->applicationService->withdrawApplication($application);
 
             return $this->respondWithSuccess([], 'Application withdrawn successfully');
         } catch (\Exception $e) {
-            DB::rollBack();
             return $this->respondWithError('Failed to withdraw application: ' . $e->getMessage(), 500);
         }
     }
@@ -152,27 +114,21 @@ class JobApplicationController extends Controller
             $request->validate([
                 'job_id' => ['sometimes', 'exists:available_jobs,id'],
                 'status' => ['sometimes', 'in:applied,reviewed,interviewed,hired,rejected'],
+                'include_match_score' => ['sometimes', 'in:true,false,1,0'],
             ]);
 
-            // Get jobs posted by this company
-            $companyId = Auth::id();
-
-            $query = JobApplication::with(['user.profile', 'job'])
-                ->whereHas('job', function($query) use ($companyId) {
-                    $query->where('company_id', $companyId);
-                });
-
-            // Filter by job if provided
+            $filters = [];
             if ($request->has('job_id')) {
-                $query->where('job_id', $request->job_id);
+                $filters['job_id'] = $request->job_id;
             }
-
-            // Filter by status if provided
             if ($request->has('status')) {
-                $query->where('status', $request->status);
+                $filters['status'] = $request->status;
+            }
+            if ($request->has('include_match_score')) {
+                $filters['include_match_score'] = in_array($request->get('include_match_score'), ['true', '1', true, 1]);
             }
 
-            $applications = $query->latest()->get();
+            $applications = $this->applicationService->getCompanyApplications(Auth::id(), $filters);
 
             if ($applications->isEmpty()) {
                 return $this->respondWithError('No applications found', 404);
@@ -195,72 +151,21 @@ class JobApplicationController extends Controller
                 'company_notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
             ]);
 
-            $companyId = Auth::id();
-
-            $application = JobApplication::with('job')
-                ->whereHas('job', function($query) use ($companyId) {
-                    $query->where('company_id', $companyId);
-                })
-                ->find($id);
+            $application = $this->applicationService->getCompanyApplication($id, Auth::id());
 
             if (!$application) {
                 return $this->respondWithError('Application not found or not accessible', 404);
             }
 
-            $application->update([
-                'status' => $request->status,
-                'company_notes' => $request->company_notes,
-            ]);
+            $updatedApplication = $this->applicationService->updateApplicationStatus(
+                $application,
+                $request->status,
+                $request->company_notes
+            );
 
-            return $this->respondWithSuccess($application, 'Application status updated successfully');
+            return $this->respondWithSuccess($updatedApplication, 'Application status updated successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to update application status: ' . $e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Update the CV for a job application.
-     * Only allows updating if the application status is still 'applied'
-     */
-    public function updateCV(UpdateCVRequest $request, string $id): JsonResponse
-    {
-        try {
-            $application = JobApplication::where('id', $id)
-                ->where('user_id', Auth::id())
-                ->where('status', 'applied')
-                ->first();
-
-            if (!$application) {
-                return $this->respondWithError('Job application not found or cannot be updated. You can only update CV for applications that haven\'t been processed yet.', 404);
-            }
-
-            DB::beginTransaction();
-
-            // Delete old CV file if it exists
-            if ($application->cv_path && Storage::disk('public')->exists($application->cv_path)) {
-                Storage::disk('public')->delete($application->cv_path);
-            }
-
-            // Upload new CV file
-            $newCvPath = $request->file('cv')->store('cv-documents', 'public');
-
-            // Update application with new CV path
-            $application->update([
-                'cv_path' => $newCvPath,
-            ]);
-
-            DB::commit();
-
-            return $this->respondWithSuccess($application, 'CV updated successfully');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            // Clean up uploaded file if something went wrong
-            if (isset($newCvPath) && Storage::disk('public')->exists($newCvPath)) {
-                Storage::disk('public')->delete($newCvPath);
-            }
-            
-            return $this->respondWithError('Failed to update CV: ' . $e->getMessage(), 500);
         }
     }
 
@@ -270,41 +175,141 @@ class JobApplicationController extends Controller
     public function downloadCV(string $id)
     {
         try {
-            $application = null;
+            $downloadResult = $this->applicationService->getApplicationForCVDownload($id, Auth::user());
 
-            // For students/alumni - their own applications
-            if (Auth::user()->hasRole(['student', 'alumni'])) {
-                $application = JobApplication::where('id', $id)
-                    ->where('user_id', Auth::id())
-                    ->first();
-
-                if (!$application) {
-                    return $this->respondWithError('Application not found', 404);
-                }
-            }
-            // For companies - applications to their jobs
-            elseif (Auth::user()->hasRole('company')) {
-                $companyId = Auth::id();
-
-                $application = JobApplication::whereHas('job', function($query) use ($companyId) {
-                    $query->where('company_id', $companyId);
-                })
-                ->find($id);
-
-                if (!$application) {
-                    return $this->respondWithError('Application not found or not accessible', 404);
-                }
-            } else {
-                return $this->respondWithError('Unauthorized', 403);
+            if (!$downloadResult['success']) {
+                $statusCode = $downloadResult['message'] === 'Unauthorized' ? 403 : 404;
+                return $this->respondWithError($downloadResult['message'], $statusCode);
             }
 
-            if (!$application->cv_path || !Storage::disk('public')->exists($application->cv_path)) {
-                return $this->respondWithError('CV file not found', 404);
+            $application = $downloadResult['application'];
+            $isCompanyDownload = $downloadResult['is_company_download'];
+
+            // Track CV download by company and auto-update status
+            if ($isCompanyDownload) {
+                try {
+                    $this->applicationService->trackCVDownload($application);
+                } catch (\Exception $e) {
+                    // Log error but don't prevent download
+                    \Log::warning('Failed to update CV download tracking for application ' . $application->id . ': ' . $e->getMessage());
+                }
             }
 
             return Storage::disk('public')->download($application->cv_path);
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to download CV: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Track when a company views an applicant's profile
+     */
+    public function trackProfileView(string $id): JsonResponse
+    {
+        try {
+            $application = $this->applicationService->getCompanyApplication($id, Auth::id());
+
+            if (!$application) {
+                return $this->respondWithError('Application not found or not accessible', 404);
+            }
+
+            $trackingData = $this->applicationService->trackProfileView($application);
+
+            return $this->respondWithSuccess($trackingData, 'Profile view tracked successfully');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to track profile view: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update multiple applications status at once (for companies)
+     */
+    public function batchUpdateStatus(BatchUpdateStatusRequest $request): JsonResponse
+    {
+        try {
+            $result = $this->applicationService->batchUpdateStatus(
+                $request->application_ids,
+                $request->status,
+                Auth::id(),
+                $request->company_notes ?? null
+            );
+
+            if (!$result['success']) {
+                return $this->respondWithError($result['message'], 404);
+            }
+
+            return $this->respondWithSuccess([
+                'updated_count' => $result['updated_count'],
+                'total_requested' => $result['total_requested'],
+                'applications' => $result['applications'],
+                'message' => $result['message']
+            ], 'Batch update completed successfully');
+
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to update applications: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get applications for a job sorted by skill match score
+     */
+    public function getMatchedApplications(string $jobId): JsonResponse
+    {
+        try {
+            $job = $this->applicationService->getCompanyJob($jobId, Auth::id());
+
+            if (!$job) {
+                return $this->respondWithError('Job not found or not accessible', 404);
+            }
+
+            $applications = $this->applicationService->getMatchedApplications($job);
+
+            if ($applications->isEmpty()) {
+                return $this->respondWithError('No applications found for this job', 404);
+            }
+
+            return $this->respondWithSuccess($applications, 'Matched applications retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to retrieve matched applications: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get job application statistics for a specific job
+     */
+    public function getJobApplicationStats(string $jobId): JsonResponse
+    {
+        try {
+            $job = $this->applicationService->getCompanyJob($jobId, Auth::id());
+
+            if (!$job) {
+                return $this->respondWithError('Job not found or not accessible', 404);
+            }
+
+            $stats = $this->applicationService->getJobApplicationStats($job);
+
+            return $this->respondWithSuccess($stats, 'Job application statistics retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to retrieve statistics: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get user's skill match for a specific job (before applying)
+     */
+    public function getJobSkillMatch(string $jobId): JsonResponse
+    {
+        try {
+            $result = $this->applicationService->getUserJobMatch(Auth::user(), $jobId);
+
+            if (!$result['success']) {
+                $statusCode = $result['message'] === 'Job not found' ? 404 : 422;
+                return $this->respondWithError($result['message'], $statusCode);
+            }
+
+            return $this->respondWithSuccess($result['match_data'], 'Skill match data retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to retrieve skill match data: ' . $e->getMessage(), 500);
         }
     }
 }
