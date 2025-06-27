@@ -1,13 +1,14 @@
 <?php
 
+use App\Http\Controllers\AchievementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([])->group(function(){
     // this route for listing all achievements
-    Route::get('/achievements', function (Request $request) {
-        return response()->json(['message' => 'List of user achievements']);
-    })->name('achievements.list');
+    Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.list');
+
+
     // This route for adding a new achievement
     Route::post('/achievements', function (Request $request) {
         return response()->json(['message' => 'Achievement added successfully']);
