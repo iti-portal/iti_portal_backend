@@ -22,19 +22,17 @@ class UserProfile extends Model
         'portfolio_url',
         'profile_picture',
         'cover_photo',
-        'governorate',
+        'branch',
         'available_for_freelance',
+        'program',
         'track',
         'intake',
-        'job_profile', // Add this line
-        'graduation_date',
         'student_status',
         'nid_front_image',
         'nid_back_image',
     ];
 
     protected $casts = [
-        'graduation_date' => 'date',
         'available_for_freelance' => 'boolean',
     ];
 
