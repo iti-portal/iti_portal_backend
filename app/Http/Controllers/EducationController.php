@@ -17,7 +17,7 @@ class EducationController extends Controller
     public function userEducation(Request $request, User $user): JsonResponse
     {
         try {
-            $query = $user->education();
+            $query = $user->educations();
             
             // Order by start_date descending
             $education = $query->orderBy('start_date', 'desc')->get();
