@@ -6,6 +6,8 @@ use App\Http\Requests\StoreAchievementRequest;
 use App\Http\Requests\UpdateAchievementRequest;
 use App\Models\Achievement;
 use App\Models\Award;
+use App\Models\Certificate;
+use App\Models\Project;
 use App\Models\WorkExperience;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
@@ -123,6 +125,10 @@ class AchievementController extends Controller
             $achievement->description = $request->description??null;
             $achievement->organization = $request->organization;
             $achievement->achieved_at = $request->achieved_at;
+            if($achievement->type == 'project'){
+                $achievement->end_date = $request->filled('end_date') ? $request->end_date : null;
+
+            }
             $achievement->end_date = $request->filled('end_date') ? $request->end_date : null;
             
             $achievement->certificate_url = $request->certificate_url??null;
@@ -147,7 +153,7 @@ class AchievementController extends Controller
                 $award->certificate_url = $achievement->certificate_url;
                 $award->save();
            }
-           elseif($achievement->type == 'certificate'){
+           elseif($achievement->type == 'certification'){
                $certificate = new Certificate();
                $certificate->user_id = $user->id;
                $certificate->title = $achievement->title;
@@ -173,6 +179,9 @@ class AchievementController extends Controller
                    'image_path' => $achievement->image_path,
                    'project_id' => $project->id
                ]);
+               return $this->respondWithSuccess(['achievement' => $achievement,
+               'project' => $project, 'project_image' => $project->projectImages()->first()]);
+
            }
            elseif($achievement->type == 'job'){
             $job = new WorkExperience();
