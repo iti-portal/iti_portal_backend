@@ -8,6 +8,9 @@ Route::middleware(['auth:sanctum'])->group(function(){
     // this route for listing all achievements
     Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.list');
 
+    // route for getting user's achievements
+    Route::get('/myachievements', [AchievementController::class, 'userAchievements'])->name('myachievments.list');
+
 
     // This route for adding a new achievement
     Route::post('/achievements', [AchievementController::class, 'store'])->name('achievements.add');

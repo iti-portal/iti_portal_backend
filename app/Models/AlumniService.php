@@ -15,12 +15,9 @@ class AlumniService extends Model
         'title',
         'description',
         'feedback',
-        'has_taught_or_presented',
         'evaluation',
     ];
-    protected $casts = [
-        'has_taught_or_presented' => 'boolean'    
-    ];
+  
     public function alumni()
     {
         return $this->belongsTo(User::class, 'alumni_id');

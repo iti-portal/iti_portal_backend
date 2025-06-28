@@ -18,11 +18,11 @@ class ServicesController extends Controller
         if (!$user) {
             return $this->respondWithError('Unauthorized', 401);
         }
-         
+
         if (!$user->hasRole('alumni')) {
             return $this->respondWithError('Forbidden', 403);
         }
-        
+
 
         $validatedData = $request->validated();
 
@@ -42,7 +42,7 @@ class ServicesController extends Controller
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'] ?? null,
             ]);
-    
+
             return $this->respondWithSuccess(['service' => $service], 201);
         } catch (\Exception $e) {
             return $this->respondWithError('An error occurred while creating the service: ' . $e->getMessage(), 500);
@@ -129,11 +129,16 @@ class ServicesController extends Controller
         }
 
         $services = AlumniService::where('service_type', !null)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
-        ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
-            ->select('alumni_services.*', 'user_profiles.first_name', 'user_profiles.last_name', 'user_profiles.track', 'user_profiles.intake',
+            ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
+            ->select(
+                'alumni_services.*',
+                'user_profiles.first_name',
+                'user_profiles.last_name',
+                'user_profiles.track',
+                'user_profiles.intake',
             )
             ->get()->paginate(10);
-            
+
         return $this->respondWithSuccess(['services' => $services]);
     }
     public function listUnusedServices(Request $request)
@@ -144,11 +149,16 @@ class ServicesController extends Controller
         }
 
         $services = AlumniService::where('service_type', null)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
-        ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
-            ->select('alumni_services.*', 'user_profiles.first_name', 'user_profiles.last_name', 'user_profiles.track', 'user_profiles.intake',
+            ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
+            ->select(
+                'alumni_services.*',
+                'user_profiles.first_name',
+                'user_profiles.last_name',
+                'user_profiles.track',
+                'user_profiles.intake',
             )
             ->get()->paginate(10);
-            
+
         return $this->respondWithSuccess(['services' => $services]);
     }
 
@@ -168,7 +178,6 @@ class ServicesController extends Controller
         }
 
         return $this->respondWithSuccess(['details' => $service]);
-
     }
     public function evaluateService(Request $request, $id)
     {
@@ -186,13 +195,13 @@ class ServicesController extends Controller
             'has_taught_or_presented' => 'required|boolean',
             'evaluation' => 'required|in:positive,neutral,negative',
         ]);
-        if(isset($request->feedback)) {
+        if (isset($request->feedback)) {
             $service->feedback = $request->feedback;
         }
         $service->has_taught_or_presented = $request->has_taught_or_presented;
         $service->evaluation = $request->evaluation;
         $service->save();
         $updatedService = AlumniService::find($id);
-        return $this->respondWithSuccess(['service'=> $updatedService]);
+        return $this->respondWithSuccess(['service' => $updatedService]);
     }
 }

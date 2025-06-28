@@ -53,7 +53,9 @@ class AchievementController extends Controller
             'likes.user:id,first_name,last_name,profile_picture',
         ])
         ->orderBy('achievements.created_at', 'desc')
-        ->select('achievements.*', 'user_profiles.first_name', 'user_profiles.last_name','user_profiles.profile_picture', 'achievement_comments.content', 'achievement_likes.user_id');
+        ->where(column: 'achievements.user_id', value: $user->id)
+        ->paginate(10);
+
         return $this->respondWithSuccess(['achievements' => $achievements]);
         }catch(\Exception $e){
             return $this->respondWithError($e->getMessage(), 500);
