@@ -8,31 +8,31 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Sanctum;
 
 // display and management user details
-Route::middleware(['auth:sanctum', 'email.verified'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     // Routes for current user
     // This route for getting user profile
-    Route::middleware(['can:view profiles'])->get('/profile', [UserProfileController::class, 'getUserProfile'])
+    Route::middleware([])->get('/profile', [UserProfileController::class, 'getUserProfile'])
         ->name('profile');
     // This route for updating user profile
-    Route::middleware(['can:edit own profile'])->put('/profile', [UserProfileController::class, 'updateUserProfile']
+    Route::middleware([])->post('/profile', [UserProfileController::class, 'updateUserProfile']
     )->name('profile.update');
     // This route for deleting user profile
-    Route::middleware(['can:edit own profile'])->delete('/profile', [UserProfileController::class, 'deleteUserProfile']
+    Route::middleware([])->delete('/profile', [UserProfileController::class, 'deleteUserProfile']
     )->name('profile.delete');
     
     // This route for getting user profile details by ID
-    Route::middleware(['can:view profiles'])->get('/profile/{id}', [UserProfileController::class, 'getUserProfileById'])
+    Route::middleware([])->get('/profile/{id}', [UserProfileController::class, 'getUserProfileById'])
         ->name('profile.details');
 
 
     // This route for listing all users
-    Route::middleware(['can:view profiles'])->get('/itians', [UserProfileController::class, 'getAllItians'])->name('itians.list');
+    Route::middleware([])->get('/itians', [UserProfileController::class, 'getAllItians'])->name('itians.list');
 
      // route for listing all graduates
-     Route::middleware(['can:view alumni profiles'])->get('/iti-graduates', [UserProfileController::class, 'getGraduates'])->name('graduates.list');
+     Route::middleware([])->get('/iti-graduates', [UserProfileController::class, 'getGraduates'])->name('graduates.list');
 
      // route for listing all students
-     Route::middleware(['can:view student profiles'])->get('/iti-students', [UserProfileController::class, 'getStudents'])->name('students.list');
+     Route::middleware([])->get('/iti-students', [UserProfileController::class, 'getStudents'])->name('students.list');
  
     
     
@@ -55,20 +55,20 @@ Route::middleware(['auth:sanctum', 'email.verified'])->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
     
     // This route for deleting a user
-    Route::middleware(['can:manage users'])->delete('/users/{id}', [UserProfileController::class, 'deleteUserProfileById'])->name('users.delete');
+    Route::middleware([])->delete('/users/{id}', [UserProfileController::class, 'deleteUserProfileById'])->name('users.delete');
     
     // This route for getting user details by ID we can use the same controller in profile.details route above
-    Route::middleware(['can:manage users'])->get('/users/{id}', [UserProfileController::class, 'getUserProfileById'])->name('users.details');
+    Route::middleware([])->get('/users/{id}', [UserProfileController::class, 'getUserProfileById'])->name('users.details');
     });
     
     // route for listing all graduates
-    Route::middleware(['can:view users'])->get('/graduates', [UserProfileController::class, 'getGraduates'])->name('graduates.list');
+    Route::middleware([])->get('/graduates', [UserProfileController::class, 'getGraduates'])->name('graduates.list');
 
     // route for listing all students
-    Route::middleware(['can:view users'])->get('/students', [UserProfileController::class, 'getStudents'])->name('students.list');
+    Route::middleware([])->get('/students', [UserProfileController::class, 'getStudents'])->name('students.list');
 
     // route for listing all users
-    Route::middleware(['can:view users'])->get('/users', [UserProfileController::class, 'getAllItians'])->name('users.list');
+    Route::middleware([])->get('/users', [UserProfileController::class, 'getAllItians'])->name('users.list');
 
    
     

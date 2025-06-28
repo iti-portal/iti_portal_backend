@@ -122,8 +122,7 @@ class UserProfileController extends Controller
             $profile->first_name = $request->first_name ?? $profile->first_name;
             $profile->last_name = $request->last_name ?? $profile->last_name;   
             $profile->phone = $request->phone ?? $profile->phone;
-            $profile->governorate = $request->governorate ?? $profile->governorate;
-             $profile->graduation_date = $request->graduation_date ?? $profile->graduation_date;
+
             if($request->filled('student_status')&& $request->student_status === 'current' && $profile->student_status === 'graduate'){
                 return $this->respondWithError('You are not a current student', 400);
             }
@@ -133,6 +132,8 @@ class UserProfileController extends Controller
             $profile->whatsapp = $request->whatsapp ?? $profile->whatsapp;
             $profile->linkedin = $request->linkedin ?? $profile->linkedin;
             $profile->github = $request->github ?? $profile->github;
+            $profile->program = $request->program ?? $profile->program;
+            $profile->branch = $request->branch ?? $profile->branch;
             
             $profile->username = $request->username ?? $profile->username;
             
