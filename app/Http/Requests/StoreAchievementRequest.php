@@ -29,7 +29,7 @@ class StoreAchievementRequest extends FormRequest
             'organization' => 'required|string',
             'achieved_at' => 'required|date',
             'end_date' => 'nullable|date',
-            'image_path' => 'nullable|string',
+            'image_path' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'certificate_url' => 'nullable|string',
             'project_url' => 'nullable|string',
         ];

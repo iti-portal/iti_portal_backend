@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAchievementRequest;
 use App\Http\Requests\UpdateAchievementRequest;
 use App\Models\Achievement;
+use App\Models\Award;
 use App\Models\WorkExperience;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
@@ -24,13 +25,15 @@ class AchievementController extends Controller
             return $this->respondWithError('User not found', 404);
         }
         try{
-        $achievements = Achievement::join('users', 'achievements.user_id', '=', 'users.id')
-        ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
-        ->join('achievement_commnents', 'achievements.id', '=', 'achievement_comments.achievement_id')
-        ->join('achievement_likes', 'achievements.id', '=', 'achievement_likes.achievement_id')
-        ->orderBy('achievements.created_at', 'desc')
-        ->select('achievements.*', 'user_profiles.first_name', 'user_profiles.last_name','user_profiles.profile_picture', 'achievement_comments.comment', 'achievement_likes.user_id');
-        return $this->respondWithSuccess(['achievements' => $achievements]);
+            $achievements = Achievement::with([
+                'user.profile:id,user_id,first_name,last_name,profile_picture',
+                'comments:id,content,user_id,created_at',
+                'comments.user:id,first_name,last_name,profile_picture',
+                'likes.user:id,first_name,last_name,profile_picture',
+            ])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+            return $this->respondWithSuccess(['achievements' => $achievements]);
         }catch(\Exception $e){
             return $this->respondWithError($e->getMessage(), 500);
         }
@@ -41,11 +44,12 @@ class AchievementController extends Controller
             return $this->respondWithError('User not found', 404);
         }
         try{
-        $achievements = Achievement::join('users', 'achievements.user_id', '=', 'users.id')
-        ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
-        ->join('achievement_commnents', 'achievements.id', '=', 'achievement_comments.achievement_id')
-        ->join('achievement_likes', 'achievements.id', '=', 'achievement_likes.achievement_id')
-        ->where('achievements.user_id', $user->id)
+        $achievements = Achievement::with([
+            'user.profile:id,user_id,first_name,last_name,profile_picture',
+            'comments:id,content,user_id,created_at',
+            'comments.user:id,first_name,last_name,profile_picture',
+            'likes.user:id,first_name,last_name,profile_picture',
+        ])
         ->orderBy('achievements.created_at', 'desc')
         ->select('achievements.*', 'user_profiles.first_name', 'user_profiles.last_name','user_profiles.profile_picture', 'achievement_comments.content', 'achievement_likes.user_id');
         return $this->respondWithSuccess(['achievements' => $achievements]);
@@ -66,10 +70,12 @@ class AchievementController extends Controller
                 return $connection->addressee_id == $user->id ? $connection->requester_id : $connection->addressee_id;
             })->unique()->all();
 
-            $achievements = Achievement::join('users', 'achievements.user_id', '=', 'users.id')
-            ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
-            ->join('achievement_commnents', 'achievements.id', '=', 'achievement_comments.achievement_id')
-            ->join('achievement_likes', 'achievements.id', '=', 'achievement_likes.achievement_id')
+            $achievements = Achievement::with([
+                'user.profile:id,user_id,first_name,last_name,profile_picture',
+                'comments:id,content,user_id,created_at',
+                'comments.user:id,first_name,last_name,profile_picture',
+                'likes.user:id,first_name,last_name,profile_picture',
+            ])
             ->whereIn('achievements.user_id', $userConnections)
             ->orderBy('achievements.created_at', 'desc')
             ->select('achievements.*', 'user_profiles.first_name', 'user_profiles.last_name','user_profiles.profile_picture', 'achievement_comments.content', 'achievement_likes.user_id');
@@ -77,6 +83,25 @@ class AchievementController extends Controller
             }catch(\Exception $e){
                 return $this->respondWithError($e->getMessage(), 500);
 
+        }
+    }
+    public function popularAchievements(){
+        $user = auth()->user();
+        if(!$user){
+            return $this->respondWithError('User not found', 404);
+        }
+        try{
+        $achievements = Achievement::with([
+            'user.profile:id,user_id,first_name,last_name,profile_picture',
+            'comments:id,content,user_id,created_at',
+            'comments.user:id,first_name,last_name,profile_picture',
+            'likes.user:id,first_name,last_name,profile_picture',
+        ])
+        ->orderBy('likes_count', 'desc')
+        ->select('achievements.*', 'user_profiles.first_name', 'user_profiles.last_name','user_profiles.profile_picture', 'achievement_comments.content', 'achievement_likes.user_id');
+        return $this->respondWithSuccess(['achievements' => $achievements]);
+        }catch(\Exception $e){
+            return $this->respondWithError($e->getMessage(), 500);
         }
     }
 
@@ -98,7 +123,7 @@ class AchievementController extends Controller
             $achievement->description = $request->description??null;
             $achievement->organization = $request->organization;
             $achievement->achieved_at = $request->achieved_at;
-            $achievement->end_date = $request->end_date??null;
+            $achievement->end_date = $request->filled('end_date') ? $request->end_date : null;
             
             $achievement->certificate_url = $request->certificate_url??null;
             $achievement->project_url = $request->project_url??null;
@@ -263,7 +288,7 @@ class AchievementController extends Controller
             return $this->respondWithSuccess(['achievement' => $achievement]);
         }catch(\Exception $e){
             DB::rollBack();
-            /Log::error($e->getMessage());
+            \Log::error($e->getMessage());
             return $this->respondWithError($e->getMessage(), 500);
         }
         
@@ -315,7 +340,7 @@ class AchievementController extends Controller
             return $this->respondWithSuccess(['achievement' => $achievement],"Achievement deleted successfully", 200);
         }catch(\Exception $e){
             DB::rollBack();
-            /Log::error($e->getMessage());
+            \Log::error($e->getMessage());
             return $this->respondWithError($e->getMessage(), 500);
         }
     }
