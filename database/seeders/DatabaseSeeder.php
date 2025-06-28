@@ -17,5 +17,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             ComprehensiveTestDataSeeder::class,
         ]);
+        // $this->call(StudentAndAlumniSeeder::class); // Replace with your actual seeder class name
+
     }
 }

@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\TestController;
 
 require __DIR__ . '/api/users.route.php';
 require __DIR__ . '/api/companies.route.php';

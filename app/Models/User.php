@@ -17,18 +17,20 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    // protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-    protected $fillable = [
+     protected $fillable = [
         'email',
         'password',
         'email_verified_at',
         'status',
         'remember_token',
+        'new_email',
     ];
 
     /**
@@ -77,6 +79,11 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
     }
 
     // Relationships
+
+    public function alumniServices()
+    {
+        return $this->hasMany(AlumniService::class, 'alumni_id');
+    }
     public function profile()
     {
         return $this->hasOne(UserProfile::class);
@@ -116,6 +123,10 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
     {
         return $this->belongsToMany(Skill::class, 'user_skills')
                     ->withTimestamps();
+    }
+    public function awards()
+    {
+        return $this->hasMany(Award::class);
     }
 
     // Scopes
