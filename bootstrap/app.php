@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AllowRegistrationStep;
+use App\Http\Middleware\CheckTokenExpiry;
 use App\Http\Middleware\EnsureAccountApproved;
 use App\Http\Middleware\EnsureEmailVerified;
 use App\Http\Middleware\EnsureProfileComplete;
@@ -33,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'prevent.completed' => PreventCompletedRegistration::class,
             // Registration flow control
             'allow.step' => AllowRegistrationStep::class,
+            // Token management
+            'check.token.expiry' => CheckTokenExpiry::class,
 
         ]);
     })

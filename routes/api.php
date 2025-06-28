@@ -9,7 +9,8 @@ use App\Http\Controllers\TestController;
 
 require __DIR__ . '/api/users.route.php';
 require __DIR__ . '/api/companies.route.php';
-require __DIR__ . '/api/eductionAndSkills.route.php';
+require __DIR__ . '/api/education.route.php';
+require __DIR__ . '/api/projects.route.php';
 require __DIR__ . '/api/oldAchievments.route.php';
 require __DIR__ . '/api/jobs.route.php';
 require __DIR__ . '/api/achievments.route.php';

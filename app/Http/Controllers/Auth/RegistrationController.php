@@ -121,6 +121,12 @@ class RegistrationController extends Controller
 
     private function createUserProfile($user, $validatedData, $request)
     {
+        if ($validatedData['role'] === 'student') {
+            $validatedData['student_status'] = 'current';
+        } elseif ($validatedData['role'] === 'alumni') {
+            $validatedData['student_status'] = 'graduate';
+        }
+
         UserProfile::create([
             'user_id' => $user->id,
             'first_name' => $validatedData['first_name'],
@@ -130,12 +136,12 @@ class RegistrationController extends Controller
             'linkedin' => $validatedData['linkedin'] ?? null,
             'github' => $validatedData['github'] ?? null,
             'portfolio_url' => $validatedData['portfolio_url'] ?? null,
-            'governorate' => $validatedData['governorate'],
+            'branch' => $validatedData['branch'],
             'available_for_freelance' => $validatedData['available_for_freelance'] ?? false,
-            'track' => $validatedData['track'] ?? null,
-            'intake' => $validatedData['intake'] ?? null,
-            'graduation_date' => $validatedData['graduation_date'] ?? null,
-            'student_status' => $validatedData['student_status'] ?? null,
+            'program' => $validatedData['program'],
+            'track' => $validatedData['track'],
+            'intake' => $validatedData['intake'],
+            'student_status' => $validatedData['student_status'],
             'summary' => $validatedData['summary'] ?? null,
             'username' => $validatedData['username'],
         ]);
@@ -144,6 +150,12 @@ class RegistrationController extends Controller
         if ($request->hasFile('profile_picture')) {
             $path = $request->file('profile_picture')->store('profiles', 'public');
             $user->profile->update(['profile_picture' => $path]);
+        }
+        
+        // Handle cover photo upload
+        if ($request->hasFile('cover_photo')) {
+            $path = $request->file('cover_photo')->store('cover_photos', 'public');
+            $user->profile->update(['cover_photo' => $path]);
         }
     }
 
