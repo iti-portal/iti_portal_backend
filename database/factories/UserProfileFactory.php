@@ -12,7 +12,8 @@ class UserProfileFactory extends Factory
     public function definition(): array
     {
         $tracks = ['Web Development', 'Mobile Development', 'Data Science', 'UI/UX Design', 'DevOps', 'Cybersecurity'];
-        $governorates = ['Cairo', 'Alexandria', 'Giza', 'Luxor', 'Aswan', 'Suez', 'Port Said', 'Ismailia'];
+        $branches = ['Smart Village', 'Nasr City', 'Alexandria', 'Mansoura', 'Ismailia', 'Assiut', 'Sohag'];
+        $programs = ['ptp', 'itp'];
         $intakes = ['40', '41', '42', '43', '44', '45'];
         $statuses = ['current', 'graduate'];
 
@@ -28,11 +29,11 @@ class UserProfileFactory extends Factory
             'portfolio_url' => $this->faker->optional(0.7)->url(),
             'profile_picture' => null,
             'cover_photo' => null,
-            'governorate' => $this->faker->randomElement($governorates),
+            'branch' => $this->faker->randomElement($branches),
+            'program' => $this->faker->randomElement($programs),
             'available_for_freelance' => $this->faker->boolean(30),
             'track' => $this->faker->randomElement($tracks),
             'intake' => $this->faker->randomElement($intakes),
-            'graduation_date' => $this->faker->optional(0.6)->dateTimeBetween('-2 years', '+1 year'),
             'student_status' => $this->faker->randomElement($statuses),
             'nid_front_image' => null,
             'nid_back_image' => null,
