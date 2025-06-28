@@ -35,7 +35,7 @@ class AchievementController extends Controller
             return $this->respondWithError($e->getMessage(), 500);
         }
     }
-    public function myAchievements(){
+    public function userAchievements(){
         $user = auth()->user();
         if(!$user){
             return $this->respondWithError('User not found', 404);
@@ -51,6 +51,32 @@ class AchievementController extends Controller
         return $this->respondWithSuccess(['achievements' => $achievements]);
         }catch(\Exception $e){
             return $this->respondWithError($e->getMessage(), 500);
+        }
+    }
+
+    public function userConnectionsAchievements(){
+        $user = auth()->user();
+        if(!$user){
+            return $this->respondWithError('User not found', 404);
+        }
+        try{
+            $userConnections = Connection::where('requester_id', $user->id)->orWhere('addressee_id', $user->id)
+            ->where('status', 'accepted')->select('addressee_id', 'requester_id')->get()
+            ->map(function($connection)use($user){
+                return $connection->addressee_id == $user->id ? $connection->requester_id : $connection->addressee_id;
+            })->unique()->all();
+
+            $achievements = Achievement::join('users', 'achievements.user_id', '=', 'users.id')
+            ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
+            ->join('achievement_commnents', 'achievements.id', '=', 'achievement_comments.achievement_id')
+            ->join('achievement_likes', 'achievements.id', '=', 'achievement_likes.achievement_id')
+            ->whereIn('achievements.user_id', $userConnections)
+            ->orderBy('achievements.created_at', 'desc')
+            ->select('achievements.*', 'user_profiles.first_name', 'user_profiles.last_name','user_profiles.profile_picture', 'achievement_comments.content', 'achievement_likes.user_id');
+            return $this->respondWithSuccess(['achievements' => $achievements]);
+            }catch(\Exception $e){
+                return $this->respondWithError($e->getMessage(), 500);
+
         }
     }
 
