@@ -28,12 +28,22 @@ class ApplicationService
     /**
      * Get user's job applications with related data
      */
-    public function getUserApplications(int $userId): array
+    public function getUserApplications(int $userId, array $filters = []): array
     {
-        $applications = JobApplication::with('job.company.companyProfile')
-            ->where('user_id', $userId)
-            ->latest()
-            ->get();
+        $query = JobApplication::with('job.company.companyProfile')
+            ->where('user_id', $userId);
+
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (isset($filters['company_id'])) {
+            $query->whereHas('job', function ($q) use ($filters) {
+                $q->where('company_id', $filters['company_id']);
+            });
+        }
+
+        $applications = $query->latest()->get();
 
         return [
             'applications' => $applications,
