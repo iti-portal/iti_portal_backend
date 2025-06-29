@@ -320,72 +320,69 @@ class ApplicationService
     /**
      * Batch update application statuses
      */
-    public function batchUpdateStatus(array $applicationIds, string $newStatus, int $companyId, ?string $companyNotes = null): array
+        public function batchUpdateStatus(array $applicationIds, string $newStatus, int $companyId, ?string $companyNotes = null): array
     {
-        // Verify all applications belong to this company's jobs
-        $applications = JobApplication::with(['job', 'user'])
+        // Eager load applications to verify ownership and for notifications
+        $applicationsToUpdate = JobApplication::with(['job', 'user'])
             ->whereIn('id', $applicationIds)
-            ->whereHas('job', function($query) use ($companyId) {
+            ->whereHas('job', function ($query) use ($companyId) {
                 $query->where('company_id', $companyId);
             })
             ->get();
 
-        if ($applications->count() !== count($applicationIds)) {
-            $missingIds = array_diff($applicationIds, $applications->pluck('id')->toArray());
-            return [
-                'success' => false,
-                'message' => 'Some applications not found or not accessible to your company. Missing IDs: ' . implode(', ', $missingIds)
-            ];
+        if ($applicationsToUpdate->count() !== count($applicationIds)) {
+            $foundIds = $applicationsToUpdate->pluck('id')->toArray();
+            $missingIds = array_diff($applicationIds, $foundIds);
+            $message = 'Some applications were not found or are not accessible to your company. Missing or invalid IDs: ' . implode(', ', $missingIds);
+            return ['success' => false, 'message' => $message];
         }
 
-        return DB::transaction(function () use ($applications, $newStatus, $companyNotes) {
-            $updatedCount = 0;
-            $updatedApplications = [];
+        $applicationsToUpdateById = $applicationsToUpdate->keyBy('id');
+        $updatableApplicationIds = $applicationsToUpdateById->keys()->toArray();
 
-            foreach ($applications as $application) {
-                $oldStatus = $application->status;
+        $updateData = ['status' => $newStatus];
+        if ($companyNotes !== null) {
+            $updateData['company_notes'] = $companyNotes;
+        }
 
+        $updatedCount = 0;
+
+        try {
+            DB::transaction(function () use ($updatableApplicationIds, $updateData, &$updatedCount) {
+                $updatedCount = JobApplication::whereIn('id', $updatableApplicationIds)->update($updateData);
+            });
+        } catch (\Exception $e) {
+            Log::error('Batch update failed: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'An error occurred during the batch update.'];
+        }
+
+
+        // Handle notifications for updated applications
+        foreach ($applicationsToUpdate as $application) {
+            $oldStatus = $application->status;
+            if ($oldStatus !== $newStatus) {
                 try {
-                    // Prepare update data
-                    $updateData = ['status' => $newStatus];
-
-                    // Only add company_notes if provided
-                    if ($companyNotes !== null) {
-                        $updateData['company_notes'] = $companyNotes;
-                    }
-
-                    $application->fill($updateData);
-                    $updated = $application->save();
-
-                    if ($updated) {
-                        $updatedCount++;
-                        $updatedApplications[] = $application;
-
-                        // Send notification if status changed
-                        if ($oldStatus !== $newStatus) {
-                            try {
-                                $this->notificationService->notifyApplicantOfStatusChange($application, $oldStatus);
-                            } catch (\Exception $notificationError) {
-                                Log::warning('Failed to send notification for application ' . $application->id . ': ' . $notificationError->getMessage());
-                            }
-                        }
-                    } else {
-                        Log::warning('Failed to update application ' . $application->id . ' - save() returned false');
-                    }
-                } catch (\Exception $updateError) {
-                    Log::error('Failed to update application ' . $application->id . ': ' . $updateError->getMessage());
-                    continue;
+                    // Refresh the model to get the new status, since the update was done via a mass query
+                    $application->refresh();
+                    $this->notificationService->notifyApplicantOfStatusChange($application, $oldStatus);
+                } catch (\Exception $notificationError) {
+                    Log::warning("Failed to send notification for application {$application->id}: " . $notificationError->getMessage());
                 }
             }
+        }
 
-            return [
-                'success' => true,
-                'updated_count' => $updatedCount,
-                'total_requested' => count($applications),
-                'applications' => $updatedApplications,
-                'message' => "Successfully updated {$updatedCount} application(s) to '{$newStatus}' status"
-            ];
-        });
+        // Eager load again to return the updated models
+        $updatedApplications = JobApplication::with(['job.company.companyProfile', 'user.profile'])
+            ->whereIn('id', $updatableApplicationIds)
+            ->get();
+
+        return [
+            'success' => true,
+            'updated_count' => $updatedCount,
+            'total_requested' => count($applicationIds),
+            'applications' => $updatedApplications,
+            'message' => "Successfully updated {$updatedCount} application(s) to '{$newStatus}' status."
+        ];
     }
 
     /**
