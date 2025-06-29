@@ -422,7 +422,6 @@ class ComprehensiveTestDataSeeder extends Seeder
                         'description' => fake()->paragraph(3),
                         'service_type' => fake()->randomElement(['freelance', 'business_session', 'course_teaching']),
                         'feedback' => fake()->optional(0.3)->paragraph(2),
-                        'has_taught_or_presented' => fake()->boolean(30),
                         'evaluation' => fake()->optional(0.4)->randomElement(['positive', 'neutral', 'negative']),
                     ]);
                 }

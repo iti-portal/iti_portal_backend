@@ -7,12 +7,15 @@ use App\Http\Requests\UpdateAchievementRequest;
 use App\Models\Achievement;
 use App\Models\Award;
 use App\Models\Certificate;
+use App\Models\Connection;
 use App\Models\Project;
 use App\Models\WorkExperience;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Log;
+
+use function PHPUnit\Framework\returnSelf;
 
 class AchievementController extends Controller
 {
@@ -29,12 +32,34 @@ class AchievementController extends Controller
         try{
             $achievements = Achievement::with([
                 'user.profile:id,user_id,first_name,last_name,profile_picture',
-                'comments:id,content,user_id,created_at',
-                'comments.user:id,first_name,last_name,profile_picture',
-                'likes.user:id,first_name,last_name,profile_picture',
+                'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
+                'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
             ])
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->get()
+            ->map(function ($achievement) {
+                return [
+                    'id' => $achievement->id,
+                    'user_id' => $achievement->user_id,
+                    'type' => $achievement->type,
+                    'title' => $achievement->title,
+                    'description' => $achievement->description,
+                    'created_at' => $achievement->created_at,
+                    'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
+                    'comments' => $achievement->comments->map(function ($comment) {
+                        return [
+                            'content' => $comment->content,
+                            'created_at' => $comment->created_at,
+                            'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                        ];
+                    }),
+                    'likes' => $achievement->likes->map(function ($like) {
+                        return [
+                            'user_profile' => optional($like->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                        ];
+                    }),
+                ];
+            });
             return $this->respondWithSuccess(['achievements' => $achievements]);
         }catch(\Exception $e){
             return $this->respondWithError($e->getMessage(), 500);
@@ -46,18 +71,38 @@ class AchievementController extends Controller
             return $this->respondWithError('User not found', 404);
         }
         try{
-        $achievements = Achievement::with([
-            'user.profile:id,user_id,first_name,last_name,profile_picture',
-            'comments:id,content,user_id,created_at',
-            'comments.user:id,first_name,last_name,profile_picture',
-            'likes.user:id,first_name,last_name,profile_picture',
-        ])
-        ->orderBy('achievements.created_at', 'desc')
-        ->where(column: 'achievements.user_id', value: $user->id)
-        ->paginate(10);
-
-        return $this->respondWithSuccess(['achievements' => $achievements]);
-        }catch(\Exception $e){
+            $achievements = Achievement::with([
+                'user.profile:id,user_id,first_name,last_name,profile_picture',
+                'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
+                'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
+            ])
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($achievement) {
+                return [
+                    'id' => $achievement->id,
+                    'type' => $achievement->type,
+                    'title' => $achievement->title,
+                    'description' => $achievement->description,
+                    'created_at' => $achievement->created_at,
+                    'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
+                    'comments' => $achievement->comments->map(function ($comment) {
+                        return [
+                            'content' => $comment->content,
+                            'created_at' => $comment->created_at,
+                            'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
+                        ];
+                    }),
+                    'likes' => $achievement->likes->map(function ($like) {
+                        return [
+                            'user_profile' => optional($like->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
+                        ];
+                    }),
+                ];
+            });
+            return $this->respondWithSuccess(['achievements' => $achievements]);
+        } catch (\Exception $e){
             return $this->respondWithError($e->getMessage(), 500);
         }
     }
@@ -69,22 +114,25 @@ class AchievementController extends Controller
         }
         try{
             $userConnections = Connection::where('requester_id', $user->id)->orWhere('addressee_id', $user->id)
-            ->where('status', 'accepted')->select('addressee_id', 'requester_id')->get()
-            ->map(function($connection)use($user){
-                return $connection->addressee_id == $user->id ? $connection->requester_id : $connection->addressee_id;
-            })->unique()->all();
+                            ->where('status', 'accepted')->select('addressee_id', 'requester_id')
+                            ->get()
+                            ->map(function($connection)use($user){
+                                return $connection->addressee_id == $user->id ? $connection->requester_id : $connection->addressee_id;
+                            })->unique()->all();
 
             $achievements = Achievement::with([
-                'user.profile:id,user_id,first_name,last_name,profile_picture',
-                'comments:id,content,user_id,created_at',
-                'comments.user:id,first_name,last_name,profile_picture',
-                'likes.user:id,first_name,last_name,profile_picture',
-            ])
-            ->whereIn('achievements.user_id', $userConnections)
-            ->orderBy('achievements.created_at', 'desc')
-            ->select('achievements.*', 'user_profiles.first_name', 'user_profiles.last_name','user_profiles.profile_picture', 'achievement_comments.content', 'achievement_likes.user_id');
-            return $this->respondWithSuccess(['achievements' => $achievements]);
-            }catch(\Exception $e){
+                        'user.profile:id,user_id,first_name,last_name,profile_picture',
+                        'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
+                        'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
+                        ])
+
+                        ->whereIn( 'achievements.user_id', $userConnections)
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+                        
+            
+                return $this->respondWithSuccess(['connections' => $userConnections,'achievements' => $achievements]);
+            } catch (\Exception $e){
                 return $this->respondWithError($e->getMessage(), 500);
 
         }

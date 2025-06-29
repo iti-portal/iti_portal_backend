@@ -9,11 +9,19 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.list');
 
     // route for getting user's achievements
-    Route::get('/myachievements', [AchievementController::class, 'userAchievements'])->name('myachievments.list');
+    Route::get('/my-achievements', [AchievementController::class, 'userAchievements'])->name('myachievments.list');
+
+
+    // route for getting connections achievements
+    Route::get('/connections-achievements', [AchievementController::class, 'userConnectionsAchievements'])
+    ->name('list.connections.achievements');
 
 
     // This route for adding a new achievement
     Route::post('/achievements', [AchievementController::class, 'store'])->name('achievements.add');
+
+
+    
    
     // // route for getting achievement details by ID
     // Route::get('/achievements/{id}', function (Request $request, $id) {
