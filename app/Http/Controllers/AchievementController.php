@@ -44,8 +44,8 @@ class AchievementController extends Controller
                     'type' => $achievement->type,
                     'title' => $achievement->title,
                     'description' => $achievement->description,
-                    'like_count' => $achievement->likes_count,
-                    'comment_count' => $achievement->comments_count,
+                    'like_count' => $achievement->like_count,
+                    'comment_count' => $achievement->comment_count,
                     'created_at' => $achievement->created_at,
                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
                     'comments' => $achievement->comments->map(function ($comment) {
@@ -88,8 +88,8 @@ class AchievementController extends Controller
                                 'type' => $achievement->type,
                                 'title' => $achievement->title,
                                 'description' => $achievement->description,
-                                'like_count' => $achievement->likes_count,
-                                'comment_count' => $achievement->comments_count,
+                                'like_count' => $achievement->like_count,
+                                'comment_count' => $achievement->comment_count,
                                 'created_at' => $achievement->created_at,
                                 'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
                                 'comments' => $achievement->comments->map(function ($comment) {
@@ -140,8 +140,8 @@ class AchievementController extends Controller
                                     'type' => $achievement->type,
                                     'title' => $achievement->title,
                                     'description' => $achievement->description,
-                                    'like_count' => $achievement->likes_count,
-                                    'comment_count' => $achievement->comments_count,
+                                    'like_count' => $achievement->like_count,
+                                    'comment_count' => $achievement->comment_count,
                                     'created_at' => $achievement->created_at,
                                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
                                     'comments' => $achievement->comments->map(function ($comment) {
@@ -186,8 +186,8 @@ class AchievementController extends Controller
                                     'type' => $achievement->type,
                                     'title' => $achievement->title,
                                     'description' => $achievement->description,
-                                    'like_count' => $achievement->likes_count,
-                                    'comment_count' => $achievement->comments_count,
+                                    'like_count' => $achievement->like_count,
+                                    'comment_count' => $achievement->comment_count,
                                     'created_at' => $achievement->created_at,
                                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
                                     'comments' => $achievement->comments->map(function ($comment) {
