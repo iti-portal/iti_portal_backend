@@ -30,13 +30,7 @@ Route::middleware(['auth:sanctum','throttle:6,1'])->group(function(){
     Route::post('/achievements', [AchievementController::class, 'store'])->name('achievements.add');
 
 
-    // route for updating an achievement
-    Route::put('/achievements/{achievement}', [AchievementController::class, ''])->name('achievements.update');
-
-    // route for deleting an achievement
-    Route::delete('/achievements/{achievement}', [AchievementController::class, 'destroy'])->name('achievements.delete');
-   
-  
+    
 
     // route for like and unlike an achievement
     Route::post('/achievements/like', [AchievementLikeController::class, 'toggleLike'])->name('achievements.like');
@@ -49,4 +43,13 @@ Route::middleware(['auth:sanctum','throttle:6,1'])->group(function(){
 
     // route for deleting a comment
     Route::delete('/achievements/comment/{comment}', [AchievementCommentController::class, 'delete'])->name('achievements.comment.delete');
+
+    // route for updating an achievement
+    Route::post('/achievements/{achievement}', [AchievementController::class, 'update'])->name('achievements.update');
+
+    // route for deleting an achievement
+    Route::delete('/achievements/{achievement}', [AchievementController::class, 'destroy'])->name('achievements.delete');
+   
+  
+
 });

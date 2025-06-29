@@ -37,7 +37,10 @@ class AchievementController extends Controller
             ])
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($achievement) {
+            ->map(function ($achievement)use($user) {
+                $likedByUser = $achievement->likes->contains('user_id', $user->id);
+
+                
                 return [
                     'id' => $achievement->id,
                     'user_id' => $achievement->user_id,
@@ -46,6 +49,7 @@ class AchievementController extends Controller
                     'description' => $achievement->description,
                     'like_count' => $achievement->like_count,
                     'comment_count' => $achievement->comment_count,
+                    'is_liked' => $likedByUser,
                     'created_at' => $achievement->created_at,
                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
                     'comments' => $achievement->comments->map(function ($comment) {
@@ -413,8 +417,11 @@ class AchievementController extends Controller
         }
         try{
             DB::beginTransaction();
-            $achievement = Achievement::findOrFail($achievement);
-            if($achievement->user_id != $user->id){
+            $achievement = Achievement::find($achievement);
+            if(!$achievement){
+                return $this->respondWithError('Achievement not found', 404);
+            }
+            if($achievement->user_id != $user->id && !$user->hasRole('admin')){
                 return $this->respondWithError('You are not authorized to delete this achievement', 403);
             };
             if($achievement->type == 'award'){

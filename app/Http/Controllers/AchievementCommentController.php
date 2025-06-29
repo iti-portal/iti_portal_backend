@@ -21,7 +21,10 @@ class AchievementCommentController extends Controller
             'content' => 'required|string|max:1000|min:1',
         ]);
         try{
-            $achievement = Achievement::findOrFail($request->achievement_id);
+            $achievement = Achievement::find($request->achievement_id);
+            if(!$achievement){
+                return $this->respondWithError('Achievement not found', 404);
+            }
             DB::beginTransaction();
             $comment = new AchievementComment();
             $comment->user_id = $user->id;
@@ -53,7 +56,10 @@ class AchievementCommentController extends Controller
         
         try{
             DB::beginTransaction();
-            $achievement = Achievement::findOrFail($comment);
+            $achievement = Achievement::find($comment->achievement_id);
+            if(!$achievement){
+                return $this->respondWithError('Achievement not found', 404);
+            }
             if($comment->user_id != $user->id && $achievement->user_id != $user->id){
                 return $this->respondWithError('You are not authorized to delete this comment', 403);
             }
