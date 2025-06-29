@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AchievementCommentController;
 use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\AchievementLikeController;
+use App\Models\AchievementComment;
 use App\Models\AchievementLike;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -42,8 +44,9 @@ Route::middleware(['auth:sanctum'])->group(function(){
     
 
     // route for comment on an achievement
-    Route::post('/achievements/{achievement}/comment', function (Request $request, $id) {
-        return response()->json(['message' => "Comment added on achievement with ID: $id successfully"]);
-    })->name('achievements.comment');
+    Route::post('/achievements/comment', [AchievementCommentController::class, 'store'])->name('achievements.comment');
 
+
+    // route for deleting a comment
+    Route::delete('/achievements/comment/{comment}', [AchievementCommentController::class, 'delete'])->name('achievements.comment.delete');
 });
