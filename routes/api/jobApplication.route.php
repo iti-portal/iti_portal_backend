@@ -31,11 +31,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Admin/Staff routes
     Route::middleware(['role:admin|staff'])->prefix('admin')->group(function () {
+        Route::get('/applications/statistics', [AdminJobApplicationController::class, 'statistics']);
         Route::get('/applications', [AdminJobApplicationController::class, 'index']);
         Route::get('/applications/{id}', [AdminJobApplicationController::class, 'show']);
-        Route::put('/applications/{id}/status', [AdminJobApplicationController::class, 'updateStatus']);
+        Route::patch('/applications/{id}/status', [AdminJobApplicationController::class, 'updateStatus']);
         Route::delete('/applications/{id}', [AdminJobApplicationController::class, 'destroy']);
-        Route::get('/applications/statistics', [AdminJobApplicationController::class, 'statistics']);
     });
 
     // Download CV route - accessible by students/alumni, companies, and admin/staff
