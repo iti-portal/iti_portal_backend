@@ -21,10 +21,15 @@ class JobApplicationController extends Controller
     /**
      * Display a listing of the user's job applications.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $responseData = $this->applicationService->getUserApplications(Auth::id());
+            $filters = $request->validate([
+                'status' => 'sometimes|in:applied,reviewed,interviewed,hired,rejected',
+                'company_id' => 'sometimes|exists:users,id',
+            ]);
+
+            $responseData = $this->applicationService->getUserApplications(Auth::id(), $filters);
 
             if ($responseData['applications']->isEmpty()) {
                 return $this->respondWithError('You have no job applications yet', 404);
@@ -310,6 +315,90 @@ class JobApplicationController extends Controller
             return $this->respondWithSuccess($result['match_data'], 'Skill match data retrieved successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to retrieve skill match data: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update the status of an application to 'hired'.
+     */
+    public function hire(Request $request, string $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'company_notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            ]);
+
+            $application = $this->applicationService->getCompanyApplication($id, Auth::id());
+
+            if (!$application) {
+                return $this->respondWithError('Application not found or not accessible', 404);
+            }
+
+            $updatedApplication = $this->applicationService->updateApplicationStatus(
+                $application,
+                'hired',
+                $request->company_notes ?? null
+            );
+
+            return $this->respondWithSuccess($updatedApplication, 'Application status updated to hired');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to update application status: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update the status of an application to 'rejected'.
+     */
+    public function reject(Request $request, string $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'company_notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            ]);
+
+            $application = $this->applicationService->getCompanyApplication($id, Auth::id());
+
+            if (!$application) {
+                return $this->respondWithError('Application not found or not accessible', 404);
+            }
+
+            $updatedApplication = $this->applicationService->updateApplicationStatus(
+                $application,
+                'rejected',
+                $request->company_notes ?? null
+            );
+
+            return $this->respondWithSuccess($updatedApplication, 'Application status updated to rejected');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to update application status: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update the status of an application to 'interviewed'.
+     */
+    public function interview(Request $request, string $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'company_notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            ]);
+
+            $application = $this->applicationService->getCompanyApplication($id, Auth::id());
+
+            if (!$application) {
+                return $this->respondWithError('Application not found or not accessible', 404);
+            }
+
+            $updatedApplication = $this->applicationService->updateApplicationStatus(
+                $application,
+                'interviewed',
+                $request->company_notes ?? null
+            );
+
+            return $this->respondWithSuccess($updatedApplication, 'Application status updated to interviewed');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to update application status: ' . $e->getMessage(), 500);
         }
     }
 }
