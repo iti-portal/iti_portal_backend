@@ -52,13 +52,18 @@ class AchievementController extends Controller
                     'is_liked' => $likedByUser,
                     'created_at' => $achievement->created_at,
                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
-                    'comments' => $achievement->comments->map(function ($comment) {
-                        return [
-                            'content' => $comment->content,
-                            'created_at' => $comment->created_at,
-                            'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
-                        ];
-                    }),
+                    'comments' => $achievement->comments
+                                ->sortByDesc(function ($comment) use ($user) {
+                                    return [$comment->user_id === $user->id ? 1 : 0, $comment->created_at];
+                                })
+                                ->values()
+                                ->map(function ($comment) {
+                                    return [
+                                        'content' => $comment->content,
+                                        'created_at' => $comment->created_at,
+                                        'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                                    ];
+                                }),
                     'likes' => $achievement->likes->map(function ($like) {
                         return [
                             'user_profile' => optional($like->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
@@ -85,7 +90,9 @@ class AchievementController extends Controller
                         ->where('user_id', $user->id)
                         ->orderBy('created_at', 'desc')
                         ->get()
-                        ->map(function ($achievement) {
+                        ->map(function ($achievement)use($user) {
+                            $likedByUser = $achievement->likes->contains('user_id', $user->id);
+                            
                             return [
                                 'id' => $achievement->id,
                                 'user_id' => $achievement->user_id,
@@ -93,10 +100,17 @@ class AchievementController extends Controller
                                 'title' => $achievement->title,
                                 'description' => $achievement->description,
                                 'like_count' => $achievement->like_count,
+                                'is_liked' => $likedByUser,
                                 'comment_count' => $achievement->comment_count,
                                 'created_at' => $achievement->created_at,
                                 'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
-                                'comments' => $achievement->comments->map(function ($comment) {
+                                'comments' => $achievement->comments
+                                ->sortByDesc(function ($comment) use ($user) {
+                                    return [$comment->user_id === $user->id ? 1 : 0,                                    // return $comment->user_id === $user->id ? 1 : 0;
+                                        $comment->created_at];
+                                })
+                                ->values()
+                                ->map(function ($comment) {
                                     return [
                                         'content' => $comment->content,
                                         'created_at' => $comment->created_at,
@@ -137,7 +151,9 @@ class AchievementController extends Controller
                             ->whereIn( 'achievements.user_id', $userConnections)
                             ->orderBy('created_at', 'desc')
                             ->get()
-                            ->map(function ($achievement) {
+                            ->map(function ($achievement)use($user) {
+                                $likedByUser = $achievement->likes->contains('user_id', $user->id);
+
                                 return [
                                     'id' => $achievement->id,
                                     'user_id' => $achievement->user_id,
@@ -145,10 +161,16 @@ class AchievementController extends Controller
                                     'title' => $achievement->title,
                                     'description' => $achievement->description,
                                     'like_count' => $achievement->like_count,
+                                    'is_liked' => $likedByUser,
                                     'comment_count' => $achievement->comment_count,
                                     'created_at' => $achievement->created_at,
                                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
-                                    'comments' => $achievement->comments->map(function ($comment) {
+                                    'comments' => $achievement->comments
+                                    ->sortByDesc(function ($comment) use ($user) {
+                                        return [$comment->user_id === $user->id ? 1 : 0,                                    // return $comment->user_id === $user->id ? 1 : 0;
+                                        $comment->created_at];                                    })
+                                    ->values()
+                                    ->map(function ($comment) {
                                         return [
                                             'content' => $comment->content,
                                             'created_at' => $comment->created_at,
@@ -183,7 +205,9 @@ class AchievementController extends Controller
                             ])
                             ->orderBy('like_count', 'desc')
                             ->get()
-                            ->map(function ($achievement) {
+                            ->map(function ($achievement)use($user) {
+                                $likedByUser = $achievement->likes->contains('user_id', $user->id);
+                                
                                 return [
                                     'id' => $achievement->id,
                                     'user_id' => $achievement->user_id,
@@ -191,10 +215,16 @@ class AchievementController extends Controller
                                     'title' => $achievement->title,
                                     'description' => $achievement->description,
                                     'like_count' => $achievement->like_count,
+                                    'is_liked' => $likedByUser,
                                     'comment_count' => $achievement->comment_count,
                                     'created_at' => $achievement->created_at,
                                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
-                                    'comments' => $achievement->comments->map(function ($comment) {
+                                    'comments' => $achievement->comments
+                                    ->sortByDesc(function ($comment) use ($user) {
+                                        return [$comment->user_id === $user->id ? 1 : 0,                                    // return $comment->user_id === $user->id ? 1 : 0;
+                                        $comment->created_at];                                    })
+                                    ->values()
+                                    ->map(function ($comment) {
                                         return [
                                             'content' => $comment->content,
                                             'created_at' => $comment->created_at,
