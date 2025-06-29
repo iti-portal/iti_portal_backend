@@ -458,61 +458,57 @@ class AchievementController extends Controller
                 $award = Award::where('user_id', $user->id)->where('title', $achievement->title)
                 ->where('achieved_at', $achievement->achieved_at)->where('organization', $achievement->organization)
                 ->first();
-                if(!$award){
-                    DB::rollBack();
-                    return $this->respondWithError('Award not found', 404);
+                if($award){
+                    if($award->user_id != $user->id){
+                        DB::rollBack();
+                        return $this->respondWithError('You are not authorized to delete this achievement', 403);
+                    }
+                    $award->delete();
                 }
-                if($award->user_id != $user->id){
-                    DB::rollBack();
-                    return $this->respondWithError('You are not authorized to delete this achievement', 403);
                 }
-                $award->delete();
-            }
+               
             elseif($achievement->type == 'certificate'){
                 $certificate = Certificate::where('user_id', $user->id)
                 ->where('title', $achievement->title)
                 ->where('achieved_at', $achievement->achieved_at)
                 ->first();
                 if(!$certificate){
-                    DB::rollBack();
-                    return $this->respondWithError('Certificate not found', 404);
+                    if($certificate->user_id != $user->id){
+                        DB::rollBack();
+                        return $this->respondWithError('You are not authorized to delete this certificate', 403);
+                    }
+                    $certificate->delete();
                 }
-                if($certificate->user_id != $user->id){
-                    DB::rollBack();
-                    return $this->respondWithError('You are not authorized to delete this certificate', 403);
                 }
-                $certificate->delete();
-            }
+                
             elseif($achievement->type == 'project'){
                 $project = Project::where('user_id', $user->id)
                 ->where('title', $achievement->title)
                 ->where('start_date', $achievement->achieved_at)->first();
-                if(!$project){
-                    DB::rollBack();
-                    return $this->respondWithError('Project not found', 404);
+                if($project){
+                    if($project->user_id != $user->id){
+                        DB::rollBack();
+                        return $this->respondWithError('You are not authorized to delete this project', 403);
+                    }
+                    $project->delete();
+                    $project_image = $project->projectImages()->where('project_id', $project->id)->first();
+                    
+                    $project_image->delete(); 
                 }
-                if($project->user_id != $user->id){
-                    DB::rollBack();
-                    return $this->respondWithError('You are not authorized to delete this project', 403);
-                }
-                $project->delete();
-                $project_image = $project->projectImages()->where('project_id', $project->id)->first();
-                
-                $project_image->delete();
+               
             }
             elseif($achievement->type == 'job'){
                 $job = WorkExperience::where('user_id', $user->id)
                 ->where('position', $achievement->title)
                 ->where('start_date', $achievement->achieved_at)->first();
-                if(!$job){
-                    DB::rollBack();
-                    return $this->respondWithError('Job not found', 404);
+                if($job){
+                    if($job->user_id != $user->id){
+                        DB::rollBack();
+                        return $this->respondWithError('You are not authorized to delete this job', 403);
+                    }
+                    $job->delete();
                 }
-                if($job->user_id != $user->id){
-                    DB::rollBack();
-                    return $this->respondWithError('You are not authorized to delete this job', 403);
-                }
-                $job->delete();
+               
             }
 
             $achievement->delete();
