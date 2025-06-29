@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\JobApplication;
 use App\Services\NotificationService;
+use App\Services\AdminApplicationService;
+use App\Http\Requests\Admin\AdminJobApplicationIndexRequest;
+use App\Http\Requests\Admin\AdminJobApplicationUpdateStatusRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -13,63 +16,24 @@ use Illuminate\Support\Facades\Storage;
 class JobApplicationController extends Controller
 {
     protected NotificationService $notificationService;
+    protected AdminApplicationService $adminApplicationService;
 
-    public function __construct(NotificationService $notificationService)
+    public function __construct(NotificationService $notificationService, AdminApplicationService $adminApplicationService)
     {
         $this->notificationService = $notificationService;
+        $this->adminApplicationService = $adminApplicationService;
     }
 
     /**
      * Display a listing of all applications in the system (Admin/Staff only)
      */
-    public function index(Request $request): JsonResponse
+    public function index(AdminJobApplicationIndexRequest $request): JsonResponse
     {
         try {
-            $request->validate([
-                'user_id' => ['sometimes', 'exists:users,id'],
-                'company_id' => ['sometimes', 'exists:users,id'],
-                'job_id' => ['sometimes', 'exists:available_jobs,id'],
-                'status' => ['sometimes', 'in:applied,reviewed,interviewed,hired,rejected'],
-                'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-                'sort_by' => ['sometimes', 'in:created_at,applied_at,status'],
-                'sort_order' => ['sometimes', 'in:asc,desc'],
-            ]);
-
-            $query = JobApplication::with([
-                'user.profile',
-                'job.company.companyProfile',
-                'job' => function($query) {
-                    $query->select('id', 'company_id', 'title', 'job_type', 'experience_level');
-                }
-            ]);
-
-            // Apply filters
-            if ($request->has('user_id')) {
-                $query->where('user_id', $request->user_id);
-            }
-
-            if ($request->has('company_id')) {
-                $query->whereHas('job', function($q) use ($request) {
-                    $q->where('company_id', $request->company_id);
-                });
-            }
-
-            if ($request->has('job_id')) {
-                $query->where('job_id', $request->job_id);
-            }
-
-            if ($request->has('status')) {
-                $query->where('status', $request->status);
-            }
-
-            // Apply sorting
-            $sortBy = $request->get('sort_by', 'created_at');
-            $sortOrder = $request->get('sort_order', 'desc');
-            $query->orderBy($sortBy, $sortOrder);
-
-            // Paginate results
-            $perPage = $request->get('per_page', 15);
-            $applications = $query->paginate($perPage);
+            $validated = $request->validated();
+            $perPage = $validated['per_page'] ?? 10; // Use a default value, e.g., 10, if not provided
+            unset($validated['per_page']); // Remove per_page from filters if it's not a filter parameter
+            $applications = $this->adminApplicationService->getAllApplications($validated, $perPage);
 
             if ($applications->isEmpty()) {
                 return $this->respondWithError('No applications found', 404);
@@ -96,12 +60,7 @@ class JobApplicationController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $application = JobApplication::with([
-                'user.profile',
-                'user.skills',
-                'job.company.companyProfile',
-                'job.job_skills.skill'
-            ])->find($id);
+            $application = $this->adminApplicationService->getApplicationById($id);
 
             if (!$application) {
                 return $this->respondWithError('Application not found', 404);
@@ -116,40 +75,24 @@ class JobApplicationController extends Controller
     /**
      * Update the status of an application (Admin/Staff only)
      */
-    public function updateStatus(Request $request, string $id): JsonResponse
+    public function updateStatus(AdminJobApplicationUpdateStatusRequest $request, string $id): JsonResponse
     {
         try {
-            $request->validate([
-                'status' => ['required', 'in:applied,reviewed,interviewed,hired,rejected'],
-                'admin_notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
-                'notify_parties' => ['sometimes', 'boolean'],
-            ]);
+            \Log::info('UpdateStatus called with ID: ' . $id);
+            \Log::info('Request data: ', $request->all());
+            
+            $validated = $request->validated();
+            $application = JobApplication::findOrFail($id);
+            $updatedApplication = $this->adminApplicationService->updateApplicationStatus(
+                $application,
+                $validated['status'],
+                $validated['admin_notes'] ?? null,
+                $validated['notify_parties'] ?? false
+            );
 
-            $application = JobApplication::with(['user', 'job.company'])->find($id);
-
-            if (!$application) {
-                return $this->respondWithError('Application not found', 404);
-            }
-
-            $oldStatus = $application->status;
-
-            DB::beginTransaction();
-
-            $application->update([
-                'status' => $request->status,
-                'company_notes' => $request->admin_notes ?? $application->company_notes,
-            ]);
-
-            // Send notifications if requested
-            if ($request->get('notify_parties', true) && $oldStatus !== $request->status) {
-                $this->notificationService->notifyApplicantOfStatusChange($application, $oldStatus);
-            }
-
-            DB::commit();
-
-            return $this->respondWithSuccess($application, 'Application status updated successfully');
+            return $this->respondWithSuccess($updatedApplication, 'Application status updated successfully');
         } catch (\Exception $e) {
-            DB::rollBack();
+            \Log::error('UpdateStatus error: ' . $e->getMessage());
             return $this->respondWithError('Failed to update application status: ' . $e->getMessage(), 500);
         }
     }
@@ -160,32 +103,10 @@ class JobApplicationController extends Controller
     public function destroy(string $id): JsonResponse
     {
         try {
-            $application = JobApplication::with(['job'])->find($id);
-
-            if (!$application) {
-                return $this->respondWithError('Application not found', 404);
-            }
-
-            DB::beginTransaction();
-
-            // Delete CV file if exists
-            if ($application->cv_path && Storage::disk('public')->exists($application->cv_path)) {
-                Storage::disk('public')->delete($application->cv_path);
-            }
-
-            // Decrement applications count
-            if ($application->job) {
-                $application->job->decrement('applications_count');
-            }
-
-            // Delete application
-            $application->delete();
-
-            DB::commit();
+            $this->adminApplicationService->deleteApplication($id);
 
             return $this->respondWithSuccess([], 'Application deleted successfully');
         } catch (\Exception $e) {
-            DB::rollBack();
             return $this->respondWithError('Failed to delete application: ' . $e->getMessage(), 500);
         }
     }
@@ -196,31 +117,11 @@ class JobApplicationController extends Controller
     public function statistics(): JsonResponse
     {
         try {
-            $stats = [
-                'total_applications' => JobApplication::count(),
-                'status_breakdown' => JobApplication::select('status', DB::raw('count(*) as count'))
-                    ->groupBy('status')
-                    ->pluck('count', 'status')
-                    ->toArray(),
-                'applications_this_month' => JobApplication::whereMonth('created_at', now()->month)
-                    ->whereYear('created_at', now()->year)
-                    ->count(),
-                'applications_this_week' => JobApplication::whereBetween('created_at', [
-                    now()->startOfWeek(),
-                    now()->endOfWeek()
-                ])->count(),
-                'top_companies_by_applications' => JobApplication::select('jobs.company_id', 'users.email as company_email', DB::raw('count(*) as applications_count'))
-                    ->join('available_jobs as jobs', 'job_applications.job_id', '=', 'jobs.id')
-                    ->join('users', 'jobs.company_id', '=', 'users.id')
-                    ->groupBy('jobs.company_id', 'users.email')
-                    ->orderByDesc('applications_count')
-                    ->limit(10)
-                    ->get(),
-            ];
+            $stats = $this->adminApplicationService->getApplicationStatistics();
 
-            return $this->respondWithSuccess($stats, 'Statistics retrieved successfully');
+            return $this->respondWithSuccess($stats, 'Application statistics retrieved successfully');
         } catch (\Exception $e) {
-            return $this->respondWithError('Failed to retrieve statistics: ' . $e->getMessage(), 500);
+            return $this->respondWithError('Failed to retrieve application statistics: ' . $e->getMessage(), 500);
         }
     }
 }
