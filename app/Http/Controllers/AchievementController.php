@@ -44,6 +44,8 @@ class AchievementController extends Controller
                     'type' => $achievement->type,
                     'title' => $achievement->title,
                     'description' => $achievement->description,
+                    'like_count' => $achievement->likes_count,
+                    'comment_count' => $achievement->comments_count,
                     'created_at' => $achievement->created_at,
                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
                     'comments' => $achievement->comments->map(function ($comment) {
@@ -72,35 +74,38 @@ class AchievementController extends Controller
         }
         try{
             $achievements = Achievement::with([
-                'user.profile:id,user_id,first_name,last_name,profile_picture',
-                'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
-                'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
-            ])
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($achievement) {
-                return [
-                    'id' => $achievement->id,
-                    'type' => $achievement->type,
-                    'title' => $achievement->title,
-                    'description' => $achievement->description,
-                    'created_at' => $achievement->created_at,
-                    'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
-                    'comments' => $achievement->comments->map(function ($comment) {
-                        return [
-                            'content' => $comment->content,
-                            'created_at' => $comment->created_at,
-                            'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
-                        ];
-                    }),
-                    'likes' => $achievement->likes->map(function ($like) {
-                        return [
-                            'user_profile' => optional($like->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
-                        ];
-                    }),
-                ];
-            });
+                            'user.profile:id,user_id,first_name,last_name,profile_picture',
+                            'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
+                            'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
+                        ])
+                        ->where('user_id', $user->id)
+                        ->orderBy('created_at', 'desc')
+                        ->get()
+                        ->map(function ($achievement) {
+                            return [
+                                'id' => $achievement->id,
+                                'user_id' => $achievement->user_id,
+                                'type' => $achievement->type,
+                                'title' => $achievement->title,
+                                'description' => $achievement->description,
+                                'like_count' => $achievement->likes_count,
+                                'comment_count' => $achievement->comments_count,
+                                'created_at' => $achievement->created_at,
+                                'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
+                                'comments' => $achievement->comments->map(function ($comment) {
+                                    return [
+                                        'content' => $comment->content,
+                                        'created_at' => $comment->created_at,
+                                        'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                                    ];
+                                }),
+                                'likes' => $achievement->likes->map(function ($like) {
+                                    return [
+                                        'user_profile' => optional($like->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                                    ];
+                                }),
+                            ];
+                        });
             return $this->respondWithSuccess(['achievements' => $achievements]);
         } catch (\Exception $e){
             return $this->respondWithError($e->getMessage(), 500);
@@ -120,18 +125,41 @@ class AchievementController extends Controller
                                 return $connection->addressee_id == $user->id ? $connection->requester_id : $connection->addressee_id;
                             })->unique()->all();
 
-            $achievements = Achievement::with([
-                        'user.profile:id,user_id,first_name,last_name,profile_picture',
-                        'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
-                        'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
-                        ])
-
-                        ->whereIn( 'achievements.user_id', $userConnections)
-                        ->orderBy('created_at', 'desc')
-                        ->get();
-                        
+                            $achievements = Achievement::with([
+                                'user.profile:id,user_id,first_name,last_name,profile_picture',
+                                'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
+                                'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
+                            ])
+                            ->whereIn( 'achievements.user_id', $userConnections)
+                            ->orderBy('created_at', 'desc')
+                            ->get()
+                            ->map(function ($achievement) {
+                                return [
+                                    'id' => $achievement->id,
+                                    'user_id' => $achievement->user_id,
+                                    'type' => $achievement->type,
+                                    'title' => $achievement->title,
+                                    'description' => $achievement->description,
+                                    'like_count' => $achievement->likes_count,
+                                    'comment_count' => $achievement->comments_count,
+                                    'created_at' => $achievement->created_at,
+                                    'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
+                                    'comments' => $achievement->comments->map(function ($comment) {
+                                        return [
+                                            'content' => $comment->content,
+                                            'created_at' => $comment->created_at,
+                                            'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                                        ];
+                                    }),
+                                    'likes' => $achievement->likes->map(function ($like) {
+                                        return [
+                                            'user_profile' => optional($like->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                                        ];
+                                    }),
+                                ];
+                            });                        
             
-                return $this->respondWithSuccess(['connections' => $userConnections,'achievements' => $achievements]);
+                return $this->respondWithSuccess(['achievements' => $achievements]);
             } catch (\Exception $e){
                 return $this->respondWithError($e->getMessage(), 500);
 
@@ -143,14 +171,39 @@ class AchievementController extends Controller
             return $this->respondWithError('User not found', 404);
         }
         try{
-        $achievements = Achievement::with([
-            'user.profile:id,user_id,first_name,last_name,profile_picture',
-            'comments:id,content,user_id,created_at',
-            'comments.user:id,first_name,last_name,profile_picture',
-            'likes.user:id,first_name,last_name,profile_picture',
-        ])
-        ->orderBy('likes_count', 'desc')
-        ->select('achievements.*', 'user_profiles.first_name', 'user_profiles.last_name','user_profiles.profile_picture', 'achievement_comments.content', 'achievement_likes.user_id');
+
+            $achievements = Achievement::with([
+                                'user.profile:id,user_id,first_name,last_name,profile_picture',
+                                'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
+                                'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
+                            ])
+                            ->orderBy('like_count', 'desc')
+                            ->get()
+                            ->map(function ($achievement) {
+                                return [
+                                    'id' => $achievement->id,
+                                    'user_id' => $achievement->user_id,
+                                    'type' => $achievement->type,
+                                    'title' => $achievement->title,
+                                    'description' => $achievement->description,
+                                    'like_count' => $achievement->likes_count,
+                                    'comment_count' => $achievement->comments_count,
+                                    'created_at' => $achievement->created_at,
+                                    'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
+                                    'comments' => $achievement->comments->map(function ($comment) {
+                                        return [
+                                            'content' => $comment->content,
+                                            'created_at' => $comment->created_at,
+                                            'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                                        ];
+                                    }),
+                                    'likes' => $achievement->likes->map(function ($like) {
+                                        return [
+                                            'user_profile' => optional($like->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                                        ];
+                                    }),
+                                ];
+                            });         
         return $this->respondWithSuccess(['achievements' => $achievements]);
         }catch(\Exception $e){
             return $this->respondWithError($e->getMessage(), 500);
@@ -191,80 +244,72 @@ class AchievementController extends Controller
             }
 
             try{
-            DB::beginTransaction();
-            if($achievement->type == 'award'){
-                $award = new Award();
-                $award->user_id = $user->id;
-                $award->title = $achievement->title;
-                $award->description = $achievement->description;
-                $award->achieved_at = $achievement->achieved_at;
-                $award->image_path = $achievement->image_path;
-                $award->organization = $achievement->organization;
-                $award->certificate_url = $achievement->certificate_url;
-                $award->save();
-           }
-           elseif($achievement->type == 'certification'){
-               $certificate = new Certificate();
-               $certificate->user_id = $user->id;
-               $certificate->title = $achievement->title;
-               $certificate->description = $achievement->description;
-               $certificate->achieved_at = $achievement->achieved_at;
-               $certificate->image_path = $achievement->image_path;
-               $certificate->organization = $achievement->organization;
-               $certificate->certificate_url = $achievement->certificate_url;
-               $certificate->save();
-           }
-           elseif($achievement->type == 'project'){
-               $project = new Project();
-               $project->user_id = $user->id;
-               $project->title = $achievement->title;
-               $project->technologies_used = $achievement->organization;
-               $project->description = $achievement->description;
-               $project->start_date = $achievement->achieved_at;
-               $project->end_date = $achievement->end_date;
-               $project->github_url = $achievement->certificate_url;
-               $project->project_url = $achievement->project_url;
-               $project->save();
-               $project->projectImages()->create([
-                   'image_path' => $achievement->image_path,
-                   'project_id' => $project->id
-               ]);
-               return $this->respondWithSuccess(['achievement' => $achievement,
-               'project' => $project, 'project_image' => $project->projectImages()->first()]);
+                DB::beginTransaction();
+                if($achievement->type == 'award'){
+                    $award = new Award();
+                    $award->user_id = $user->id;
+                    $award->title = $achievement->title;
+                    $award->description = $achievement->description;
+                    $award->achieved_at = $achievement->achieved_at;
+                    $award->image_path = $achievement->image_path;
+                    $award->organization = $achievement->organization;
+                    $award->certificate_url = $achievement->certificate_url;
+                    $award->save();
+                }
+                elseif($achievement->type == 'certification'){
+                    $certificate = new Certificate();
+                    $certificate->user_id = $user->id;
+                    $certificate->title = $achievement->title;
+                    $certificate->description = $achievement->description;
+                    $certificate->achieved_at = $achievement->achieved_at;
+                    $certificate->image_path = $achievement->image_path;
+                    $certificate->organization = $achievement->organization;
+                    $certificate->certificate_url = $achievement->certificate_url;
+                    $certificate->save();
+                }
+                elseif($achievement->type == 'project'){
+                    $project = new Project();
+                    $project->user_id = $user->id;
+                    $project->title = $achievement->title;
+                    $project->technologies_used = $achievement->organization;
+                    $project->description = $achievement->description;
+                    $project->start_date = $achievement->achieved_at;
+                    $project->end_date = $achievement->end_date;
+                    $project->github_url = $achievement->certificate_url;
+                    $project->project_url = $achievement->project_url;
+                    $project->save();
+                    $project->projectImages()->create([
+                        'image_path' => $achievement->image_path,
+                        'project_id' => $project->id
+                    ]);
+                    return $this->respondWithSuccess(['achievement' => $achievement,
+                    'project' => $project, 'project_image' => $project->projectImages()->first()]);
 
-           }
-           elseif($achievement->type == 'job'){
-            $job = new WorkExperience();
-            $job->user_id = $user->id;
-            $job->position = $achievement->title;
-            $job->company_name = $achievement->organization;
-            $job->start_date = $achievement->achieved_at;
-            $job->description = $achievement->description;
-            $job->is_current = true;
-            $job->save();
-           }
-  
-           $achievement->save();
-           DB::commit();
-            return $this->respondWithSuccess(['achievement' => $achievement]);
+                }
+                elseif($achievement->type == 'job'){
+                    $job = new WorkExperience();
+                    $job->user_id = $user->id;
+                    $job->position = $achievement->title;
+                    $job->company_name = $achievement->organization;
+                    $job->start_date = $achievement->achieved_at;
+                    $job->description = $achievement->description;
+                    $job->is_current = true;
+                    $job->save();
+                }
+        
+                $achievement->save();
+                DB::commit();
+                return $this->respondWithSuccess(['achievement' => $achievement]);
 
         }catch(\Exception $e){
             DB::rollBack();
             \Log::error($e->getMessage());
             return $this->respondWithError($e->getMessage(), 500);
         }
-        }
-
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-
     }
+
+
+
 
     /**
      * Update the specified resource in storage.

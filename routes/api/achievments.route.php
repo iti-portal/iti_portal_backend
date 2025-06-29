@@ -17,6 +17,11 @@ Route::middleware(['auth:sanctum'])->group(function(){
     ->name('list.connections.achievements');
 
 
+    // route for getting popular achievements
+    Route::get('/popular-achievements', [AchievementController::class, 'popularAchievements'])
+    ->name('list.popular.achievements');
+
+
     // This route for adding a new achievement
     Route::post('/achievements', [AchievementController::class, 'store'])->name('achievements.add');
 
