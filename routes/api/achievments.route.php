@@ -8,7 +8,7 @@ use App\Models\AchievementLike;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum'])->group(function(){
+Route::middleware(['auth:sanctum','throttle:6,1'])->group(function(){
     // this route for listing all achievements
     Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.list');
 

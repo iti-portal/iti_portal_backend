@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Achievement;
 use App\Models\AchievementComment;
+use Dom\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +18,7 @@ class AchievementCommentController extends Controller
         }
         $request->validate([
             'achievement_id' => 'required|exists:achievements,id',
-            'content' => 'required|string|max:1000',
+            'content' => 'required|string|max:1000|min:1',
         ]);
         try{
             $achievement = Achievement::findOrFail($request->achievement_id);
@@ -39,17 +40,20 @@ class AchievementCommentController extends Controller
         }
 
     }
-    public function delete(Request $request, AchievementComment $comment){
+    public function delete(Request $request, $comment){
         $user = auth()->user();
         if(!$user){
             return $this->respondWithError('User not found', 404);
         }
+        $comment = AchievementComment::find($comment);
         if(!$comment){
             return $this->respondWithError('Comment not found', 404);
         }
+
+        
         try{
             DB::beginTransaction();
-            $achievement = Achievement::findOrFail($comment->achievement_id);
+            $achievement = Achievement::findOrFail($comment);
             if($comment->user_id != $user->id && $achievement->user_id != $user->id){
                 return $this->respondWithError('You are not authorized to delete this comment', 403);
             }
