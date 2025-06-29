@@ -26,16 +26,13 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/achievements', [AchievementController::class, 'store'])->name('achievements.add');
 
 
-    
+    // route for updating an achievement
+    Route::put('/achievements/{achievement}', [AchievementController::class, ''])->name('achievements.update');
+
+    // route for deleting an achievement
+    Route::delete('/achievements/{achievement}', [AchievementController::class, 'destroy'])->name('achievements.delete');
    
-    // // route for getting achievement details by ID
-    // Route::get('/achievements/{id}', function (Request $request, $id) {
-    //     return response()->json(['message' => "Details for achievement with ID: $id"]);
-    // })->name('achievements.details');
-    // route for getting all achievements of a user
-    // Route::get('/achievements/itian/{userId}', function (Request $request, $userId) {
-    //     return response()->json(['message' => "List of achievements for user with ID: $userId"]);
-    // })->name('achievements.itian');
+  
 
     // route for like an achievement
     Route::post('/achievements/{id}/like', function (Request $request, $id) {

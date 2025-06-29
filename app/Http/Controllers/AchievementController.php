@@ -314,7 +314,7 @@ class AchievementController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateAchievementRequest $request, string $id)
+    public function update(UpdateAchievementRequest $request, string $achievement)
     {
         //
         $user = auth()->user();
@@ -323,7 +323,10 @@ class AchievementController extends Controller
         }
         try{
             DB::beginTransaction();
-            $achievement = Achievement::findOrFail($id);
+            $achievement = Achievement::findOrFail($achievement);
+            if($achievement->user_id != $user->id){
+                return $this->respondWithError('You are not authorized to update this achievement', 403);
+            };
             $achievement->title = $request->title ?? $achievement->title;
             $achievement->type = $request->type ?? $achievement->type;
             $achievement->description = $request->description ?? $achievement->description;
@@ -373,9 +376,9 @@ class AchievementController extends Controller
                 $project->github_url = $achievement->certificate_url;
                 $project->project_url = $achievement->project_url;
                 $project->save();
-               $project_image = $project->projectImages()->where('project_id', $project->id)->first();
-               $project_image->image_path = $achievement->image_path;
-               $project_image->save();
+                $project_image = $project->projectImages()->where('project_id', $project->id)->first();
+                $project_image->image_path = $achievement->image_path;
+                $project_image->save();
             }
             elseif($achievement->type == 'job'){
                 $job = WorkExperience::where('user_id', $user->id)
@@ -401,7 +404,7 @@ class AchievementController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $achievement)
     {
         //
         $user = auth()->user();
@@ -410,11 +413,22 @@ class AchievementController extends Controller
         }
         try{
             DB::beginTransaction();
-            $achievement = Achievement::findOrFail($id);
+            $achievement = Achievement::findOrFail($achievement);
+            if($achievement->user_id != $user->id){
+                return $this->respondWithError('You are not authorized to delete this achievement', 403);
+            };
             if($achievement->type == 'award'){
                 $award = Award::where('user_id', $user->id)->where('title', $achievement->title)
                 ->where('achieved_at', $achievement->achieved_at)->where('organization', $achievement->organization)
                 ->first();
+                if(!$award){
+                    DB::rollBack();
+                    return $this->respondWithError('Award not found', 404);
+                }
+                if($award->user_id != $user->id){
+                    DB::rollBack();
+                    return $this->respondWithError('You are not authorized to delete this achievement', 403);
+                }
                 $award->delete();
             }
             elseif($achievement->type == 'certificate'){
@@ -422,20 +436,45 @@ class AchievementController extends Controller
                 ->where('title', $achievement->title)
                 ->where('achieved_at', $achievement->achieved_at)
                 ->first();
+                if(!$certificate){
+                    DB::rollBack();
+                    return $this->respondWithError('Certificate not found', 404);
+                }
+                if($certificate->user_id != $user->id){
+                    DB::rollBack();
+                    return $this->respondWithError('You are not authorized to delete this certificate', 403);
+                }
                 $certificate->delete();
             }
             elseif($achievement->type == 'project'){
                 $project = Project::where('user_id', $user->id)
                 ->where('title', $achievement->title)
                 ->where('start_date', $achievement->achieved_at)->first();
+                if(!$project){
+                    DB::rollBack();
+                    return $this->respondWithError('Project not found', 404);
+                }
+                if($project->user_id != $user->id){
+                    DB::rollBack();
+                    return $this->respondWithError('You are not authorized to delete this project', 403);
+                }
                 $project->delete();
                 $project_image = $project->projectImages()->where('project_id', $project->id)->first();
+                
                 $project_image->delete();
             }
             elseif($achievement->type == 'job'){
                 $job = WorkExperience::where('user_id', $user->id)
                 ->where('position', $achievement->title)
                 ->where('start_date', $achievement->achieved_at)->first();
+                if(!$job){
+                    DB::rollBack();
+                    return $this->respondWithError('Job not found', 404);
+                }
+                if($job->user_id != $user->id){
+                    DB::rollBack();
+                    return $this->respondWithError('You are not authorized to delete this job', 403);
+                }
                 $job->delete();
             }
 
