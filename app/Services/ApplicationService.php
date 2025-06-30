@@ -322,6 +322,13 @@ class ApplicationService
      */
     public function batchUpdateStatus(array $applicationIds, string $newStatus, int $companyId, ?string $companyNotes = null): array
     {
+        Log::info('Batch update status called', [
+            'applicationIds' => $applicationIds,
+            'newStatus' => $newStatus,
+            'companyId' => $companyId,
+            'companyNotes' => $companyNotes
+        ]);
+
         // Eager load with all needed relations for validation, notifications, and response.
         $applicationsToUpdate = JobApplication::with(['job.company.companyProfile', 'user.profile'])
             ->whereIn('id', $applicationIds)
@@ -329,6 +336,11 @@ class ApplicationService
                 $query->where('company_id', $companyId);
             })
             ->get();
+
+        Log::info('Applications found for batch update', [
+            'count' => $applicationsToUpdate->count(),
+            'application_ids_found' => $applicationsToUpdate->pluck('id')->toArray()
+        ]);
 
         if ($applicationsToUpdate->isEmpty()) {
             return ['success' => false, 'message' => 'No valid applications found for the given IDs.'];
@@ -353,20 +365,20 @@ class ApplicationService
             $updatedCount = DB::transaction(function () use ($updatableApplicationIds, $updateData) {
                 return JobApplication::whereIn('id', $updatableApplicationIds)->update($updateData);
             });
+            Log::info('Batch update query result', ['updated_count' => $updatedCount]);
         } catch (\Exception $e) {
             Log::error('Batch update failed: ' . $e->getMessage());
             return ['success' => false, 'message' => 'An error occurred during the batch update.'];
         }
 
-        // Handle notifications efficiently without N+1 queries
-        foreach ($applicationsToUpdate as $application) {
-            $oldStatus = $application->status;
+        // Reload applications to get their updated status and notes from the database
+        $updatedApplications = JobApplication::with(['job.company.companyProfile', 'user.profile'])
+            ->whereIn('id', $updatableApplicationIds)
+            ->get();
 
-            // Manually update the in-memory model to reflect the change.
-            $application->status = $newStatus;
-            if ($companyNotes !== null) {
-                $application->company_notes = $companyNotes;
-            }
+        // Handle notifications efficiently without N+1 queries
+        foreach ($updatedApplications as $application) {
+            $oldStatus = $application->getOriginal('status'); // Get original status before update
 
             if ($oldStatus !== $newStatus) {
                 try {
@@ -381,7 +393,7 @@ class ApplicationService
             'success' => true,
             'updated_count' => $updatedCount,
             'total_requested' => count($uniqueRequestedIds),
-            'applications' => $applicationsToUpdate, // Return the modified collection
+            'applications' => $updatedApplications, // Return the reloaded collection
             'message' => "Successfully updated {$updatedCount} application(s) to '{$newStatus}' status."
         ];
     }
