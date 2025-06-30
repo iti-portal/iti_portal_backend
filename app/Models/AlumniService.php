@@ -17,8 +17,7 @@ class AlumniService extends Model
         'feedback',
         'evaluation',
     ];
-    protected $casts = [
-    ];
+  
     public function alumni()
     {
         return $this->belongsTo(User::class, 'alumni_id');

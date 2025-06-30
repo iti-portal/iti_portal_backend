@@ -101,7 +101,7 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
 
     public function educations()
     {
-        return $this->hasMany(Education::class);
+        return $this->hasMany(Education::class)->orderBy('end_date', 'desc');
     }
 
     public function workExperiences()
