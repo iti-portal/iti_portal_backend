@@ -134,9 +134,7 @@ class UserProfileController extends Controller
             $profile->whatsapp = $request->whatsapp ?? $profile->whatsapp;
             $profile->linkedin = $request->linkedin ?? $profile->linkedin;
             $profile->github = $request->github ?? $profile->github;
-            $profile->program = $request->program ?? $profile->program;
-            $profile->branch = $request->branch ?? $profile->branch;
-            
+        
             $profile->username = $request->username ?? $profile->username;
             
             $user->save();

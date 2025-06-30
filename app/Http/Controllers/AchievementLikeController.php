@@ -10,64 +10,56 @@ use Illuminate\Support\Facades\DB;
 class AchievementLikeController extends Controller
 {
     //
-    public function like(Request $request){
-        //
+    public function toggleLike(Request $request)
+    {
         $user = auth()->user();
-        if(!$user){
+        if (!$user) {
             return $this->respondWithError('User not found', 404);
         }
+        
         $request->validate([
-            $request->achievement_id => 'required',
+            'achievement_id' => 'required',
         ]);
-        try{
-            $achievement = Achievement::findOrFail($request->achievement_id);
-            $like = AchievementLike::where('achievement_id', $request->achievement_id)
-            ->where('user_id', $user->id)->get();
-            if($like){
-                return $this->respondWithError('You have already liked this achievement', 400);
-            };
+        $is_liked = null;
+        try {
+            $achievement = Achievement::find($request->achievement_id);
+            if (!$achievement) {
+                return $this->respondWithError('Achievement not found', 404);
+            }
+            $existingLike = AchievementLike::where('achievement_id', $request->achievement_id)
+                ->where('user_id', $user->id)
+                ->first();
+            
             DB::beginTransaction();
-            $like = new AchievementLike();
-            $like->user_id = $user->id;
-            $like->achievement_id = $request->achievement_id;
-            $like->save();
-            $achievement->like_count = $achievement->like_count + 1;
-            $achievement->save();
+            
+            if ($existingLike) {
+                $existingLike->delete();
+                $achievement->decrement('like_count');
+                $action = 'unliked';
+                $is_liked = false;
+            } else {
+                AchievementLike::create([
+                    'user_id' => $user->id,
+                    'achievement_id' => $request->achievement_id,
+                ]);
+                $achievement->increment('like_count');
+                $action = 'liked';
+                $is_liked = true;
+            }
+            
             DB::commit();
-            return $this->respondWithSuccess('Like added successfully', $like);
-        }catch(\Exception $e){
+            
+            return $this->respondWithSuccess([
+                'action' => $action,
+                'like_count' => $achievement->fresh()->like_count,
+                'is_liked' => $is_liked
+            ], "Achievement {$action} successfully");
+            
+        } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error($e);
+            \Log::error('Toggle like error: ' . $e->getMessage());
             return $this->respondWithError($e->getMessage(), 500);
-    }
-}   
-    public function unlike(Request $request){
-        //
-        $user = auth()->user();
-        if(!$user){
-            return $this->respondWithError('User not found', 404);
-        }
-        $request->validate([
-            $request->achievement_id => 'required',
-        ]);
-        try{
-            $achievement = Achievement::findOrFail($request->achievement_id);
-            $like = AchievementLike::where('achievement_id', $request->achievement_id)
-            ->where('user_id', $user->id)->get();
-            if(!$like){
-                return $this->respondWithError('You have not liked this achievement', 400);
-            };
-            DB::beginTransaction();
-            $like->delete();
-            $achievement->like_count = $achievement->like_count - 1;
-            $achievement->save();
-            DB::commit();
-            return $this->respondWithSuccess('Like deleted successfully');
-        }catch(\Exception $e){
-            DB::rollBack();
-            \Log::error($e);
-            return $this->respondWithError($e->getMessage(), 500);
-    }
-}
 
+        }
+    }
 }
