@@ -150,6 +150,7 @@ class JobApplicationController extends Controller
      */
     public function updateStatus(Request $request, string $id): JsonResponse
     {
+        \Log::info('Update status called with id: ' . $id);
         try {
             $request->validate([
                 'status' => ['required', 'in:reviewed,interviewed,hired,rejected'],
@@ -223,35 +224,6 @@ class JobApplicationController extends Controller
             return $this->respondWithSuccess($trackingData, 'Profile view tracked successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to track profile view: ' . $e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Update multiple applications status at once (for companies)
-     */
-    public function batchUpdateStatus(BatchUpdateStatusRequest $request): JsonResponse
-    {
-        try {
-            $result = $this->applicationService->batchUpdateStatus(
-                $request->application_ids,
-                $request->status,
-                Auth::id(),
-                $request->company_notes ?? null
-            );
-
-            if (!$result['success']) {
-                return $this->respondWithError($result['message'], 404);
-            }
-
-            return $this->respondWithSuccess([
-                'updated_count' => $result['updated_count'],
-                'total_requested' => $result['total_requested'],
-                'applications' => $result['applications'],
-                'message' => $result['message']
-            ], 'Batch update completed successfully');
-
-        } catch (\Exception $e) {
-            return $this->respondWithError('Failed to update applications: ' . $e->getMessage(), 500);
         }
     }
 
