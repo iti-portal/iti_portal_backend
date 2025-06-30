@@ -322,79 +322,81 @@ class ApplicationService
      */
     public function batchUpdateStatus(array $applicationIds, string $newStatus, int $companyId, ?string $companyNotes = null): array
     {
-        Log::info('Batch update status called', [
-            'applicationIds' => $applicationIds,
-            'newStatus' => $newStatus,
-            'companyId' => $companyId,
-            'companyNotes' => $companyNotes
-        ]);
+        $uniqueRequestedIds = array_unique($applicationIds);
 
-        // Eager load with all needed relations for validation, notifications, and response.
-        $applicationsToUpdate = JobApplication::with(['job.company.companyProfile', 'user.profile'])
-            ->whereIn('id', $applicationIds)
+        // Find applications that match the provided IDs and belong to the company.
+        $applicationsToUpdate = JobApplication::with(['job', 'user'])
+            ->whereIn('id', $uniqueRequestedIds)
             ->whereHas('job', function ($query) use ($companyId) {
                 $query->where('company_id', $companyId);
             })
             ->get();
 
-        Log::info('Applications found for batch update', [
-            'count' => $applicationsToUpdate->count(),
-            'application_ids_found' => $applicationsToUpdate->pluck('id')->toArray()
-        ]);
+        // Identify if any requested applications were not found or didn't belong to the company.
+        if ($applicationsToUpdate->count() < count($uniqueRequestedIds)) {
+            $foundIds = $applicationsToUpdate->pluck('id')->map(fn($id) => (string)$id)->all();
+            $missingIds = array_diff(array_map('strval', $uniqueRequestedIds), $foundIds);
+            $message = 'Operation completed with warnings. Some applications could not be updated because they were not found or do not belong to your company. Missing IDs: ' . implode(', ', $missingIds);
+            // Decide if this should be a hard fail or a partial success.
+            // For this implementation, we will proceed with the valid ones.
+        }
 
         if ($applicationsToUpdate->isEmpty()) {
-            return ['success' => false, 'message' => 'No valid applications found for the given IDs.'];
+            return [
+                'success' => false,
+                'message' => 'No valid applications were found to update. Please check the application IDs and ensure they belong to jobs posted by your company.'
+            ];
         }
 
-        $uniqueRequestedIds = array_unique($applicationIds);
-        if ($applicationsToUpdate->count() !== count($uniqueRequestedIds)) {
-            $foundIds = $applicationsToUpdate->pluck('id')->toArray();
-            $missingIds = array_diff($uniqueRequestedIds, $foundIds);
-            $message = 'Some applications were not found or are not accessible to your company. Missing or invalid IDs: ' . implode(', ', $missingIds);
-            return ['success' => false, 'message' => $message];
-        }
-        
+        // Store the original statuses before the update for accurate notifications.
+        $originalStatuses = $applicationsToUpdate->mapWithKeys(function ($app) {
+            return [$app->id => $app->status];
+        });
+
         $updatableApplicationIds = $applicationsToUpdate->pluck('id')->toArray();
-
-        $updateData = ['status' => $newStatus];
-        if ($companyNotes !== null) {
-            $updateData['company_notes'] = $companyNotes;
-        }
+        $updatedCount = 0;
 
         try {
-            $updatedCount = DB::transaction(function () use ($updatableApplicationIds, $updateData) {
-                return JobApplication::whereIn('id', $updatableApplicationIds)->update($updateData);
+            DB::transaction(function () use ($updatableApplicationIds, $newStatus, $companyNotes, &$updatedCount) {
+                $updateData = ['status' => $newStatus];
+                if ($companyNotes !== null) {
+                    $updateData['company_notes'] = $companyNotes;
+                }
+                $updatedCount = JobApplication::whereIn('id', $updatableApplicationIds)->update($updateData);
             });
-            Log::info('Batch update query result', ['updated_count' => $updatedCount]);
         } catch (\Exception $e) {
-            Log::error('Batch update failed: ' . $e->getMessage());
-            return ['success' => false, 'message' => 'An error occurred during the batch update.'];
+            Log::error('Batch update database transaction failed: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'A database error occurred during the update.'];
         }
 
-        // Reload applications to get their updated status and notes from the database
+        // After a successful DB transaction, send notifications.
+        // We re-load the applications to ensure we have the most current data.
         $updatedApplications = JobApplication::with(['job.company.companyProfile', 'user.profile'])
-            ->whereIn('id', $updatableApplicationIds)
-            ->get();
+            ->whereIn('id', $updatableApplicationIds)->get();
 
-        // Handle notifications efficiently without N+1 queries
         foreach ($updatedApplications as $application) {
-            $oldStatus = $application->getOriginal('status'); // Get original status before update
-
-            if ($oldStatus !== $newStatus) {
+            $oldStatus = $originalStatuses[$application->id] ?? null;
+            // Only send a notification if the status has actually changed.
+            if ($oldStatus && $oldStatus !== $newStatus) {
                 try {
                     $this->notificationService->notifyApplicantOfStatusChange($application, $oldStatus);
                 } catch (\Exception $notificationError) {
-                    Log::warning("Failed to send notification for application {$application->id}: " . $notificationError->getMessage());
+                    Log::warning("Failed to send status change notification for application {$application->id}: " . $notificationError->getMessage());
                 }
             }
+        }
+        
+        $finalMessage = "Successfully updated {$updatedCount} of {$applicationsToUpdate->count()} valid application(s) to '{$newStatus}' status.";
+        if (isset($message)) {
+            $finalMessage .= " " . $message; // Append the warning message if some IDs were missing.
         }
 
         return [
             'success' => true,
             'updated_count' => $updatedCount,
             'total_requested' => count($uniqueRequestedIds),
-            'applications' => $updatedApplications, // Return the reloaded collection
-            'message' => "Successfully updated {$updatedCount} application(s) to '{$newStatus}' status."
+            'applications' => $updatedApplications,
+            'message' => $finalMessage
         ];
     }
 
