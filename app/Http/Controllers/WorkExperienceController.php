@@ -13,14 +13,11 @@ class WorkExperienceController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        if (! $user) {
-            return $this->respondWithError('User not authenticated', 401);
-        }
         try {
+            $user = Auth::user();
             $workExperiences = $user->workExperiences()->get();
             if ($workExperiences->isEmpty()) {
-                return $this->respondWithError('You have no work experiences added yet', 404);
+                return $this->respondWithSuccess($workExperiences, 'You have no prior work experiences, add some to enhance your profile.');
             }
             return $this->respondWithSuccess($workExperiences, 'Work experiences retrieved successfully');
         } catch (\Exception $e) {
@@ -31,9 +28,7 @@ class WorkExperienceController extends Controller
     {
         $validated = $request->validated();
         $user      = Auth::user();
-        if (! $user) {
-            return $this->respondWithError('User not authenticated', 401);
-        }
+
         if (isset($validated['is_current']) && $validated['is_current'] === true) {
             $validated['end_date'] = null;
         }
@@ -82,7 +77,7 @@ class WorkExperienceController extends Controller
         try {
             $workExperiences = $user->workExperiences()->get();
             if ($workExperiences->isEmpty()) {
-                return $this->respondWithError('This user has no work experiences', 404);
+                return $this->respondWithSuccess($workExperiences, 'This user has no work experiences');
             }
             return $this->respondWithSuccess($workExperiences, 'User work experiences retrieved successfully');
         } catch (\Exception $e) {

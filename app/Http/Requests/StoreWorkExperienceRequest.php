@@ -23,7 +23,7 @@ class StoreWorkExperienceRequest extends FormRequest
         return [
             'company_name' => 'required|string|max:255',
             'start_date'   => 'required|date',
-            'end_date'     => 'nullable|date|after:start_date',
+            'end_date'     => 'nullable|date|after:start_date|before_or_equal:today',
             'description'  => 'nullable|string',
             'is_current'   => 'nullable|boolean',
             'position'     => 'required|string|max:255',
@@ -33,6 +33,7 @@ class StoreWorkExperienceRequest extends FormRequest
     {
         return [
             'end_date.after'     => 'The end date must be after the start date.',
+            'end_date.before_or_equal' => 'The end date must be before or equal to today.',
             'is_current.boolean' => 'Current job flag must be true or false',
             'company_name.required' => 'Company name is required.',
             'start_date.required' => 'Start date is required.',
