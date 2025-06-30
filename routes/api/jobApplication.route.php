@@ -21,6 +21,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['role:company'])->group(function () {
         Route::get('/company/applications', [JobApplicationController::class, 'companyApplications']);
         Route::patch('/company/applications/{id}/status', [JobApplicationController::class, 'updateStatus']);
+        Route::patch('/company/applications/{id}/hire', [JobApplicationController::class, 'hire']);
+        Route::patch('/company/applications/{id}/reject', [JobApplicationController::class, 'reject']);
+        Route::patch('/company/applications/{id}/interview', [JobApplicationController::class, 'interview']);
         Route::post('/applications/batch-update-status', [JobApplicationController::class, 'batchUpdateStatus']);
         Route::post('/applications/{id}/track-profile-view', [JobApplicationController::class, 'trackProfileView']);
         
@@ -31,11 +34,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Admin/Staff routes
     Route::middleware(['role:admin|staff'])->prefix('admin')->group(function () {
+        Route::get('/applications/statistics', [AdminJobApplicationController::class, 'statistics']);
         Route::get('/applications', [AdminJobApplicationController::class, 'index']);
         Route::get('/applications/{id}', [AdminJobApplicationController::class, 'show']);
-        Route::put('/applications/{id}/status', [AdminJobApplicationController::class, 'updateStatus']);
+        Route::patch('/applications/{id}/status', [AdminJobApplicationController::class, 'updateStatus']);
         Route::delete('/applications/{id}', [AdminJobApplicationController::class, 'destroy']);
-        Route::get('/applications/statistics', [AdminJobApplicationController::class, 'statistics']);
     });
 
     // Download CV route - accessible by students/alumni, companies, and admin/staff
