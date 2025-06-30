@@ -130,11 +130,12 @@ class UserProfileController extends Controller
             }
             $profile->student_status = $request->student_status ?? $profile->student_status;
             $profile->available_for_freelance = $request->available_for_freelance ?? $profile->available_for_freelance;
-            $profile->summary = $request->summery ?? $profile->summary;
+            $profile->summary = $request->summary ?? $profile->summary;
+            $profile->portfolio_url = $request->portfolio_url ?? $profile->portfolio_url;
             $profile->whatsapp = $request->whatsapp ?? $profile->whatsapp;
             $profile->linkedin = $request->linkedin ?? $profile->linkedin;
             $profile->github = $request->github ?? $profile->github;
-        
+            
             $profile->username = $request->username ?? $profile->username;
             
             $user->save();
