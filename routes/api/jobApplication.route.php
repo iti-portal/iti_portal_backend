@@ -20,6 +20,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // For companies
     Route::middleware(['role:company'])->group(function () {
         Route::get('/company/applications', [JobApplicationController::class, 'companyApplications']);
+        Route::patch('/company/applications/batch/status', [JobApplicationController::class, 'batchUpdateStatus']);
         Route::patch('/company/applications/{id}/status', [JobApplicationController::class, 'updateStatus']);
         Route::patch('/company/applications/{id}/hire', [JobApplicationController::class, 'hire']);
         Route::patch('/company/applications/{id}/reject', [JobApplicationController::class, 'reject']);
