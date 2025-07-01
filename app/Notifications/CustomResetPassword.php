@@ -45,7 +45,7 @@ class CustomResetPassword extends Notification
             ->view('emails.reset_password', [
                 'url'   => $url,
                 'token' => $token,
-                'email' => $notifiable->email,
+                'notifiable' => $notifiable,
             ]);
     }
     /**

@@ -82,6 +82,7 @@
 <body>
     <div class="container">
         <div class="header">
+            <img src="{{ asset('logo.png') }}" alt="ITI Portal Logo" style="max-width: 150px; height: auto;">
             <h1>@yield('header')</h1>
         </div>
         <div class="content">

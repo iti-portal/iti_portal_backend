@@ -5,7 +5,7 @@
 @section('header', 'ITI Portal Password Reset')
 
 @section('content')
-    <p>Hello,</p>
+    <p>Hello {{ $notifiable->getFullNameAttribute() ?? 'there' }},</p>
     <p>We received a request to reset the password for your ITI Portal account.</p>
     <p>Click the button below to reset your password:</p>
 

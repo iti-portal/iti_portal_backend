@@ -5,7 +5,7 @@
 @section('header', 'Verify Your Email Address')
 
 @section('content')
-    <p>Hello,</p>
+    <p>Hello,{{ $notifiable->getFullNameAttribute() ?? 'there' }}</p>
     <p>Thank you for registering with ITI Portal. To complete your registration, please verify your email address by
         clicking the button below:</p>
 
