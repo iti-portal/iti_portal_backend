@@ -41,14 +41,25 @@ class UserProfileService
         }
 
         if ($request->has('skill') && $request->filled('skill')) {
-            $skillTerm = $request->input('skill');
-            $query->whereExists(function ($subQuery) use ($skillTerm) {
-                $subQuery->select(DB::raw(1))
-                         ->from('user_skills')
-                         ->join('skills', 'user_skills.skill_id', '=', 'skills.id')
-                         ->whereColumn('user_skills.user_id', 'user_profiles.user_id')
-                         ->where('skills.name', 'like', $skillTerm . '%');
-            });
+            $skills = $request->input('skill');
+            if (!is_array($skills)) {
+                $skills = [$skills];
+            }
+            $skills = array_filter($skills); // Remove empty values
+
+            if (!empty($skills)) {
+                $query->whereExists(function ($subQuery) use ($skills) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('user_skills')
+                        ->join('skills', 'user_skills.skill_id', '=', 'skills.id')
+                        ->whereColumn('user_skills.user_id', 'user_profiles.user_id')
+                        ->where(function ($skillQuery) use ($skills) {
+                            foreach ($skills as $skill) {
+                                $skillQuery->orWhere('skills.name', 'like', $skill . '%');
+                            }
+                        });
+                });
+            }
         }
 
         $users = $query->get();
