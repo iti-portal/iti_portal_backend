@@ -373,4 +373,25 @@ class JobApplicationController extends Controller
             return $this->respondWithError('Failed to update application status: ' . $e->getMessage(), 500);
         }
     }
+
+    /**
+     * Batch update the status of multiple applications (for companies).
+     */
+    public function batchUpdateStatus(BatchUpdateStatusRequest $request): JsonResponse
+    {
+        try {
+            $validated = $request->validated();
+            
+            $result = $this->applicationService->batchUpdateApplicationStatus(
+                $validated['application_ids'],
+                Auth::id(),
+                $validated['status'],
+                $validated['company_notes'] ?? null
+            );
+            
+            return $this->respondWithSuccess($result, 'Application statuses updated successfully');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to update application statuses: ' . $e->getMessage(), 500);
+        }
+    }
 }
