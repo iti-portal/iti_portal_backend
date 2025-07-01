@@ -17,18 +17,20 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    // protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-    protected $fillable = [
+     protected $fillable = [
         'email',
         'password',
         'email_verified_at',
         'status',
         'remember_token',
+        'new_email',
     ];
 
     /**
@@ -77,6 +79,11 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
     }
 
     // Relationships
+
+    public function alumniServices()
+    {
+        return $this->hasMany(AlumniService::class, 'alumni_id');
+    }
     public function profile()
     {
         return $this->hasOne(UserProfile::class);
@@ -94,7 +101,7 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
 
     public function educations()
     {
-        return $this->hasMany(Education::class);
+        return $this->hasMany(Education::class)->orderBy('end_date', 'desc');
     }
 
     public function workExperiences()
@@ -115,8 +122,11 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
     public function skills()
     {
         return $this->belongsToMany(Skill::class, 'user_skills')
-                    ->withPivot('proficiency_level')
                     ->withTimestamps();
+    }
+    public function awards()
+    {
+        return $this->hasMany(Award::class);
     }
 
     // Scopes
@@ -152,6 +162,21 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
     public function isPending()
     {
         return $this->status === 'pending';
+    }
+
+    public function isRejected()
+    {
+        return $this->status === 'rejected';
+    }
+
+    public function isSuspended()
+    {
+        return $this->status === 'suspended';
+    }
+
+    public function status()
+    {
+        return $this->status;
     }
 
     public function isCompany()

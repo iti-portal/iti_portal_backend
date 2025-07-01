@@ -5,11 +5,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\TestController;
 
 require __DIR__ . '/api/users.route.php';
 require __DIR__ . '/api/companies.route.php';
-require __DIR__ . '/api/eductionAndSkills.route.php';
+require __DIR__ . '/api/education.route.php';
+require __DIR__ . '/api/projects.route.php';
 require __DIR__ . '/api/oldAchievments.route.php';
 require __DIR__ . '/api/jobs.route.php';
 require __DIR__ . '/api/achievments.route.php';
@@ -19,6 +19,9 @@ require __DIR__ . '/api/connections.route.php';
 require __DIR__ . '/api/skills.route.php';
 require __DIR__ . '/api/workExperience.route.php';
 require __DIR__. '/api/userprofiles.route.php';
+require __DIR__. '/api/jobApplication.route.php';
+require __DIR__. '/api/awards.route.php';
+require __DIR__. '/api/certificates.route.php';
 
 use App\Http\Controllers\Auth\PasswordResetController;
 

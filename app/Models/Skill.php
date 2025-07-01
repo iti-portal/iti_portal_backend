@@ -11,8 +11,6 @@ class Skill extends Model
     use HasFactory;
     protected $fillable = [
         'name',
-        'description',
-        'category_id',
     ];
     public function users()
     {

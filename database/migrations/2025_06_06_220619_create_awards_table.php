@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('organization');
-            $table->date('achieved_at')->nullable();
+             $table->date('achieved_at')->nullable();
             $table->string('certificate_url')->nullable();
             $table->string('image_path')->nullable();
             

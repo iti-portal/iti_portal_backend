@@ -1,55 +1,76 @@
 <?php
 
+use App\Http\Controllers\UserProfileController;
+use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Sanctum;
 
 // display and management user details
-Route::middleware([])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     // Routes for current user
     // This route for getting user profile
-    Route::get('/profile', fn(Request $request)
-        => response()->json(['message' => 'This is the profile route']))
+    Route::middleware([])->get('/profile', [UserProfileController::class, 'getUserProfile'])
         ->name('profile');
     // This route for updating user profile
-    Route::put('/profile', fn (Request $request)=>
-        response()->json(['message' => 'Profile updated successfully'])
+    Route::middleware([])->post('/profile', [UserProfileController::class, 'updateUserProfile']
     )->name('profile.update');
     // This route for deleting user profile
-    Route::delete('/profile', fn (Request $request)=>
-        response()->json(['message' => 'Profile deleted successfully'])
+    Route::middleware([])->delete('/profile', [UserProfileController::class, 'deleteUserProfile']
     )->name('profile.delete');
     
     // This route for getting user profile details by ID
-    Route::get('/profile/{id}', fn(Request $request, $id) 
-        => response()->json(['message' => "Profile details for user with ID: $id"]))
+    Route::middleware([])->get('/profile/{id}', [UserProfileController::class, 'getUserProfileById'])
         ->name('profile.details');
+
+
     // This route for listing all users
-    Route::get('/itians', function (Request $request) {
-        return response()->json(['message' => 'List of ITIans']);
-    })->name('itians.list');
+    Route::middleware([])->get('/itians', [UserProfileController::class, 'getAllItians'])->name('itians.list');
+
+     // route for listing all graduates
+     Route::middleware([])->get('/iti-graduates', [UserProfileController::class, 'getGraduates'])->name('graduates.list');
+
+     // route for listing all students
+     Route::middleware([])->get('/iti-students', [UserProfileController::class, 'getStudents'])->name('students.list');
+ 
+    
+    
     // this route for listing all staff members
-    Route::get('/staff', function (Request $request) {
+    Route::get('/staffs', function (Request $request) {
         return response()->json(['message' => 'List of staff members']);
     })->name('staff.list');
+
+    // route for update profile picture
+    Route::post('/profile-picture', [UserProfileController::class, 'updateUserProfileImage'])
+        ->name('profile.picture.update');
+
+    // route for update cover photo
+    Route::post('/cover-photo', [UserProfileController::class, 'updateUserCoverPhoto'])
+        ->name('profile.cover.update');
     });
+    
     
     // routes for user's management by admin and staff
-    Route::middleware([])->group(function () {
-//    route for suspending a user
-    Route::post('/suspend-user/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "User with ID: $id suspended successfully"]);
-    })->name('users.suspend');
+    Route::middleware(['auth:sanctum'])->group(function () {
     
     // This route for deleting a user
-    Route::delete('/users/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "User with ID: $id deleted successfully"]);
-    })->name('users.delete');
+    Route::middleware([])->delete('/users/{id}', [UserProfileController::class, 'deleteUserProfileById'])->name('users.delete');
+    
     // This route for getting user details by ID we can use the same controller in profile.details route above
-    Route::get('/users/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "Details for user with ID: $id"]);
-    })->name('users.details');
+    Route::middleware([])->get('/users/{id}', [UserProfileController::class, 'getUserProfileById'])->name('users.details');
     });
     
+    // route for listing all graduates
+    Route::middleware([])->get('/graduates', [UserProfileController::class, 'getGraduates'])->name('graduates.list');
+
+    // route for listing all students
+    Route::middleware([])->get('/students', [UserProfileController::class, 'getStudents'])->name('students.list');
+
+    // route for listing all users
+    Route::middleware([])->get('/users', [UserProfileController::class, 'getAllItians'])->name('users.list');
+
+   
     
     // routes for managing staff members by admin
     Route::middleware([])->group(function () {
@@ -66,3 +87,6 @@ Route::middleware([])->group(function () {
         return response()->json(['message' => "Details for staff member with ID: $id"]);
     })->name('staff.details');
     });
+    Route::get('/verify-new-email/{user}', [UserProfileController::class, 'verifyNewEmail'])
+    ->name('verify-new-email')
+    ->middleware('signed');

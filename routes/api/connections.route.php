@@ -3,26 +3,27 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// manage connections between users
-Route::middleware([])->group(function () {
-    // this route for listing all connections of a user
-    Route::get('/connections', function (Request $request) {
-        return response()->json(['message' => 'List of user connections']);
-    })->name('connections.list');
-    // this route for sending a connection request
-    Route::post('/connections', function (Request $request) {
-        return response()->json(['message' => 'Connection request sent successfully']);
-    })->name('connections.send.request');
-    // this route for accepting a connection request
-    Route::put('/connections/{id}/accept', function (Request $request, $id) {
-        return response()->json(['message' => "Connection request with ID: $id accepted successfully"]);
-    })->name('connections.accept.request');
-    // this route for rejecting a connection request
-    Route::put('/connections/{id}/reject', function (Request $request, $id) {
-        return response()->json(['message' => "Connection request with ID: $id rejected successfully"]);
-    })->name('connections.reject.request');
-    // route for listing connection requests
-    Route::get('/connections/requests', function (Request $request) {
-        return response()->json(['message' => 'List of connection requests']);
+use App\Http\Controllers\ConnectionController;
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    
+    // Connection management routes
+    Route::prefix('connections')->group(function () {
+        // Send connection request
+        Route::post('/connect', [ConnectionController::class, 'connect']);
+        // Accept connection request
+        Route::put('/accept', [ConnectionController::class, 'acceptConnection']);
+        // Reject/Decline connection request
+        Route::put('/reject', [ConnectionController::class, 'rejectConnection']);
+        // Remove/Disconnect from existing connection
+        Route::delete('/disconnect', [ConnectionController::class, 'disconnect']);
+        // Get connected users (accepted connections)
+        Route::get('/connected', [ConnectionController::class, 'getConnectedUsers']);
+        // Get pending connection requests (received)
+        Route::get('/pending', [ConnectionController::class, 'getPendingRequests']);
+        // Get sent connection requests
+        Route::get('/sent', [ConnectionController::class, 'getSentRequests']);
+        // Get connection status with specific user
+        Route::get('/status', [ConnectionController::class, 'getConnectionStatus']);
     });
 });
