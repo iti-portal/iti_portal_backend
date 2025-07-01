@@ -91,8 +91,8 @@
         <div class="footer">
             <p>&copy; {{ date('Y') }} ITI Portal. All rights reserved.</p>
             <p>
-                <a href="{{ config('app.url') }}" class="support-link">Visit our website</a> |
-                <a href="mailto:support@iti.com" class="support-link">Contact Support</a>
+                <a href="{{ config('app.frontend_url') }}" class="support-link">Visit our website</a> |
+                <a href="mailto:support@iti.gov.eg" class="support-link">Contact Support</a>
             </p>
         </div>
     </div>
