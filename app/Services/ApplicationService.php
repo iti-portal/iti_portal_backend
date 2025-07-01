@@ -379,4 +379,63 @@ class ApplicationService
             ->where('company_id', $companyId)
             ->first();
     }
+
+    /**
+     * Batch update application statuses
+     */
+    public function batchUpdateApplicationStatus(array $applicationIds, int $companyId, string $newStatus, ?string $companyNotes = null): array
+    {
+        $results = [];
+        $successCount = 0;
+        $failedCount = 0;
+        
+        DB::beginTransaction();
+        
+        try {
+            foreach ($applicationIds as $applicationId) {
+                $application = $this->getCompanyApplication($applicationId, $companyId);
+                
+                if (!$application) {
+                    $results[$applicationId] = [
+                        'success' => false,
+                        'message' => 'Application not found or not accessible'
+                    ];
+                    $failedCount++;
+                    continue;
+                }
+                
+                $oldStatus = $application->status;
+                
+                $application->update([
+                    'status' => $newStatus,
+                    'company_notes' => $companyNotes,
+                ]);
+                
+                // Send notification to applicant about status change
+                if ($oldStatus !== $newStatus) {
+                    $this->notificationService->notifyApplicantOfStatusChange($application, $oldStatus);
+                }
+                
+                $results[$applicationId] = [
+                    'success' => true,
+                    'application' => $application->fresh()
+                ];
+                $successCount++;
+            }
+            
+            DB::commit();
+            
+            return [
+                'results' => $results,
+                'summary' => [
+                    'total' => count($applicationIds),
+                    'success' => $successCount,
+                    'failed' => $failedCount
+                ]
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
 }
