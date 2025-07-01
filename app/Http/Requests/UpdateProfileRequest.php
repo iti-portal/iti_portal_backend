@@ -41,7 +41,7 @@ class UpdateProfileRequest extends FormRequest
             'linkedin' => 'sometimes|nullable|string|url|max:255',
             'github' => 'sometimes|nullable|string|url|max:255',
             'portfolio_url' => 'sometimes|nullable|string|url|max:255',
-            'student_status' => 'sometimes|string|in:current,graduate',
+            'job_profile' => 'sometimes|nullable|string|max:255',
         ];
     }
     public function messages()
@@ -88,8 +88,8 @@ class UpdateProfileRequest extends FormRequest
             'portfolio_url.url' => 'Please enter a valid portfolio URL.',
             'portfolio_url.max' => 'Portfolio URL must not exceed 255 characters.',
 
-            'student_status.string' => 'Student status must be a string.',
-            'student_status.in' => 'Invalid student status. Must be "current" or "graduate".',
+            'job_profile.string' => 'Job profile must be a string.',
+            'job_profile.max' => 'Job profile must not exceed 255 characters.',
         ];
     }
 
