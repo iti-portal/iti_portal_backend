@@ -16,5 +16,5 @@
     <p class="highlight-note">This password reset link will expire in 60 minutes.</p>
 
     <p>If you didn't request this password reset, please ignore this email or contact our <a
-            href="mailto:support@iti.com" class="support-link">support team</a> if you have any concerns.</p>
+            href="mailto:support@iti.gov.eg" class="support-link">support team</a> if you have any concerns.</p>
 @endsection
