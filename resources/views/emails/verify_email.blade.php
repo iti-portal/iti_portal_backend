@@ -5,7 +5,7 @@
 @section('header', 'Verify Your Email Address')
 
 @section('content')
-    <p>Hello,</p>
+    <p>Hello,{{ $notifiable->getFullNameAttribute() ?? 'there' }}</p>
     <p>Thank you for registering with ITI Portal. To complete your registration, please verify your email address by
         clicking the button below:</p>
 
@@ -16,7 +16,7 @@
     <p class="highlight-note">This verification link will expire in 24 hours</p>
 
     <p>If you didn't request this, please ignore this email or contact our
-        <a href="mailto:support@iti.com" class="support-link">support team</a> if you have any concerns.
+        <a href="mailto:support@iti.gov.eg" class="support-link">support team</a> if you have any concerns.
     </p>
 
 @endsection

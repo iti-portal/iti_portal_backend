@@ -133,16 +133,18 @@ class AuthController extends Controller
         }
         // Check if the user is already verified
         if ($user->hasVerifiedEmail()) {
-            return response()->json([
-                'message' => 'Email already verified.',
-            ], 400);
+           redirect()->to(config('app.frontend_url').'/login?verified=success')->with('message', 'Email already verified. Please login to continue.');
+            // return response()->json([
+            //     'message' => 'Email already verified.',
+            // ], 400);
         }
         // Mark email as verified
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
 
-        return response()->json(['message' => 'Email verified successfully!']);
+        // return response()->json(['message' => 'Email verified successfully!']);
+        return redirect()->to(config('app.frontend_url').'/login?verified=success')->with('message', 'Email verified successfully! Please login to continue.');
 
 
     }
