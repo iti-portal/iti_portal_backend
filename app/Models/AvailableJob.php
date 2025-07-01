@@ -24,6 +24,11 @@ class AvailableJob extends Model
         'is_featured',
         'is_remote',
         'applications_count',
+       'review_applications',
+       'interview_applications',
+       'hired_applications',
+       'rejected_applications'
+
     ];
     public function company()
     {
