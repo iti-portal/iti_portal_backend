@@ -6,12 +6,13 @@ use App\Http\Requests\UpdateJobRequest;
 use App\Models\AvailableJob;
 use App\Models\JobSkill;
 use App\Models\Skill;
+use App\Models\User;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class JobController extends Controller
 {
@@ -50,6 +51,7 @@ class JobController extends Controller
             return $this->respondWithSuccess(['job' => $job], 'Job created successfully');
 
         } catch (Exception $e) {
+            DB::rollBack();
             return $this->respondWithError('Failed to create job: ' . $e->getMessage(), 500);
         }
     }
@@ -57,8 +59,11 @@ class JobController extends Controller
     public function show($id)
     {
         try {
+
             $job = AvailableJob::with(['company', 'job_skills.skill'])->findOrFail($id);
             return $this->respondWithSuccess($job, 'Job retrieved successfully.');
+        } catch (ModelNotFoundException $e) {
+            return $this->respondWithError('Job not found.', 404);
         } catch (Exception $e) {
             return $this->respondWithError('Failed to retrieve job: ' . $e->getMessage(), 500);
         }
@@ -76,32 +81,35 @@ class JobController extends Controller
             DB::beginTransaction();
 
             $job->update($request->validated());
-            $newSkills   = $request->input('skills', []);
-            $newSkillIds = [];
 
-            foreach ($newSkills as $skillData) {
-                $skill = Skill::firstOrCreate(['name' => strtolower(trim($skillData['name']))]);
+            if ($request->has('skills')) {
+                $newSkills   = $request->input('skills', []);
+                $newSkillIds = [];
 
-                $newSkillIds[] = $skill->id;
+                foreach ($newSkills as $skillData) {
+                    $skill = Skill::firstOrCreate(['name' => strtolower(trim($skillData['name']))]);
 
-                JobSkill::updateOrCreate(
-                    ['job_id' => $job->id, 'skill_id' => $skill->id],
-                    ['is_required' => $skillData['is_required'] ?? true]
-                );
+                    $newSkillIds[] = $skill->id;
+
+                    JobSkill::updateOrCreate(
+                        ['job_id' => $job->id, 'skill_id' => $skill->id],
+                        ['is_required' => $skillData['is_required'] ?? true]
+                    );
+                }
+
+                // Remove skills that are no longer in the request
+                JobSkill::where('job_id', $job->id)->whereNotIn('skill_id', $newSkillIds)->delete();
+                $job->load('job_skills.skill');
             }
-
-            // Remove skills that are no longer in the request
-            JobSkill::where('job_id', $job->id)->whereNotIn('skill_id', $newSkillIds)->delete();
-             $job->load('job_skills.skill');
-
             DB::commit();
 
             return $this->respondWithSuccess($job, 'Job updated successfully');
 
+        } catch (ModelNotFoundException $e) {
+            return $this->respondWithError('Job not found.', 404);
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Error updating job: ' . $e->getMessage());
-            return $this->respondWithError('Failed to update job.', 500);
+            return $this->respondWithError('Failed to update job.' . $e->getMessage(), 500);
         }
     }
     public function destroy($id)
@@ -115,6 +123,8 @@ class JobController extends Controller
             $job->delete();
             return $this->respondWithSuccess(null, 'Job deleted successfully.');
 
+        } catch (ModelNotFoundException $e) {
+            return $this->respondWithError('Job not found.', 404);
         } catch (Exception $e) {
             return $this->respondWithError('Failed to delete job: ' . $e->getMessage(), 500);
         }
@@ -134,10 +144,10 @@ class JobController extends Controller
                 });
             }
 
-            $jobs = $query->paginate((int) $request->get('per_page', 10));
+            $jobs = $query->simplePaginate((int) $request->get('per_page', 10));
             return $this->respondWithSuccess($jobs, 'Available jobs retrieved successfully');
         } catch (Exception $e) {
-            return $this->respondWithError('Failed to load available jobs.', 500);
+            return $this->respondWithError('Failed to load available jobs.' . $e->getMessage(), 500);
         }
     }
     public function companyJobs(Request $request)
@@ -155,11 +165,11 @@ class JobController extends Controller
                     $query->where('status', $request->status);
                 })
                 ->orderBy('created_at', 'desc')
-                ->paginate((int) $request->get('per_page', 10));
+                ->simplePaginate((int) $request->get('per_page', 10));
             return $this->respondWithSuccess($jobs, 'Company jobs retrieved successfully.');
 
         } catch (Exception $e) {
-            return $this->respondWithError('Failed to retrieve your jobs.', 500);
+            return $this->respondWithError('Failed to retrieve your jobs.' . $e->getMessage(), 500);
         }
     }
     public function adminJobs(Request $request): JsonResponse
@@ -183,7 +193,7 @@ class JobController extends Controller
 
             $query->orderByDesc('created_at');
 
-            $jobs = $query->paginate((int) $request->get('per_page', 10));
+            $jobs = $query->simplePaginate((int) $request->get('per_page', 10));
 
             return $this->respondWithSuccess($jobs, 'All jobs retrieved successfully');
         } catch (Exception $e) {
@@ -191,63 +201,94 @@ class JobController extends Controller
         }
     }
 
-     public function changeStatus(Request $request, $id): JsonResponse
+    public function changeStatus(Request $request, $id): JsonResponse
     {
         try {
-            $job = AvailableJob::findOrFail($id);
+            $job  = AvailableJob::findOrFail($id);
             $user = Auth::user();
 
-            if ($user->id !== $job->company_id ) {
+            if ($user->id !== $job->company_id) {
                 return $this->respondWithError('Unauthorized', 403);
             }
 
             $status = $request->status;
-            if (! in_array($status, ['active', 'paused', 'closed'])) {
+            if (! $this->isValidStatus($status)) {
                 return $this->respondWithError('Invalid status.', 422);
             }
 
             $job->update(['status' => $status]);
             return $this->respondWithSuccess($job, "Job status changed to $status");
 
+        } catch (ModelNotFoundException $e) {
+            return $this->respondWithError('Job not found.', 404);
         } catch (Exception $e) {
-            Log::error('Error changing job status: ' . $e->getMessage());
-            return $this->respondWithError('Failed to update job status.', 500);
+
+            return $this->respondWithError('Failed to update job status.' . $e->getMessage(), 500);
         }
     }
-public function jobsByCompanyId(Request $request, $id): JsonResponse
-{
-    try {
-        $user = Auth::user();
+    public function jobsByCompanyId(Request $request, $id): JsonResponse
+    {
+        try {
+            $user = Auth::user();
 
-        if (! $user || ! $user->hasRole('admin') && ! $user->hasRole('staff')) {
-            return $this->respondWithError('Unauthorized. Only admins or staff can access this.', 403);
+            if (! $user || ! $user->hasRole(['admin', 'staff'])) {
+                return $this->respondWithError('Unauthorized. Only admins or staff can access this.', 403);
+            }
+            $company = User::where('id', $id)->whereHas('roles', function ($query) {
+                $query->where('name', 'company');
+            })->first();
+
+            if (! $company) {
+                return $this->respondWithError('Company not found.', 404);
+            }
+            // Fetch jobs for the specified company
+            $jobs = AvailableJob::with('job_skills.skill')
+                ->where('company_id', $id)
+                ->simplePaginate((int) $request->get('per_page', 10));
+
+            return $this->respondWithSuccess($jobs, 'Jobs for the specified company retrieved successfully.');
+        } catch (Exception $e) {
+            return $this->respondWithError('Failed to retrieve jobs for the company.' . $e->getMessage(), 500);
         }
-
-        $jobs = AvailableJob::with('job_skills.skill')
-            ->where('company_id', $id)
-            ->paginate((int) $request->get('per_page', 10));
-
-        return $this->respondWithSuccess($jobs, 'Jobs for the specified company retrieved successfully.');
-    } catch (Exception $e) {
-        return $this->respondWithError('Failed to retrieve jobs for the company.', 500);
     }
-}
 
+    public function jobsByCompanyIdForUsers(Request $request, $id): JsonResponse
+    {
+        try {
 
-public function featuredJobs(Request $request): JsonResponse
-{
-    try {
-        $jobs = AvailableJob::with('company.companyProfile')
-            ->where('status', 'active')
-            ->where('is_featured', true)
-            ->paginate((int) $request->get('per_page', 10));
+            $company = User::where('id', $id)->whereHas('roles', function ($query) {
+                $query->where('name', 'company');
+            })->first();
+            if (! $company) {
+                return $this->respondWithError('Company not found.', 404);
+            }
+            $jobs = AvailableJob::with('company.companyProfile', 'job_skills.skill')
+                ->where('company_id', $id)
+                ->where('status', 'active')
+                ->simplePaginate((int) $request->get('per_page', 10));
 
-        return $this->respondWithSuccess($jobs, 'Featured jobs retrieved successfully.');
-    } catch (Exception $e) {
-        return $this->respondWithError('Failed to retrieve featured jobs.', 500);
+            return $this->respondWithSuccess($jobs, 'Jobs for the specified company retrieved successfully.');
+        } catch (Exception $e) {
+            return $this->respondWithError('Failed to retrieve jobs for the company.' . $e->getMessage(), 500);
+        }
     }
-}
 
+    public function featuredJobs(Request $request): JsonResponse
+    {
+        try {
+            $jobs = AvailableJob::with('company.companyProfile', 'job_skills.skill')
+                ->where('status', 'active')
+                ->where('is_featured', true)
+                ->simplePaginate((int) $request->get('per_page', 10));
 
+            return $this->respondWithSuccess($jobs, 'Featured jobs retrieved successfully.');
+        } catch (Exception $e) {
+            return $this->respondWithError('Failed to retrieve featured jobs.' . $e->getMessage(), 500);
+        }
+    }
+    private function isValidStatus($status): bool
+    {
+        return in_array($status, ['active', 'paused', 'closed']);
+    }
 
 }

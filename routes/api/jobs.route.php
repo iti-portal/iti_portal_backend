@@ -5,15 +5,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // display and apply for jobs from the user
-Route::middleware([])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     // this route for listing all jobs
     Route::get('/jobs', [JobController::class,'availableJobs'])->name('jobs.list');
     // route for getting featured jobs
     Route::get('/jobs/featured', [JobController::class, 'featuredJobs'])->name('jobs.featured');
     // get job details by ID
     Route::get('/jobs/{id}', [JobController::class,'show'])->name('jobs.details');
-
-
+    // this route is for users to get jobs by company id
+    Route::get('/public/company/{id}/jobs', [JobController::class, 'jobsByCompanyIdForUsers'])->name('company.jobs');
 
     // apply for a job
     Route::post('/jobs/{id}/apply', function (Request $request, $id) {
