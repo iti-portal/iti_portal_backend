@@ -19,6 +19,12 @@ use Illuminate\Http\JsonResponse;
 class UserProfileController extends Controller
 {
     protected $userProfileService;
+
+    public function __construct(UserProfileService $userProfileService)
+    {
+        $this->userProfileService = $userProfileService;
+    }
+    
     public function getStudents(Request $request){
         try{
         $users = User::role('student')->with('profile')->paginate(10);
@@ -242,11 +248,6 @@ class UserProfileController extends Controller
         }
     }
 
-
-    public function __construct(UserProfileService $userProfileService)
-    {
-        $this->userProfileService = $userProfileService;
-    }
 
     /**
      * Perform advanced search and filtering on User Profiles.
