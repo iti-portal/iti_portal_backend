@@ -41,7 +41,9 @@ class UserProfileController extends Controller
         return $this->respondWithError('unauthorized', 401);
     }
     try{
-        $users = User::role(['alumni', 'student'])->with('profile')->paginate(10);
+        $users = User::with('profile')
+        ->whereHas('roles', function ($query)
+        {$query->whereIn('name', ['student', 'alumni']);})->paginate(10);
         return $this->respondWithSuccess(['users' => $users]);
         }catch(\Exception $e){
             $this->respondWithError("Something went wrong", 500);
