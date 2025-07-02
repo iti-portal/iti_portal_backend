@@ -20,6 +20,7 @@ class UserProfile extends Model
         'linkedin',
         'github',
         'portfolio_url',
+        'job_profile',
         'profile_picture',
         'cover_photo',
         'branch',
