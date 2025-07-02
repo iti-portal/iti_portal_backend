@@ -51,7 +51,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
     
     
-    // routes for user's management by admin and staff
     Route::middleware(['auth:sanctum'])->group(function () {
     
     // This route for deleting a user

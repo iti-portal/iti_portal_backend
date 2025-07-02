@@ -26,28 +26,151 @@ class UserProfileController extends Controller
     }
     
     public function getStudents(Request $request){
+        $user = $request->user();
+        if (!$user){
+            return $this->respondWithError('unauthorized', 401);
+        }
         try{
-        $users = User::role('student')->with('profile')->paginate(10);
-        return $this->respondWithSuccess(['users' => $users]);
+            $branch = $user->profile->branch ?? null;
+            $intake = $user->profile->intake ?? null;
+            $track = $user->profile->track ?? null;
+    
+            $users = User::with('profile')
+                ->where('id', '!=', $request->user()->id)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', '=', 'student');
+                })
+                ->when($branch && $intake && $track, function ($query) use ($branch, $intake, $track) {
+                    $query->orderByRaw("CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM user_profiles 
+                            WHERE user_profiles.user_id = users.id 
+                            AND user_profiles.track = ?
+                        ) THEN 0
+                        ELSE 1
+                    END", [$track]);
+    
+                    $query->orderByRaw("CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM user_profiles 
+                            WHERE user_profiles.user_id = users.id 
+                            AND user_profiles.intake = ?
+                        ) THEN 0
+                        ELSE 1
+                    END", [$intake]);
+    
+                    $query->orderByRaw("CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM user_profiles 
+                            WHERE user_profiles.user_id = users.id 
+                            AND user_profiles.branch = ?
+                        ) THEN 0
+                        ELSE 1
+                    END", [$branch]);
+                })
+                ->paginate(10);
+    
+            return $this->respondWithSuccess(['users' => $users]);
         }catch(\Exception $e){
             $this->respondWithError("Something went wrong", 500);
         }
    }
    public function getGraduates(Request $request){
-    try{
-        $users = User::role('alumni')
-        ->with('profile')->paginate(10);
-        return $this->respondWithSuccess(['users' => $users]);
-        }catch(\Exception $e){
-            $this->respondWithError("Something went wrong", 500);
-        }
-   }
-   public function getAllItians(Request $request){
+    $user = $request->user();
     if(!$request->user()){
         return $this->respondWithError('unauthorized', 401);
     }
     try{
-        $users = User::role(['alumni', 'student'])->with('profile')->paginate(10);
+        $branch = $user->profile->branch ?? null;
+        $intake = $user->profile->intake ?? null;
+        $track = $user->profile->track ?? null;
+
+        $users = User::with('profile')
+            ->where('id', '!=', $request->user()->id)
+            ->whereHas('roles', function ($query) {
+                $query->where('name', '=', 'alumni');
+            })
+            ->when($branch && $intake && $track, function ($query) use ($branch, $intake, $track) {
+                $query->orderByRaw("CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM user_profiles 
+                        WHERE user_profiles.user_id = users.id 
+                        AND user_profiles.track = ?
+                    ) THEN 0
+                    ELSE 1
+                END", [$track]);
+
+                $query->orderByRaw("CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM user_profiles 
+                        WHERE user_profiles.user_id = users.id 
+                        AND user_profiles.intake = ?
+                    ) THEN 0
+                    ELSE 1
+                END", [$intake]);
+
+                $query->orderByRaw("CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM user_profiles 
+                        WHERE user_profiles.user_id = users.id 
+                        AND user_profiles.branch = ?
+                    ) THEN 0
+                    ELSE 1
+                END", [$branch]);
+            })
+            ->paginate(10);
+
+        return $this->respondWithSuccess(['users' => $users]);
+        }catch(\Exception $e){
+            return$this->respondWithError("Something went wrong", 500);
+        }
+   }
+   public function getAllItians(Request $request){
+    $user = $request->user();
+    if(!$request->user()){
+        return $this->respondWithError('unauthorized', 401);
+    }
+    try{
+        $branch = $user->profile->branch ?? null;
+        $intake = $user->profile->intake ?? null;
+        $track = $user->profile->track ?? null;
+
+        $users = User::with('profile')
+            ->where('id', '!=', $request->user()->id)
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['student', 'alumni']);
+            })
+            ->when($branch && $intake && $track, function ($query) use ($branch, $intake, $track) {
+                $query->orderByRaw("CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM user_profiles 
+                        WHERE user_profiles.user_id = users.id 
+                        AND user_profiles.track = ?
+                    ) THEN 0
+                    ELSE 1
+                END", [$track]);
+
+                $query->orderByRaw("CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM user_profiles 
+                        WHERE user_profiles.user_id = users.id 
+                        AND user_profiles.intake = ?
+                    ) THEN 0
+                    ELSE 1
+                END", [$intake]);
+
+                $query->orderByRaw("CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM user_profiles 
+                        WHERE user_profiles.user_id = users.id 
+                        AND user_profiles.branch = ?
+                    ) THEN 0
+                    ELSE 1
+                END", [$branch]);
+            })
+
+            ->paginate(10);
+
         return $this->respondWithSuccess(['users' => $users]);
         }catch(\Exception $e){
             $this->respondWithError("Something went wrong", 500);
