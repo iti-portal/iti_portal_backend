@@ -21,8 +21,46 @@ class UserProfileController extends Controller
     protected $userProfileService;
     public function getStudents(Request $request){
         try{
-        $users = User::role('student')->with('profile')->paginate(10);
-        return $this->respondWithSuccess(['users' => $users]);
+            $branch = $user->profile->branch ?? null;
+            $intake = $user->profile->intake ?? null;
+            $track = $user->profile->track ?? null;
+    
+            $users = User::with('profile')
+                ->where('id', '!=', $request->user()->id)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', '=', 'student');
+                })
+                ->when($branch && $intake && $track, function ($query) use ($branch, $intake, $track) {
+                    $query->orderByRaw("CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM user_profiles 
+                            WHERE user_profiles.user_id = users.id 
+                            AND user_profiles.track = ?
+                        ) THEN 0
+                        ELSE 1
+                    END", [$track]);
+    
+                    $query->orderByRaw("CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM user_profiles 
+                            WHERE user_profiles.user_id = users.id 
+                            AND user_profiles.intake = ?
+                        ) THEN 0
+                        ELSE 1
+                    END", [$intake]);
+    
+                    $query->orderByRaw("CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM user_profiles 
+                            WHERE user_profiles.user_id = users.id 
+                            AND user_profiles.branch = ?
+                        ) THEN 0
+                        ELSE 1
+                    END", [$branch]);
+                })
+                ->paginate(10);
+    
+            return $this->respondWithSuccess(['users' => $users]);
         }catch(\Exception $e){
             $this->respondWithError("Something went wrong", 500);
         }
