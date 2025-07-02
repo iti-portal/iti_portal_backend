@@ -122,4 +122,63 @@ class UserManagementController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Mark a student user as a graduate and change their role to alumni.
+     */
+    public function markStudentAsGraduate(User $user)
+    {
+        DB::beginTransaction();
+        try {
+            // Check if the user is a student
+            if (!$user->hasRole('student')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User is not a student. This action can only be performed on student users.',
+                ], 400);
+            }
+
+            // Check if user has a profile
+            if (!$user->profile) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User does not have a profile.',
+                ], 404);
+            }
+
+            // Check if the student_status is already graduate
+            if ($user->profile->student_status === 'graduate') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Student is already marked as graduate.',
+                ], 409); // Conflict
+            }
+
+            // Update student_status to 'graduate'
+            $user->profile->student_status = 'graduate';
+            $user->profile->save();
+
+            // Change role from 'student' to 'alumni'
+            $role = Role::where('name', 'student')->where('guard_name', 'web')->first();
+            $user->removeRole($role);
+
+            $role = Role::where('name', 'alumni')->where('guard_name', 'web')->first();
+            $user->assignRole($role);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Student '{$user->getFullNameAttribute()}' marked as graduate and role changed to alumni successfully."
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark student as graduate: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
