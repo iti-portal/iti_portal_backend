@@ -20,6 +20,10 @@ class UserProfileController extends Controller
 {
     protected $userProfileService;
     public function getStudents(Request $request){
+        $user = $request->user();
+        if (!$user){
+            return $this->respondWithError('unauthorized', 401);
+        }
         try{
             $branch = $user->profile->branch ?? null;
             $intake = $user->profile->intake ?? null;
