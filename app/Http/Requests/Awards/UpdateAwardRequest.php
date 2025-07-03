@@ -25,10 +25,10 @@ class UpdateAwardRequest extends FormRequest
     {
         return [
             'title' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'sometimes|nullable|string',
             'organization' => 'sometimes|string|max:255',
-            'achieved_at' => 'nullable|date|before_or_equal:today',
-            'certificate_url' => 'nullable|url',
+            'achieved_at' => 'sometimes|nullable|date|before_or_equal:today',
+            'certificate_url' => 'sometimes|nullable|url',
         ];
     }
 
