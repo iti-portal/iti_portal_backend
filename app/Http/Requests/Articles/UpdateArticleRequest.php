@@ -25,9 +25,9 @@ class UpdateArticleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'nullable|string|max:255',
-            'content' => 'nullable|string',
-            'external_link' => 'nullable|url',
+            'title' => 'sometimes|string|max:255',
+            'content' => 'sometimes|string',
+            'external_link' => 'sometimes|nullable|url',
         ];
     }
 
