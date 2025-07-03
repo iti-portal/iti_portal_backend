@@ -24,11 +24,11 @@ class UpdateCertificateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'organization' => 'nullable|string|max:255',
-            'achieved_at' => 'nullable|date|before_or_equal:today',
-            'certificate_url' => 'nullable|url|max:255',
+            'title' => 'sometimes|string|max:255',
+            'description' => 'sometimes|nullable|string',
+            'organization' => 'sometimes|string|max:255',
+            'achieved_at' => 'sometimes|nullable|date|before_or_equal:today',
+            'certificate_url' => 'sometimes|nullable|url|max:255',
         ];
     }
 
