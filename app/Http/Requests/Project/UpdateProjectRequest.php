@@ -25,13 +25,13 @@ class UpdateProjectRequest extends FormRequest
     {
         return [
             'title' => 'sometimes|string|max:255',
-            'technologies_used' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'project_url' => 'nullable|url|max:255',
-            'github_url' => 'nullable|url|max:255',
+            'technologies_used' => 'sometimes|nullable|string|max:255',
+            'description' => 'sometimes|nullable|string',
+            'project_url' => 'sometimes|nullable|url|max:255',
+            'github_url' => 'sometimes|nullable|url|max:255',
             'start_date' => 'sometimes|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'is_featured' => 'nullable|boolean',
+            'end_date' => 'sometimes|nullable|date|after_or_equal:start_date',
+            'is_featured' => 'sometimes|nullable|boolean',
         ];
     }
 
