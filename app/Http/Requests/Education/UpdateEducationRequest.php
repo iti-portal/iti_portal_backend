@@ -29,7 +29,7 @@ class UpdateEducationRequest extends FormRequest
             'degree' => 'sometimes|string|max:255',
             'field_of_study' => 'sometimes|string|max:255',
             'start_date' => 'sometimes|date',
-            'end_date' => 'sometimes|nullable|date|after_or_equal:start_date',
+            'end_date' => 'sometimes|date|after_or_equal:start_date',
             'description' => 'sometimes|nullable|string',
         ];
     }
