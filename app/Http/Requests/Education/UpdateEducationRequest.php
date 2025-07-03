@@ -24,13 +24,13 @@ class UpdateEducationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'sometimes|exists:users,id',
+            // 'user_id' => 'sometimes|exists:users,id',
             'institution' => 'sometimes|string|max:255',
             'degree' => 'sometimes|string|max:255',
             'field_of_study' => 'sometimes|string|max:255',
             'start_date' => 'sometimes|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'description' => 'nullable|string',
+            'end_date' => 'sometimes|nullable|date|after_or_equal:start_date',
+            'description' => 'sometimes|nullable|string',
         ];
     }
 
