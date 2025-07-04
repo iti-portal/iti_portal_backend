@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\UserProfileController;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -34,12 +35,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
      // route for listing all students
      Route::middleware([])->get('/iti-students', [UserProfileController::class, 'getStudents'])->name('students.list');
  
-    
+     
     
     // this route for listing all staff members
-    Route::get('/staffs', function (Request $request) {
-        return response()->json(['message' => 'List of staff members']);
-    })->name('staff.list');
+    // Route::get('/staffs', function (Request $request) {
+    //     return response()->json(['message' => 'List of staff members']);
+    // })->name('staff.list');
 
     // route for update profile picture
     Route::post('/profile-picture', [UserProfileController::class, 'updateUserProfileImage'])
@@ -48,6 +49,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // route for update cover photo
     Route::post('/cover-photo', [UserProfileController::class, 'updateUserCoverPhoto'])
         ->name('profile.cover.update');
+
+    Route::put('/account-security', [AccountController::class, 'updateAccount'])
+        ->name('account.security.update');    
     });
     
     
@@ -86,6 +90,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return response()->json(['message' => "Details for staff member with ID: $id"]);
     })->name('staff.details');
     });
-    Route::get('/verify-new-email/{user}', [UserProfileController::class, 'verifyNewEmail'])
+    Route::get('/verify-new-email/{user}', [AccountController::class, 'verifyNewEmail'])
     ->name('verify-new-email')
     ->middleware('signed');
