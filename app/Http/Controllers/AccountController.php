@@ -32,7 +32,10 @@ class AccountController extends Controller
                 $url = URL::temporarySignedRoute(
                     'verify-new-email',
                     now()->addHours(24),
-                    ['user' => $user->id]
+                    [
+                        'user' => $user->id,
+                        'hash' => sha1($newEmail),
+                    ]
                 );
 
                 Mail::to($newEmail)->send(new VerifyNewEmail($user, $url));
@@ -95,13 +98,16 @@ class AccountController extends Controller
         if (!Hash::check($password, $user->password)) {
             return $this->respondWithError('Current password is incorrect', 400);
         }
-        $query = URL::temporarySignedRoute(
+        $url = URL::temporarySignedRoute(
             'verify-new-email',
             now()->addHours(24),
-            ['user' => $user->id]
+            [
+                'user' => $user->id,
+                'hash' => sha1($email),
+            ]
         );
         try {
-            Mail::to($email)->send(new VerifyNewEmail($user, $query));
+            Mail::to($email)->send(new VerifyNewEmail($user, $url));
             $user->email = $email;
         
             $user->save();
@@ -119,23 +125,38 @@ class AccountController extends Controller
 
 
 
-    public function verifyNewEmail(Request $request, $user){
-        if(!$request->hasValidSignature()){
-            return $this->respondWithError('Invalid or expired verification link', 400);
+    public function verifyNewEmail(Request $request, $userId)
+    {
+        if (! $request->hasValidSignature()) {
+            return redirect()->to(config('app.frontend_url').'/login?verified=error')
+            ->with('message', 'Invalid verification link.');
         }
-        
-        try{
-            $user = User::findOrFail($user);
-            if(!$user->new_email){
-                return $this->respondWithError('No pending email found', 404);
-            }
+    
+        $user = User::find($userId);
+
+        if (! $user) {
+            return redirect()->to(config('app.frontend_url').'/login?verified=error')
+            ->with('message', 'User not found.');
+        }
+
+        if (! $user->new_email) {
+            return redirect()->to(config('app.frontend_url').'/login?verified=error')
+            ->with('message', 'This email has already been verified.');
+        }
+    
+        if (! hash_equals($request->hash, sha1($user->new_email))) {
+            return redirect()->to(config('app.frontend_url').'/login?verified=error')
+            ->with('message', 'Invalid verification link.');
+        }
+    
+    
         $user->email = $user->new_email;
         $user->new_email = null;
         $user->save();
-        return $this->respondWithSuccess([], 'Email verified successfully');
-    
-        }catch (\Exception $e) {
-            return $this->respondWithError("Something went wrong", 500);
-        }
+        
+        // return redirect()->to(config('app.frontend_url').'/login?verified=success')
+        // ->with('message', 'Email verified successfully! Please login to continue.');
+        return $this->respondWithSuccess(['user' => $user], 'Email verified successfully! Please login to continue.');
     }
-}
+
+}    
