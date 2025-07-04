@@ -85,7 +85,7 @@ class AccountController extends Controller
         ]);
         $request->validate([
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'password' => ['required', Password::defaults()]
+            'password' => ['required']
         ]);
         $email = $request->email;
         $password = $request->password;

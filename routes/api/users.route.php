@@ -51,7 +51,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('profile.cover.update');
 
     Route::put('/account-security', [AccountController::class, 'updateAccount'])
-        ->name('account.security.update');    
+        ->name('account.security.update');  
+        
+    Route::put('/account-email', [AccountController::class, 'updateEmail'])
+        ->name('account.email.update');
     });
     
     
