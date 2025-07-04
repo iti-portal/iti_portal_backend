@@ -114,10 +114,12 @@ class ServicesController extends Controller
         if (!$user) {
             return $this->respondWithError('Unauthorized', 401);
         }
+        $user = User::with('profile');
         $user_services = AlumniService::where('alumni_id', $user->id)
         ->orderBy('created_at', 'desc')
         ->get();
         return $this->respondWithSuccess([
+            'user' => $user,
             'services' => $user_services,
         ]);
     }
@@ -129,7 +131,7 @@ class ServicesController extends Controller
             return $this->respondWithError('Unauthorized or Forbidden', 401);
         }
 
-        $services = AlumniService::where('service_type', !null)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
+        $services = AlumniService::whereNotNull('service_type')->join('users', 'alumni_services.alumni_id', '=', 'users.id')
             ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select(
                 'alumni_services.*',
@@ -139,7 +141,6 @@ class ServicesController extends Controller
                 'user_profiles.intake',
             )
             ->orderBy('created_at', 'desc')
-            ->get()
             ->paginate(10);
 
         return $this->respondWithSuccess(['services' => $services]);
@@ -161,7 +162,7 @@ class ServicesController extends Controller
                 'user_profiles.intake',
             )
             ->orderBy('created_at', 'desc')
-            ->get()->paginate(10);
+            ->paginate(10);
 
         return $this->respondWithSuccess(['services' => $services]);
     }
@@ -173,10 +174,18 @@ class ServicesController extends Controller
             return $this->respondWithError('Unauthorized or Forbidden', 401);
         }
 
-        $service = AlumniService::find($id)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
-            ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
-            ->select('alumni_services.*', 'user_profiles.*', 'users.email')
-            ->first();
+        $service = AlumniService::where('alumni_services.id', $id)
+        ->join('users', 'alumni_services.alumni_id', '=', 'users.id')
+        ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
+        ->select(
+            'alumni_services.*',
+            'user_profiles.first_name',
+            'user_profiles.last_name',
+            'user_profiles.track',
+            'user_profiles.intake',
+            'users.email'
+        )
+        ->first();
         if (!$service) {
             return $this->respondWithError('Service not found', 404);
         }
