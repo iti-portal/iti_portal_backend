@@ -29,6 +29,9 @@ use App\Http\Controllers\Auth\PasswordResetController;
 Route::post('auth/register', [RegistrationController::class, 'registerIndividual']);
 Route::post('auth/register-company', [RegistrationController::class, 'registerCompany']);
 Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('auth/external-login', [AuthController::class, 'externalLogin'])
+    ->middleware(['guest', 'throttle:5,1'])
+    ->name('external.login');
 
 // Email verification routes
 Route::get('auth/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])

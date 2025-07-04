@@ -3,10 +3,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use GrahamCampbell\ResultType\Success;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\URL;
 
 class AuthController extends Controller
@@ -23,16 +23,16 @@ class AuthController extends Controller
 
             $message = 'Login successful';
 
-            if ($user->isRejected()){
+            if ($user->isRejected()) {
                 $message = 'Your registration request has been rejected. You are not eligible for registration.';
-            } else if ($user->isSuspended()){
+            } else if ($user->isSuspended()) {
                 $message = 'Your account is currently suspended. Contact ITI support for more information.';
-            } else if (!$user->isApproved()){
+            } else if (! $user->isApproved()) {
                 $message = 'Your account is not approved yet. You will receive an email once it is approved.';
             }
 
             // Check if the user is rejected, suspended, or verified and pending approval
-            if( $user->isRejected() || $user->isSuspended() || ( $user->isVerified() && !$user->isApproved() ) ) {
+            if ($user->isRejected() || $user->isSuspended() || ($user->isVerified() && ! $user->isApproved())) {
                 $user->tokens()->delete();
 
                 return response()->json([
@@ -42,16 +42,16 @@ class AuthController extends Controller
             }
 
             // If the user is not verified, set a message to prompt verification. Only if the user is not rejected or suspended
-            if (!$user->isVerified()){
+            if (! $user->isVerified()) {
                 $message = 'Please verify your email to complete the login.';
             }
 
-            try{
+            try {
                 DB::beginTransaction();
 
                 $token = $user->createToken('auth-token')->plainTextToken;
 
-                $tokenModel = $user->tokens()->latest()->first();
+                $tokenModel             = $user->tokens()->latest()->first();
                 $tokenModel->expires_at = now()->addDays(1);
                 $tokenModel->save();
 
@@ -68,21 +68,21 @@ class AuthController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => ucfirst($user->getRoleNames()->first()) . ' login successfully.',
-                    'data' => [
-                        'role' => $user->getRoleNames()->first(),
+                    'data'    => [
+                        'role'  => $user->getRoleNames()->first(),
                         'token' => $token,
                     ],
-                ],200);
+                ], 200);
             }
 
             // Successful user login response
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'data' => [
-                    'role' => $user->getRoleNames()->first(),
+                'data'    => [
+                    'role'       => $user->getRoleNames()->first(),
                     'isVerified' => $user->isVerified(),
-                    'token' => $token,
+                    'token'      => $token,
                 ],
             ], 200);
         }
@@ -101,7 +101,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Logged out successfully',
-            'data' => null,
+            'data'    => null,
         ]);
     }
 
@@ -110,7 +110,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'User retrieved successfully',
-            'data' => [
+            'data'    => [
                 'role' => $request->user()->getRoleNames()->first(),
                 'user' => $request->user()->load('profile', 'companyProfile'),
             ],
@@ -120,8 +120,8 @@ class AuthController extends Controller
     public function verifyEmail(Request $request, $id, $hash)
     {
         if (! URL::hasValidSignature($request)) {
-        return response()->json(['message' => 'Invalid or expired verification link. Please request a new one.'], 403);
-    }
+            return response()->json(['message' => 'Invalid or expired verification link. Please request a new one.'], 403);
+        }
         // find user by ID
         $user = User::findOrFail($id);
 
@@ -133,7 +133,7 @@ class AuthController extends Controller
         }
         // Check if the user is already verified
         if ($user->hasVerifiedEmail()) {
-           redirect()->to(config('app.frontend_url').'/login?verified=success')->with('message', 'Email already verified. Please login to continue.');
+            redirect()->to(config('app.frontend_url') . '/login?verified=success')->with('message', 'Email already verified. Please login to continue.');
             // return response()->json([
             //     'message' => 'Email already verified.',
             // ], 400);
@@ -144,8 +144,7 @@ class AuthController extends Controller
         }
 
         // return response()->json(['message' => 'Email verified successfully!']);
-        return redirect()->to(config('app.frontend_url').'/login?verified=success')->with('message', 'Email verified successfully! Please login to continue.');
-
+        return redirect()->to(config('app.frontend_url') . '/login?verified=success')->with('message', 'Email verified successfully! Please login to continue.');
 
     }
 
@@ -164,8 +163,8 @@ class AuthController extends Controller
                 'message' => 'Email already verified.',
             ], 400);
         }
-        try{
-        $user->sendEmailVerificationNotification();
+        try {
+            $user->sendEmailVerificationNotification();
             return response()->json([
                 'message' => 'Verification email sent successfully.',
             ]);
@@ -174,6 +173,49 @@ class AuthController extends Controller
                 'message' => 'Failed to send verification email. Please try again later.',
             ], 500);
         }
+    }
+    public function externalLogin(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Invalid credentials.',
+            ], 401);
+        }
+
+        if ($user->isRejected()) {
+            return response()->json(['message' => 'Your registration request has been rejected.'], 403);
+        }
+
+        if ($user->isSuspended()) {
+            return response()->json(['message' => 'Your account is suspended.'], 403);
+        }
+        if (! $user->isApproved()) {
+            return response()->json(['message' => 'Your account is not approved yet.'], 403);
+        }
+
+        return response()->json([
+            'message' => 'Login successful.',
+            'data'    => [
+                'id'         => $user->id,
+                'email'      => $user->email,
+                'name'       => $user->profile->full_name,
+                'role'       => $user->getRoleNames()->first(),
+                'first_name' => $user->profile->first_name,
+                'last_name'  => $user->profile->last_name,
+                'phone'      => $user->profile->phone,
+                'track'      => $user->profile->track,
+                'intake'     => $user->profile->intake,
+                'github'     => $user->profile->github,
+                'linkedin'   => $user->profile->linkedin,
+            ],
+        ]);
     }
 
 }
