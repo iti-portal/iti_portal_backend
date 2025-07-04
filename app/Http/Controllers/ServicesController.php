@@ -114,7 +114,8 @@ class ServicesController extends Controller
         if (!$user) {
             return $this->respondWithError('Unauthorized', 401);
         }
-        $user = User::with('profile');
+        $user = User::with('profile')->find($user->id);
+
         $user_services = AlumniService::where('alumni_id', $user->id)
         ->orderBy('created_at', 'desc')
         ->get();
