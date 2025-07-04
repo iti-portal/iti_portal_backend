@@ -120,6 +120,34 @@ class AccountController extends Controller
         
     }
 
+    public function updatePassword(Request $request){
+        $user = auth()->user(); 
+        if (!$user) {
+            return $this->respondWithError('User not found', 404);
+        }
+        $request->merge([
+            'password' => trim($request->password),
+            'new_password' => trim($request->new_password),
+        ]);
+        $request->validate([
+            'password' => ['required'],
+            'new_password' => ['required', Password::defaults()],
+        ]);
+        try{
+            if (!Hash::check($request->password, $user->password)) {
+                return $this->respondWithError('Current password is incorrect', 400);
+            }
+            if (Hash::check($request->new_password, $user->password)) {
+                return $this->respondWithError('New password must be different from the current one', 400);
+            }
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+            $editedUser = User::with('profile')->find($user->id);
+            return $this->respondWithSuccess(['user' => $editedUser], 'Password has been changed successfully');
+            } catch (\Exception $e) {
+            return $this->respondWithError("Error: " . $e->getMessage(), 500);
+        }
+    }
 
 
 
