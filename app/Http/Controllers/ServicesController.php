@@ -27,14 +27,16 @@ class ServicesController extends Controller
         $validatedData = $request->validated();
 
         try {
-            $user_services = AlumniService::where('alumni_id', $user->id)->get();
-            if ($user_services->count() >= 4) {
-                return $this->respondWithError('You can only create up to 4 services', 400);
+            $count = AlumniService::where('alumni_id', $user->id)->count();
+            if ($count >= 6) { 
+                return $this->respondWithError('You have reached the maximum number of services', 400);
             }
-            foreach ($user_services as $service) {
-                if ($service->service_type === $validatedData['serviceType'] && $service->title === $validatedData['title']) {
-                    return $this->respondWithError('You have already created a service with this type and title', 400);
-                }
+            $exists = AlumniService::where('alumni_id', $user->id)
+                ->where('service_type', $validatedData['serviceType'])
+                ->where('title', $validatedData['title'])
+                ->exists();
+            if ($exists) { 
+                return $this->respondWithError('Service already exists', 400);
             }
             $service = AlumniService::create([
                 'alumni_id' => $user->id,
@@ -55,40 +57,41 @@ class ServicesController extends Controller
         if (!$user) {
             return $this->respondWithError('Unauthorized', 401);
         }
-        if (!$user->hasRole('alumni')) {
-            return $this->respondWithError('Forbidden', 403);
-        }
-
-        $user_services = AlumniService::where('alumni_id', $user->id)->get();
-        $updated_services = [];
-        foreach ($request->services as $serviceData) {
-            $service = AlumniService::find($serviceData['id']);
+        try {
+            $service = AlumniService::find($request->id);
+            $serviceData = $request->validated();
             if (!$service || $service->alumni_id !== $user->id) {
                 return $this->respondWithError('Service not found or unauthorized', 404);
             }
-            foreach ($user_services as $user_service) {
-                if ($user_service->service_type === $serviceData['service_type'] && $user_service->title === $serviceData['title']) {
-                    return $this->respondWithError('You already have a service with this type and title', 400);
-                }
+            $exist = AlumniService::where('alumni_id', $user->id)
+                ->where('service_type', $serviceData['service_type'])
+                ->where('title', $serviceData['title'])
+                ->where('id', '!=', $service->id)
+                ->exists();
+            if ($exist) {
+                return $this->respondWithError('Service already exists', 400);
             }
+        
             if (isset($serviceData['description'])) {
                 $service->description = $serviceData['description'];
             } else {
-                $service->description = null; // Ensure description is set to null if not provided
+                $service->description = null; 
             }
             $service->service_type = $serviceData['service_type'];
             $service->title = $serviceData['title'];
             $service->save();
-            $updated_services[] = $service->fresh();
-        }
+            $updated_services = $service->fresh();
 
         return $this->respondWithSuccess(['services' => $updated_services], 200);
+        } catch (\Exception $e) {
+            return $this->respondWithError('An error occurred while updating the service: ' . $e->getMessage(), 500);
+        }
     }
 
     public function deleteService(Request $request, $id)
     {
         $user = $request->user();
-        if (!$user || !$user->hasRole('alumni')) {
+        if (!$user ) {
             return $this->respondWithError('Unauthorized or Forbidden', 401);
         }
         if (!$id || !is_numeric($id)) {
@@ -111,11 +114,9 @@ class ServicesController extends Controller
         if (!$user) {
             return $this->respondWithError('Unauthorized', 401);
         }
-        if (!$user->hasRole('alumni')) {
-            return $this->respondWithError('Forbidden', 403);
-        }
-
-        $user_services = AlumniService::where('alumni_id', $user->id)->get();
+        $user_services = AlumniService::where('alumni_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
         return $this->respondWithSuccess([
             'services' => $user_services,
         ]);
@@ -137,7 +138,9 @@ class ServicesController extends Controller
                 'user_profiles.track',
                 'user_profiles.intake',
             )
-            ->get()->paginate(10);
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->paginate(10);
 
         return $this->respondWithSuccess(['services' => $services]);
     }
@@ -157,6 +160,7 @@ class ServicesController extends Controller
                 'user_profiles.track',
                 'user_profiles.intake',
             )
+            ->orderBy('created_at', 'desc')
             ->get()->paginate(10);
 
         return $this->respondWithSuccess(['services' => $services]);
@@ -192,13 +196,11 @@ class ServicesController extends Controller
         }
         $request->validate([
             'feedback' => 'nullable|string|max:500',
-            'has_taught_or_presented' => 'required|boolean',
             'evaluation' => 'required|in:positive,neutral,negative',
         ]);
         if (isset($request->feedback)) {
             $service->feedback = $request->feedback;
         }
-        $service->has_taught_or_presented = $request->has_taught_or_presented;
         $service->evaluation = $request->evaluation;
         $service->save();
         $updatedService = AlumniService::find($id);

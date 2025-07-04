@@ -88,7 +88,11 @@ class AccountController extends Controller
         ]);
         $request->validate([
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'password' => ['required']
+            'password' => ['required']],[
+            'email.required' => 'Please enter your email.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already registered.',
+            'password.required' => 'Please enter your password.',           
         ]);
         $email = $request->email;
         $password = $request->password;

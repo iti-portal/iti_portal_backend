@@ -40,4 +40,13 @@ class UpdateAccountSecurityRequest extends FormRequest
 
         ]);
     }
+
+    public function messages(){
+        return [
+            'new_password.confirmed' => 'The new password confirmation does not match.',
+            'email.unique' => 'This email is already registered.',
+            'password.required_with' => 'Please enter your current password.',
+            'emai.email' => 'Please enter a valid email address.',
+        ];
+    }
 }
