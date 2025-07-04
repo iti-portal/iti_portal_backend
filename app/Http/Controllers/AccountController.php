@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rules\Password;
 
 class AccountController extends Controller
 {
@@ -60,7 +61,7 @@ class AccountController extends Controller
                 return $this->respondWithSuccess(['user' => $editedUser], 'You did not change anything');
             }
             elseif($emailChanged){
-                return $this->respondWithSuccess(['user' => $editedUser], 'We sent you an email to verify your new email');
+                return $this->respondWithSuccess(['user' => $editedUser], 'We sent you an email to verify your new email that expires in 24 hours');
             }
              if ($newEmail === $user->new_email) {
                 if($passwordChanged)
@@ -71,6 +72,46 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return $this->respondWithError("Error: " . $e->getMessage(), 500);
         }
+    }
+
+    public function updateEmail(Request $request){
+        $user = auth()->user();
+        if (!$user) {
+            return $this->respondWithError('User not found', 404);
+        }
+        $request->merge([
+            'email' => trim($request->email),
+            'password' => trim($request->password),
+        ]);
+        $request->validate([
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'password' => ['required', Password::defaults()]
+        ]);
+        $email = $request->email;
+        $password = $request->password;
+        if ($email === $user->email) {
+            return $this->respondWithError('New email must be different from the current one', 400);
+        }
+        if (!Hash::check($password, $user->password)) {
+            return $this->respondWithError('Current password is incorrect', 400);
+        }
+        $query = URL::temporarySignedRoute(
+            'verify-new-email',
+            now()->addHours(24),
+            ['user' => $user->id]
+        );
+        try {
+            Mail::to($email)->send(new VerifyNewEmail($user, $query));
+            $user->email = $email;
+        
+            $user->save();
+            $editedUser = User::with('profile')->find($user->id);
+            return $this->respondWithSuccess(['user' => $editedUser], 'We sent you an email to verify your new email that expires in 24 hours');                                                         
+
+        } catch (\Exception $e) {
+            return $this->respondWithError("Error: " . $e->getMessage(), 500);
+        }
+        
     }
 
 
