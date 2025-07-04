@@ -18,7 +18,8 @@ class AccountController extends Controller
     public function updateAccount(UpdateAccountSecurityRequest $request)
     {
         $user = auth()->user();
-
+        $emailChanged = false;
+        $passwordChanged = false;
         if (!$user) {
             return $this->respondWithError('User not found', 404);
         }
