@@ -131,7 +131,13 @@ class AccountController extends Controller
         ]);
         $request->validate([
             'password' => ['required'],
-            'new_password' => ['required', Password::defaults()],
+            'new_password' => ['required','confirmed', Password::defaults()],
+            'new_password_confirmation' => trim($request->new_password_confirmation),
+        ],
+            [
+            'password.required' => 'Please enter your current password.',
+            'new_password.required' => 'Please enter a new password.',
+            'new_password.confirmed'=> 'The new password confirmation does not match.',
         ]);
         try{
             if (!Hash::check($request->password, $user->password)) {
