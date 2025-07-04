@@ -22,20 +22,26 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
             // 'email' => 'sometimes|email|max:255|unique:users,email,' . $this->user()->id,
-            'username' => 'sometimes|string|regex:/^[A-Za-z0-9_]+$/|unique:user_profiles,username|max:30|min:3' . $this->user()->id.',user_id',
+            'username' => [
+                'sometimes',
+                'string',
+                'regex:/^[A-Za-z0-9_]+$/',
+                'min:3',
+                'max:30',
+                'unique:user_profiles,username,' . $this->user()->id . ',user_id',
+            ],
             'first_name' => 'sometimes|string|max:100|min:3',
             'last_name' => 'sometimes|string|max:100|min:3',
-            'phone' => 'sometimes|string|regex:/^01[0125][0-9]{8}$/',
-            'summary' => 'sometimes|string|max:1000',
+            'phone' => ['sometimes', 'string', 'regex:/^01[0125][0-9]{8}$/'],
+            'summary' => 'sometimes|nullable|string|max:1000',
             
             'available_for_freelance' => 'sometimes|boolean',
-            'whatsapp' => 'sometimes|string|regex:/^\+?[0-9]{8,20}$/',
-            'linkedin' => 'sometimes|string|url|max:255',
-            'github' => 'sometimes|string|url|max:255',
-            'portfolio_url' => 'sometimes|string|url|max:255',
-            'student_status' => 'sometimes|string|in:current,graduate',
+            'whatsapp' => ['sometimes', 'nullable', 'string', 'regex:/^01[0125][0-9]{8}$/'],
+            'linkedin' => 'sometimes|nullable|string|url|max:255',
+            'github' => 'sometimes|nullable|string|url|max:255',
+            'portfolio_url' => 'sometimes|nullable|string|url|max:255',
+            'job_profile' => 'sometimes|nullable|string|max:255',
         ];
     }
     public function messages()
@@ -68,7 +74,7 @@ class UpdateProfileRequest extends FormRequest
             'available_for_freelance.boolean' => 'Freelance availability must be true or false.',
 
             'whatsapp.string' => 'WhatsApp number must be a string.',
-            'whatsapp.regex' => 'Please provide a valid WhatsApp number (8–20 digits, with optional +).',
+            'whatsapp.regex' => 'Please provide a valid Egyptian mobile number (e.g., 010, 011, 012, or 015)..',
 
             'linkedin.string' => 'LinkedIn URL must be a string.',
             'linkedin.url' => 'Please enter a valid LinkedIn URL.',
@@ -82,8 +88,8 @@ class UpdateProfileRequest extends FormRequest
             'portfolio_url.url' => 'Please enter a valid portfolio URL.',
             'portfolio_url.max' => 'Portfolio URL must not exceed 255 characters.',
 
-            'student_status.string' => 'Student status must be a string.',
-            'student_status.in' => 'Invalid student status. Must be "current" or "graduate".',
+            'job_profile.string' => 'Job profile must be a string.',
+            'job_profile.max' => 'Job profile must not exceed 255 characters.',
         ];
     }
 
