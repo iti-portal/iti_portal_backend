@@ -64,7 +64,7 @@ class ServicesController extends Controller
                 return $this->respondWithError('Service not found or unauthorized', 404);
             }
             $exist = AlumniService::where('alumni_id', $user->id)
-                ->where('service_type', $serviceData['service_type'])
+                ->where('service_type', $serviceData['serviceType'])
                 ->where('title', $serviceData['title'])
                 ->where('id', '!=', $service->id)
                 ->exists();
@@ -77,7 +77,7 @@ class ServicesController extends Controller
             } else {
                 $service->description = null; 
             }
-            $service->service_type = $serviceData['service_type'];
+            $service->service_type = $serviceData['serviceType'];
             $service->title = $serviceData['title'];
             $service->save();
             $updated_services = $service->fresh();
@@ -99,7 +99,7 @@ class ServicesController extends Controller
         }
 
         $service = AlumniService::find($id);
-        if (!$service || $service->alumni_id !== $user->id) {
+        if (!$service || ($service->alumni_id !== $user->id && !$user->hasAnyRole(['admin', 'staff']))) {
             return $this->respondWithError('Service not found or unauthorized', 404);
         }
 

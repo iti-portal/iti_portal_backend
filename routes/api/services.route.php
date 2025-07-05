@@ -37,4 +37,7 @@ Route::middleware(['auth:sanctum', 'role:admin|staff'])->group(function () {
     Route::put('/evaluate-service/{id}', [ServicesController::class, 'evaluateService'])->name('services.admin.update');
     //route for deleting service can be as for alumini above
 
+    Route::delete('/delete-service/{id}', [ServicesController::class, 'deleteService'])->name('services.delete');
+
+
 });

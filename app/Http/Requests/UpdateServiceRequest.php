@@ -33,7 +33,7 @@ class UpdateServiceRequest extends FormRequest
         return [
             //
             'id' => 'required|exists:alumni_services,id',
-            'type' => 'sometimes|in:business_session,course_teaching',
+            'serviceType' => 'sometimes|in:business_session,course_teaching',
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|string|max:1000',
 
