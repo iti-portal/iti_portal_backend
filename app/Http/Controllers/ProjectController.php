@@ -27,6 +27,7 @@ class ProjectController extends Controller
                 ->with(['projectImages' => function($query) {
                     $query->orderBy('order');
                 }])
+                ->orderBy('is_featured', 'desc')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -39,37 +40,6 @@ class ProjectController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve projects',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Get featured projects (limited to 5).
-     */
-    public function getUserFeaturedProjects(User $user): JsonResponse
-    {
-        try {
-            $featuredProjects = Project::where('user_id', $user->id)
-                ->where('is_featured', true)
-                ->with([
-                    'projectImages' => function($query) {
-                        $query->orderBy('order');
-                    },
-                ])
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Featured projects retrieved successfully',
-                'data' => $featuredProjects
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve featured projects',
                 'error' => $e->getMessage()
             ], 500);
         }

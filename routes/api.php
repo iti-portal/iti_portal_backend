@@ -75,6 +75,7 @@ Route::middleware('auth:sanctum', 'account.approved')->group(function () {
         Route::post('approve-user/{user}', [UserManagementController::class, 'approveUser']);
         Route::post('reject-user/{user}', [UserManagementController::class, 'rejectUser']);
         Route::post('create-staff', [UserManagementController::class, 'createStaff']);
+        Route::post('mark-student-as-graduate/{user}', [UserManagementController::class, 'markStudentAsGraduate']);
     });
 });
 
@@ -94,4 +95,3 @@ Route::middleware('jwt.auth')->prefix('external-auth')->group(function () {
         ]);
     });
 });
-
