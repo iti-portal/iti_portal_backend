@@ -10,6 +10,8 @@ use App\Models\StaffProfile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
+use App\Notifications\UserApprovedNotification;
+
 
 class UserManagementController extends Controller
 {
@@ -17,6 +19,7 @@ class UserManagementController extends Controller
     {
         $users = User::with(['roles', 'profile', 'companyProfile'])
                     ->pending()
+                    ->whereNotNull('email_verified_at') // Only email verified users
                     ->paginate(15);
 
         return response()->json([
@@ -26,10 +29,25 @@ class UserManagementController extends Controller
         ]);
     }
 
+    public function getStaff()
+    {
+        $staffUsers = User::role('staff')
+            ->with(['roles', 'staffProfile'])
+            ->paginate(15);
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Staff users retrieved successfully.',
+            'data' => $staffUsers,
+        ]);
+    }
+
     public function approveUser(User $user)
     {
         try{
             $user->update(['status' => 'approved']);
+            // send email notification to the user
+            $user->notify(new UserApprovedNotification());
 
             return response()->json([
                 'success' => true,

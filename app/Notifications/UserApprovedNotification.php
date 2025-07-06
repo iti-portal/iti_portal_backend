@@ -6,17 +6,14 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\URL;
-use Carbon\Carbon;
 
-class CustomVerifyEmail extends Notification
+class UserApprovedNotification extends Notification
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-
     public function __construct()
     {
         //
@@ -37,23 +34,12 @@ class CustomVerifyEmail extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $url = URL::temporarySignedRoute(
-        'verification.verify',
-        Carbon::now()->addHours(24),
-        [
-            'id' => $notifiable->getKey(),
-            'hash' => sha1($notifiable->getEmailForVerification()),
-        ]
-    );
-
         return (new MailMessage)
-         ->from('portal@iti.com', 'ITI Portal')
-         ->subject('Verify Your Email Address')
-            ->view('emails.verify_email', [
-                'url' => $url,
+            ->from('portal@iti.com', 'ITI Portal')
+            ->subject('User Approved Notification')
+            ->view('emails.user_approved', [
                 'user' => $notifiable,
             ]);
-
     }
 
     /**
@@ -61,15 +47,10 @@ class CustomVerifyEmail extends Notification
      *
      * @return array<string, mixed>
      */
-
-
-
-
-    /**
-     * Get the URL for the notification.
-     *
-     * @return string
-     */
-
-
+    public function toArray(object $notifiable): array
+    {
+        return [
+            //
+        ];
+    }
 }

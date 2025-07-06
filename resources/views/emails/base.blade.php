@@ -88,6 +88,7 @@
         <div class="content">
             @yield('content')
         </div>
+        <p>Best regards,<br>ITI Portal Team</p>
         <div class="footer">
             <p>&copy; {{ date('Y') }} ITI Portal. All rights reserved.</p>
             <p>
