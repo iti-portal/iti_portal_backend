@@ -22,25 +22,10 @@ class BatchUpdateStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'application_ids' => ['required', 'array', 'min:1', 'max:50'],
+            'application_ids' => ['required', 'array'],
             'application_ids.*' => ['required', 'integer', 'exists:job_applications,id'],
             'status' => ['required', 'in:reviewed,interviewed,hired,rejected'],
             'company_notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
-        ];
-    }
-
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return [
-            'application_ids.required' => 'At least one application ID is required.',
-            'application_ids.max' => 'You can update a maximum of 50 applications at once.',
-            'application_ids.*.exists' => 'One or more application IDs are invalid.',
-            'status.in' => 'Status must be one of: reviewed, interviewed, hired, rejected.',
         ];
     }
 }

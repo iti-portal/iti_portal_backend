@@ -1,55 +1,29 @@
 <?php
 
+use App\Http\Controllers\CompanyProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// display and management company details from the company
-Route::middleware([])->group(function () {
-//this route for display company details
-    Route::get('/company', function (Request $request) {
-        return response()->json(['message' => 'This is the company details route']);
-    })->name('company.profile');
-    // This route for updating company details
-    Route::put('/company', function (Request $request) {
-        return response()->json(['message' => 'Company details updated successfully']);
-    })->name('company.profile.update');
-    // This route for deleting company profile
-    Route::delete('/company', function (Request $request) {
-        return response()->json(['message' => 'Company details deleted successfully']);
-    })->name('company.profile.delete');
-  });
+// Company Profiles routes
+Route::prefix('companies')->middleware('auth:sanctum')->group(function () {
+    // Company-specific profile actions
+    Route::middleware('role:company')->group(function () {
+        Route::get('/my-profile', [CompanyProfileController::class, 'myCompanyProfile']); // GET /api/companies/my-profile
+        Route::put('/edit-profile', [CompanyProfileController::class, 'editCompanyProfile']); // PUT /api/companies/my-profile
+        Route::post('/my-profile/logo', [CompanyProfileController::class, 'changeCompanyImage']); // POST /api/companies/my-profile/logo
+    });
 
-  
-// routes for company's management by admin and staff
-Route::middleware([])->group(function () {
-    // This route for listing all companies
-    Route::get('/companies', function (Request $request) {
-        return response()->json(['message' => 'List of companies']);
-    })->name('companies.list');
-    // This route for listing pending companies
-    Route::get('/companies/pending', function (Request $request) {
-        return response()->json(['message' => 'List of pending companies']);
-    })->name('companies.pending');
-    // This route for approving a company
-    Route::post('/companies/{id}/approve', function (Request $request, $id) {
-        return response()->json(['message' => "Company with ID: $id approved successfully"]);   
-    })->name('companies.approve');
-    // this route for updating a company details
-    Route::put('/companies/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "Company with ID: $id updated successfully"]);
-    })->name('companies.update');
-    // This route for deleting a company
-    Route::delete('/companies/{id}', function (Request $request, $id) { 
-        return response()->json(['message' => "Company with ID: $id deleted successfully"]);
-    })->name('companies.delete');
-    
+    // Admin/Staff actions
+    Route::middleware('role:admin|staff')->group(function () {
+        Route::post('/{user}/suspend', [CompanyProfileController::class, 'suspendCompany']); // POST /api/companies/{user}/suspend (user is the ID of the user associated with the company)
+    });
+
+    // Publicly accessible companies (approved or suspended)
+    Route::get('/', [CompanyProfileController::class, 'getAllCompaniesProfiles']); // GET /api/companies
+    Route::get('/{companyProfile}', [CompanyProfileController::class, 'getCompanyProfile']); // GET /api/companies/{companyProfile}
+
+    // Admin/Staff/Company actions (for delete, since it applies to a specific companyProfile ID)
+    Route::middleware('role:admin|staff|company')->group(function () {
+        Route::delete('/{companyProfile}', [CompanyProfileController::class, 'deleteCompany']); // DELETE /api/companies/{companyProfile}
+    });
 });
-// This route for getting featured companies from the users
-Route::get('/companies/featured', function (Request $request) {
-    return response()->json(['message' => 'List of featured companies']);
-})->name('companies.featured');
-
-// This route for getting company details by ID for users
-Route::get('/companies/{id}', function (Request $request, $id) {
-    return response()->json(['message' => "Details for company with ID: $id"]);
-})->name('companies.details');

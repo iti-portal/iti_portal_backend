@@ -20,6 +20,9 @@ require __DIR__ . '/api/skills.route.php';
 require __DIR__ . '/api/workExperience.route.php';
 require __DIR__. '/api/userprofiles.route.php';
 require __DIR__. '/api/jobApplication.route.php';
+require __DIR__. '/api/awards.route.php';
+require __DIR__. '/api/certificates.route.php';
+require __DIR__. '/api/statistics.route.php';
 
 use App\Http\Controllers\Auth\PasswordResetController;
 
@@ -69,12 +72,14 @@ Route::middleware('auth:sanctum', 'account.approved')->group(function () {
     // User Management routes
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         Route::get('pending-users', [UserManagementController::class, 'pendingUsers']);
+        Route::get('retrieve-staff', [UserManagementController::class, 'getStaff']);
         Route::post('approve-user/{user}', [UserManagementController::class, 'approveUser']);
         Route::post('reject-user/{user}', [UserManagementController::class, 'rejectUser']);
         Route::post('create-staff', [UserManagementController::class, 'createStaff']);
         Route::post('suspend-user/{user}', [UserManagementController::class, 'suspendUser']);
         Route::post('unsuspend-user/{user}', [UserManagementController::class, 'approveUser']);
     }); 
+        Route::post('mark-student-as-graduate/{user}', [UserManagementController::class, 'markStudentAsGraduate']);
 });
 
 
@@ -93,4 +98,3 @@ Route::middleware('jwt.auth')->prefix('external-auth')->group(function () {
         ]);
     });
 });
-

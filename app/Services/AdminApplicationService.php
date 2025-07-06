@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\JobApplication;
 use App\Services\NotificationService;
+use App\Services\ApplicationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;

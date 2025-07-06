@@ -6,7 +6,7 @@
 
 @section('content')
 
-<p>Hello,</p>
+<p>Hello,{{ $user->getFullNameAttribute() ?? 'there' }}</p>
 
 <p>We received a request to update your email address on ITI Portal. To complete this change, please confirm your new email address by clicking the button below:</p>
 
@@ -17,7 +17,7 @@
 <p class="highlight-note">This verification link will expire in 24 hours.</p>
 
 <p>If you did not request this change, please ignore this email or contact our
-    <a href="mailto:support@iti.com" class="support-link">support team</a>.
+    <a href="mailto:support@iti.gov.eg" class="support-link">support team</a>.
 </p>
 
 @endsection
