@@ -8,7 +8,7 @@ use App\Models\AchievementLike;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum','throttle:6,1'])->group(function(){
+Route::middleware(['auth:sanctum'])->group(function(){
     // this route for listing all achievements
     Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.list');
 
@@ -42,7 +42,7 @@ Route::middleware(['auth:sanctum','throttle:6,1'])->group(function(){
 
 
     // route for deleting a comment
-    Route::delete('/achievements/comment/{comment}', [AchievementCommentController::class, 'delete'])->name('achievements.comment.delete');
+    Route::delete('/achievements/comment/{comment}', [AchievementCommentController::class, 'destroy'])->name('achievements.comment.delete');
 
     // route for updating an achievement
     Route::post('/achievements/{achievement}', [AchievementController::class, 'update'])->name('achievements.update');
