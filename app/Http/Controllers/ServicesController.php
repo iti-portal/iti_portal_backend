@@ -122,7 +122,6 @@ class ServicesController extends Controller
         ->get();
         
         return $this->respondWithSuccess([
-            'user' => $user,
             'services' => $user_services,
         ]);
     }
