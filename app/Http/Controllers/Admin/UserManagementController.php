@@ -29,6 +29,19 @@ class UserManagementController extends Controller
         ]);
     }
 
+    public function getStaff()
+    {
+        $staffUsers = User::role('staff')
+            ->with(['roles', 'staffProfile'])
+            ->paginate(15);
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Staff users retrieved successfully.',
+            'data' => $staffUsers,
+        ]);
+    }
+
     public function approveUser(User $user)
     {
         try{
