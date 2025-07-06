@@ -279,25 +279,7 @@ class UserProfileController extends Controller
             return $this->respondWithError($e->getMessage(), 500);
         }
     }
-    public function verifyNewEmail(Request $request, $user){
-        if(!$request->hasValidSignature()){
-            return $this->respondWithError('Invalid or expired verification link', 400);
-        }
-        
-        try{
-            $user = User::findOrFail($user);
-            if(!$user->new_email){
-                return $this->respondWithError('No pending email found', 404);
-            }
-        $user->email = $user->new_email;
-        $user->new_email = null;
-        $user->save();
-        return $this->respondWithSuccess([], 'Email verified successfully');
     
-        }catch (\Exception $e) {
-            return $this->respondWithError("Something went wrong", 500);
-        }
-    }
     public function deleteUserProfile(Request $request)
     {
         $user = $request->user();

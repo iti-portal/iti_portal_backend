@@ -98,6 +98,33 @@ class UserManagementController extends Controller
         }
     }
 
+    public function suspendUser(User $user)
+    {
+        try{
+            $user->update(['status' => 'suspended']);
+
+            return response()->json([
+                'success' => true,
+                'message' => "User '{$user->getFullNameAttribute()}' has been suspended successfully.",
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'full_name' => $user->getFullNameAttribute(),
+                        'email' => $user->email,
+                        'status' => $user->status,
+                        'role' => $user->getRoleNames()->first(),
+                    ]
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User suspension failed.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     public function createStaff(StaffRegistrationRequest $request)
     {

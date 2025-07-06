@@ -15,18 +15,12 @@ class UpdateServiceRequest extends FormRequest
     }
     protected function prepareForValidation(): void
     {
-        if ($this->has('services')) {
-            $trimmed = collect($this->input('services'))->map(function ($service) {
-                return [
-                    'id' => $service['id'] ?? null,
-                    'service_type' => isset($service['service_type']) ? trim($service['service_type']) : null,
-                    'title' => isset($service['title']) ? trim($service['title']) : null,
-                    'description' => isset($service['description']) ? trim($service['description']) : null,
-                ];
-            });
-
-            $this->merge(['services' => $trimmed->all()]);
-        }
+        $this->merge([
+            'id' => trim($this->input('id')),
+            'title' => trim($this->input('title')),
+            'description' => trim($this->input('description')),
+            'service_type' => trim($this->input('service_type')),
+        ]);
     }
 
     /**
@@ -38,11 +32,10 @@ class UpdateServiceRequest extends FormRequest
     {
         return [
             //
-            'services' => 'required|array',
-            'services.*.id' => 'required|exists:alumni_services,id',
-            'services.*.service_type' => 'required|in:business_session,course_teaching',
-            'services.*.title' => 'required|string|max:255',
-            'services.*.description' => 'nullable|string|max:1000',
+            'id' => 'required|exists:alumni_services,id',
+            'serviceType' => 'sometimes|in:business_session,course_teaching',
+            'title' => 'sometimes|string|max:255',
+            'description' => 'sometimes|string|max:1000',
 
         ];
     }
