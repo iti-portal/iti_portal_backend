@@ -19,6 +19,7 @@ class UserManagementController extends Controller
     {
         $users = User::with(['roles', 'profile', 'companyProfile'])
                     ->pending()
+                    ->whereNotNull('email_verified_at') // Only email verified users
                     ->paginate(15);
 
         return response()->json([

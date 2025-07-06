@@ -13,6 +13,7 @@ use App\Models\WorkExperience;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Log;
 
 use function PHPUnit\Framework\returnSelf;
@@ -22,7 +23,7 @@ class AchievementController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         //
         $user = auth()->user();
@@ -30,14 +31,18 @@ class AchievementController extends Controller
             return $this->respondWithError('User not found', 404);
         }
         try{
+            $perPage = $request->get('per_page', 20);
+            $page = $request->get('page', 1);
+            
             $achievements = Achievement::with([
                 'user.profile:id,user_id,first_name,last_name,profile_picture',
                 'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
                 'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
             ])
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($achievement)use($user) {
+            ->paginate($perPage, ['*'], 'page', $page);
+            
+            $achievementsData = $achievements->getCollection()->map(function ($achievement)use($user) {
                 $likedByUser = $achievement->likes->contains('user_id', $user->id);
 
                 
@@ -59,6 +64,7 @@ class AchievementController extends Controller
                                 ->values()
                                 ->map(function ($comment) {
                                     return [
+                                        'id' => $comment->id,
                                         'content' => $comment->content,
                                         'created_at' => $comment->created_at,
                                         'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
@@ -71,7 +77,19 @@ class AchievementController extends Controller
                     }),
                 ];
             });
-            return $this->respondWithSuccess(['achievements' => $achievements]);
+            
+            return $this->respondWithSuccess([
+                'achievements' => $achievementsData,
+                'pagination' => [
+                    'current_page' => $achievements->currentPage(),
+                    'per_page' => $achievements->perPage(),
+                    'total' => $achievements->total(),
+                    'last_page' => $achievements->lastPage(),
+                    'has_more_pages' => $achievements->hasMorePages(),
+                    'next_page_url' => $achievements->nextPageUrl(),
+                    'prev_page_url' => $achievements->previousPageUrl()
+                ]
+            ]);
         }catch(\Exception $e){
             return $this->respondWithError($e->getMessage(), 500);
         }
@@ -106,8 +124,7 @@ class AchievementController extends Controller
                                 'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
                                 'comments' => $achievement->comments
                                 ->sortByDesc(function ($comment) use ($user) {
-                                    return [$comment->user_id === $user->id ? 1 : 0,                                    // return $comment->user_id === $user->id ? 1 : 0;
-                                        $comment->created_at];
+                                    return [$comment->user_id === $user->id ? 1 : 0, $comment->created_at];
                                 })
                                 ->values()
                                 ->map(function ($comment) {
@@ -130,12 +147,15 @@ class AchievementController extends Controller
         }
     }
 
-    public function userConnectionsAchievements(){
+    public function userConnectionsAchievements(Request $request){
         $user = auth()->user();
         if(!$user){
             return $this->respondWithError('User not found', 404);
         }
         try{
+            $perPage = $request->get('per_page', 20);
+            $page = $request->get('page', 1);
+            
             $userConnections = Connection::where('requester_id', $user->id)->orWhere('addressee_id', $user->id)
                             ->where('status', 'accepted')->select('addressee_id', 'requester_id')
                             ->get()
@@ -150,8 +170,9 @@ class AchievementController extends Controller
                             ])
                             ->whereIn( 'achievements.user_id', $userConnections)
                             ->orderBy('created_at', 'desc')
-                            ->get()
-                            ->map(function ($achievement)use($user) {
+                            ->paginate($perPage, ['*'], 'page', $page);
+                            
+                            $achievementsData = $achievements->getCollection()->map(function ($achievement)use($user) {
                                 $likedByUser = $achievement->likes->contains('user_id', $user->id);
 
                                 return [
@@ -167,8 +188,8 @@ class AchievementController extends Controller
                                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
                                     'comments' => $achievement->comments
                                     ->sortByDesc(function ($comment) use ($user) {
-                                        return [$comment->user_id === $user->id ? 1 : 0,                                    // return $comment->user_id === $user->id ? 1 : 0;
-                                        $comment->created_at];                                    })
+                                        return [$comment->user_id === $user->id ? 1 : 0, $comment->created_at];
+                                    })
                                     ->values()
                                     ->map(function ($comment) {
                                         return [
@@ -185,18 +206,31 @@ class AchievementController extends Controller
                                 ];
                             });                        
             
-                return $this->respondWithSuccess(['achievements' => $achievements]);
+                return $this->respondWithSuccess([
+                    'achievements' => $achievementsData,
+                    'pagination' => [
+                        'current_page' => $achievements->currentPage(),
+                        'per_page' => $achievements->perPage(),
+                        'total' => $achievements->total(),
+                        'last_page' => $achievements->lastPage(),
+                        'has_more_pages' => $achievements->hasMorePages(),
+                        'next_page_url' => $achievements->nextPageUrl(),
+                        'prev_page_url' => $achievements->previousPageUrl()
+                    ]
+                ]);
             } catch (\Exception $e){
                 return $this->respondWithError($e->getMessage(), 500);
 
         }
     }
-    public function popularAchievements(){
+    public function popularAchievements(Request $request){
         $user = auth()->user();
         if(!$user){
             return $this->respondWithError('User not found', 404);
         }
         try{
+            $perPage = $request->get('per_page', 20);
+            $page = $request->get('page', 1);
 
             $achievements = Achievement::with([
                                 'user.profile:id,user_id,first_name,last_name,profile_picture',
@@ -204,8 +238,10 @@ class AchievementController extends Controller
                                 'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
                             ])
                             ->orderBy('like_count', 'desc')
-                            ->get()
-                            ->map(function ($achievement)use($user) {
+                            ->orderBy('created_at', 'desc') // Secondary sort for consistency
+                            ->paginate($perPage, ['*'], 'page', $page);
+                            
+                            $achievementsData = $achievements->getCollection()->map(function ($achievement)use($user) {
                                 $likedByUser = $achievement->likes->contains('user_id', $user->id);
                                 
                                 return [
@@ -221,8 +257,8 @@ class AchievementController extends Controller
                                     'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
                                     'comments' => $achievement->comments
                                     ->sortByDesc(function ($comment) use ($user) {
-                                        return [$comment->user_id === $user->id ? 1 : 0,                                    // return $comment->user_id === $user->id ? 1 : 0;
-                                        $comment->created_at];                                    })
+                                        return [$comment->user_id === $user->id ? 1 : 0, $comment->created_at];
+                                    })
                                     ->values()
                                     ->map(function ($comment) {
                                         return [
@@ -238,7 +274,18 @@ class AchievementController extends Controller
                                     }),
                                 ];
                             });         
-        return $this->respondWithSuccess(['achievements' => $achievements]);
+        return $this->respondWithSuccess([
+            'achievements' => $achievementsData,
+            'pagination' => [
+                'current_page' => $achievements->currentPage(),
+                'per_page' => $achievements->perPage(),
+                'total' => $achievements->total(),
+                'last_page' => $achievements->lastPage(),
+                'has_more_pages' => $achievements->hasMorePages(),
+                'next_page_url' => $achievements->nextPageUrl(),
+                'prev_page_url' => $achievements->previousPageUrl()
+            ]
+        ]);
         }catch(\Exception $e){
             return $this->respondWithError($e->getMessage(), 500);
         }
@@ -261,7 +308,13 @@ class AchievementController extends Controller
             $achievement->type = $request->type;
             $achievement->description = $request->description??null;
             $achievement->organization = $request->organization;
-            $achievement->achieved_at = $request->achieved_at;
+            
+            // Handle date fields with proper mapping for projects
+            if ($request->type == 'project' && $request->filled('start_date')) {
+                $achievement->achieved_at = $request->start_date;
+            } else {
+                $achievement->achieved_at = $request->achieved_at;
+            }
             if($achievement->type == 'project'){
                 $achievement->end_date = $request->filled('end_date') ? $request->end_date : null;
 
@@ -271,6 +324,7 @@ class AchievementController extends Controller
             $achievement->certificate_url = $request->certificate_url??null;
             $achievement->project_url = $request->project_url??null;
 
+            // Handle image upload - both file upload and base64
             if($request->hasFile('image_path')){
                 $file = $request->file('image_path');
                 $path = $file->store('achievements', 'public');
@@ -312,13 +366,21 @@ class AchievementController extends Controller
                     $project->github_url = $achievement->certificate_url;
                     $project->project_url = $achievement->project_url;
                     $project->save();
-                    $project->projectImages()->create([
-                        'image_path' => $achievement->image_path,
-                        'project_id' => $project->id
-                    ]);
-                    return $this->respondWithSuccess(['achievement' => $achievement,
-                    'project' => $project, 'project_image' => $project->projectImages()->first()]);
-
+                    
+                    // Only create project image if an image was uploaded
+                    $projectImage = null;
+                    if ($achievement->image_path) {
+                        $projectImage = $project->projectImages()->create([
+                            'image_path' => $achievement->image_path,
+                            'project_id' => $project->id
+                        ]);
+                    }
+                    
+                    // Store project data for response
+                    $projectData = [
+                        'project' => $project,
+                        'project_image' => $projectImage
+                    ];
                 }
                 elseif($achievement->type == 'job'){
                     $job = new WorkExperience();
@@ -331,9 +393,17 @@ class AchievementController extends Controller
                     $job->save();
                 }
         
+                // Save main achievement record
                 $achievement->save();
                 DB::commit();
-                return $this->respondWithSuccess(['achievement' => $achievement]);
+                
+                // Prepare response data
+                $responseData = ['achievement' => $achievement];
+                if (isset($projectData)) {
+                    $responseData = array_merge($responseData, $projectData);
+                }
+                
+                return $this->respondWithSuccess($responseData);
 
         }catch(\Exception $e){
             DB::rollBack();
@@ -369,6 +439,8 @@ class AchievementController extends Controller
             $achievement->end_date = $request->end_date ?? $achievement->end_date;
             $achievement->certificate_url = $request->certificate_url ?? $achievement->certificate_url;
             $achievement->project_url = $request->project_url ?? $achievement->project_url;
+            
+            // Handle image upload - both file upload and base64
             if($request->hasFile('image_path')){
                 $file = $request->file('image_path');
                 $path = $file->store('achievements', 'public');
@@ -410,9 +482,21 @@ class AchievementController extends Controller
                 $project->github_url = $achievement->certificate_url;
                 $project->project_url = $achievement->project_url;
                 $project->save();
-                $project_image = $project->projectImages()->where('project_id', $project->id)->first();
-                $project_image->image_path = $achievement->image_path;
-                $project_image->save();
+                
+                // Handle project image update - only if image was provided
+                if ($achievement->image_path) {
+                    $project_image = $project->projectImages()->where('project_id', $project->id)->first();
+                    if ($project_image) {
+                        $project_image->image_path = $achievement->image_path;
+                        $project_image->save();
+                    } else {
+                        // Create new project image if none exists
+                        $project->projectImages()->create([
+                            'image_path' => $achievement->image_path,
+                            'project_id' => $project->id
+                        ]);
+                    }
+                }
             }
             elseif($achievement->type == 'job'){
                 $job = WorkExperience::where('user_id', $user->id)
@@ -490,10 +574,14 @@ class AchievementController extends Controller
                         DB::rollBack();
                         return $this->respondWithError('You are not authorized to delete this project', 403);
                     }
-                    $project->delete();
-                    $project_image = $project->projectImages()->where('project_id', $project->id)->first();
                     
-                    $project_image->delete(); 
+                    // Delete project image if it exists
+                    $project_image = $project->projectImages()->where('project_id', $project->id)->first();
+                    if ($project_image) {
+                        $project_image->delete();
+                    }
+                    
+                    $project->delete(); 
                 }
                
             }
@@ -520,4 +608,5 @@ class AchievementController extends Controller
             return $this->respondWithError($e->getMessage(), 500);
         }
     }
+
 }
