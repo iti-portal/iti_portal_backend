@@ -9,6 +9,7 @@ use App\Models\Connection;
 use App\Models\Education;
 use App\Models\JobApplication;
 use App\Models\Project;
+use App\Models\User;
 use App\Models\UserProfile;
 use App\Models\UserSkill;
 use App\Models\WorkExperience;
@@ -16,8 +17,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-
-class StudentStatisticsController extends Controller 
+class StudentStatisticsController extends Controller
 {
     private function parseDates(Request $request)
     {
@@ -130,6 +130,22 @@ class StudentStatisticsController extends Controller
 
         $previousMonthApplications = $this->getPreviousMonthApplicationStats($userId);
         $topAppliedJobs            = $this->getTopAppliedJobs($userId);
+        $studentsCount             = User::whereNotNull('email_verified_at')
+            ->whereHas('roles', function ($query) {
+                $query->where(function ($q) {
+                    $q->where('name', 'student')
+                        ->orWhere('name', 'alumni');
+                });
+            })->count();
+
+        $companyCount = User::whereNotNull('email_verified_at')
+            ->whereHas('roles', function ($query) {
+                $query->where('name', 'company');
+            })->count();
+        $getHiredUsersCount = JobApplication::where('status', 'hired')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->distinct('user_id')
+            ->count('user_id');
 
         return response()->json([
             'total_applications'          => $totalApplications,
@@ -137,6 +153,11 @@ class StudentStatisticsController extends Controller
             'applications_monthly'        => $applicationsMonthly,
             'previous_month_applications' => $previousMonthApplications,
             'top_applied_jobs'            => $topAppliedJobs,
+            'students-alumni_count'       => $studentsCount,
+            'company_count'               => $companyCount,
+            'total_users_count'           => User::count(),
+            'hired_users_count'           => $getHiredUsersCount,
+
         ]);
     }
 
@@ -161,7 +182,7 @@ class StudentStatisticsController extends Controller
         ]);
     }
 
-    public function studentStats(Request $request)
+    public function getStatistics(Request $request)
     {
         $profileCompletion = $this->profileCompletion($request)->getData(true);
         $myApplications    = $this->myApplications($request)->getData(true);
@@ -172,24 +193,4 @@ class StudentStatisticsController extends Controller
             'data'    => array_merge($profileCompletion, $myApplications, $myActivities),
         ]);
     }
-    public function getStudentAndCompanyStats(Request $request)
-    {
-       if($user =auth()->user()->hasRole('student|alumni')) {
-            $studentStats = $this->studentStats($request)->getData(true);
-
-            return response()->json([
-                'message' => 'Student and company statistics loaded successfully.',
-                'data'    => array_merge($studentStats),
-            ]);
-        }
-        if($user = auth()->user()->hasRole('company')) {
-            $companyController = new CompanyStatisticsController();
-            $companyStats = $companyController->companyStats($request)->getData(true);
-
-            return response()->json([
-                'message' => 'Company statistics loaded successfully.',
-                'data'    => $companyStats,
-            ]);
-        }
-        return response()->json(['message' => 'Unauthorized'], 403);
-    }}
+}

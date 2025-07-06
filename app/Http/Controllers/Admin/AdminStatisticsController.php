@@ -114,7 +114,7 @@ class AdminStatisticsController extends Controller
             ->get();
     }
 
-    public function adminStats(Request $request)
+    public function getStatistics(Request $request)
     {
         [$startDate, $endDate] = $this->parseDates($request);
 
