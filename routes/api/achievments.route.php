@@ -12,15 +12,6 @@ Route::middleware(['auth:sanctum'])->group(function(){
     // this route for listing all achievements
     Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.list');
 
-    // Infinite scroll/lazy loading for achievements
-    Route::get('/achievements/infinite-scroll', [AchievementController::class, 'getAchievementsInfiniteScroll'])->name('achievements.infinite-scroll');
-
-    // Infinite scroll for connections achievements
-    Route::get('/connections-achievements/infinite-scroll', [AchievementController::class, 'getConnectionsAchievementsInfiniteScroll'])->name('connections-achievements.infinite-scroll');
-
-    // Infinite scroll for popular achievements
-    Route::get('/popular-achievements/infinite-scroll', [AchievementController::class, 'getPopularAchievementsInfiniteScroll'])->name('popular-achievements.infinite-scroll');
-
     // route for getting user's achievements
     Route::get('/my-achievements', [AchievementController::class, 'userAchievements'])->name('myachievments.list');
 
