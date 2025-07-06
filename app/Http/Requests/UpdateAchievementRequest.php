@@ -28,7 +28,6 @@ class UpdateAchievementRequest extends FormRequest
             'achieved_at' => 'sometimes|date',
             'end_date' => 'sometimes|date',
             'image_path' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
-            'image' => 'sometimes|string', // For base64 images from frontend
             'certificate_url' => 'sometimes|string',
             'project_url' => 'sometimes|string',
         ];
@@ -39,8 +38,8 @@ class UpdateAchievementRequest extends FormRequest
         switch ($type) {
             case 'project':
                 // For projects, accept either organization or technologies_used
-                $rules['organization'] = 'sometimes|string';
-                $rules['technologies_used'] = 'sometimes|string';
+                $rules['organization'] = 'sometimes|nullable|string';
+                $rules['technologies_used'] = 'sometimes|nullable|string';
                 break;
             case 'job':
                 // For jobs, accept either organization or company_name

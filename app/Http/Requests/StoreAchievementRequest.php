@@ -28,7 +28,6 @@ class StoreAchievementRequest extends FormRequest
             'achieved_at' => 'required|date',
             'end_date' => 'nullable|date',
             'image_path' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'image' => 'nullable|string', // For base64 images from frontend
             'certificate_url' => 'nullable|string',
             'project_url' => 'nullable|string',
         ];
@@ -44,7 +43,7 @@ class StoreAchievementRequest extends FormRequest
                 break;
             case 'job':
                 // For jobs, accept either organization or company_name
-                $rules['organization'] = 'nullable|string';
+                $rules['organization'] = 'required|string';
                 $rules['company_name'] = 'nullable|string';
                 break;
             case 'award':
