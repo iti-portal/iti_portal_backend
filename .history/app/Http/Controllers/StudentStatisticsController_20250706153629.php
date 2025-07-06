@@ -15,7 +15,7 @@ use App\Models\WorkExperience;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use App\Http\Controllers\CompanyStatisticsController;
 
 class StudentStatisticsController extends Controller 
 {

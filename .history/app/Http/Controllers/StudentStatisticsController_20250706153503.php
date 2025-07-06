@@ -15,7 +15,7 @@ use App\Models\WorkExperience;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use App\Http\Controllers\CompanyStatisticsController;
 
 class StudentStatisticsController extends Controller 
 {
@@ -176,20 +176,13 @@ class StudentStatisticsController extends Controller
     {
        if($user =auth()->user()->hasRole('student|alumni')) {
             $studentStats = $this->studentStats($request)->getData(true);
-
-            return response()->json([
-                'message' => 'Student and company statistics loaded successfully.',
-                'data'    => array_merge($studentStats),
-            ]);
-        }
-        if($user = auth()->user()->hasRole('company')) {
             $companyController = new CompanyStatisticsController();
             $companyStats = $companyController->companyStats($request)->getData(true);
 
             return response()->json([
-                'message' => 'Company statistics loaded successfully.',
-                'data'    => $companyStats,
+                'message' => 'Student and company statistics loaded successfully.',
+                'data'    => array_merge($studentStats, $companyStats),
             ]);
-        }
+        }\
         return response()->json(['message' => 'Unauthorized'], 403);
     }}

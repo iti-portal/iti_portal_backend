@@ -16,8 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-
-class StudentStatisticsController extends Controller 
+class StudentStatisticsController extends Controller
 {
     private function parseDates(Request $request)
     {
@@ -172,24 +171,24 @@ class StudentStatisticsController extends Controller
             'data'    => array_merge($profileCompletion, $myApplications, $myActivities),
         ]);
     }
-    public function getStudentAndCompanyStats(Request $request)
-    {
-       if($user =auth()->user()->hasRole('student|alumni')) {
+        public function getStudentAndCompanyStats(Request $request)
+        {
             $studentStats = $this->studentStats($request)->getData(true);
-
+            $companyStats = $this->companyStats($request)->getData(true);
+    
             return response()->json([
                 'message' => 'Student and company statistics loaded successfully.',
-                'data'    => array_merge($studentStats),
+                'data'    => array_merge($studentStats, $companyStats),
             ]);
         }
-        if($user = auth()->user()->hasRole('company')) {
-            $companyController = new CompanyStatisticsController();
-            $companyStats = $companyController->companyStats($request)->getData(true);
-
+    
+        public function companyStats(Request $request)
+        {
+            // Placeholder implementation, replace with actual company statistics logic as needed
             return response()->json([
-                'message' => 'Company statistics loaded successfully.',
-                'data'    => $companyStats,
+                'total_companies' => 0,
+                'active_companies' => 0,
+                'jobs_posted' => 0,
             ]);
         }
-        return response()->json(['message' => 'Unauthorized'], 403);
-    }}
+    }

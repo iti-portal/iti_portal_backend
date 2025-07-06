@@ -17,7 +17,7 @@ Route::get("/student/statistics", [StudentStatisticsController::class, 'studentS
     ->middleware(['auth:sanctum', 'role:student|alumni'])
     ->name('student.statistics');
 
-Route::get('/general-statistics', [StatisticController::class, 'generalStats'])
+Route::get('/general', [StatisticController::class, 'generalStats'])
     ->middleware(['auth:sanctum', 'role:student|alumni|company|admin|staff'])
     ->name('general.statistics');
 

@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\AdminStatisticsController;
 use App\Http\Controllers\CompanyStatisticsController;
-use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\StudentStatisticsController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,9 +15,6 @@ Route::get("/company/statistics", [CompanyStatisticsController::class, 'companyS
 Route::get("/student/statistics", [StudentStatisticsController::class, 'studentStats'])
     ->middleware(['auth:sanctum', 'role:student|alumni'])
     ->name('student.statistics');
-
-Route::get('/general-statistics', [StatisticController::class, 'generalStats'])
-    ->middleware(['auth:sanctum', 'role:student|alumni|company|admin|staff'])
-    ->name('general.statistics');
+R
 
 
