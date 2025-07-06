@@ -10,6 +10,8 @@ use App\Models\StaffProfile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
+use App\Notifications\UserApprovedNotification;
+
 
 class UserManagementController extends Controller
 {
@@ -31,6 +33,8 @@ class UserManagementController extends Controller
     {
         try{
             $user->update(['status' => 'approved']);
+            // send email notification to the user
+            $user->notify(new UserApprovedNotification());
 
             return response()->json([
                 'success' => true,
