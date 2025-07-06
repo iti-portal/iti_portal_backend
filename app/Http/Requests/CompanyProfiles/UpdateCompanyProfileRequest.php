@@ -27,10 +27,10 @@ class UpdateCompanyProfileRequest extends FormRequest
             'company_name' => 'sometimes|string|max:255',
             'description' => 'sometimes|string|max:1000',
             'location' => 'sometimes|string|max:255',
-            'established_at' => 'sometimes|date|before_or_equal:today',
-            'website' => 'sometimes|url|max:255',
-            'industry' => 'sometimes|string|max:255',
-            'company_size' => 'sometimes|string|max:255',
+            'established_at' => 'sometimes|nullable|date|before_or_equal:today',
+            'website' => 'sometimes|nullable|url|max:255',
+            'industry' => 'sometimes|nullable|string|max:255',
+            'company_size' => 'sometimes|nullable|string|max:255',
         ];
     }
 
