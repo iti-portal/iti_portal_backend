@@ -118,9 +118,10 @@ class ServicesController extends Controller
 
         $user_services = AlumniService::where('alumni_id', $user->id)
         ->orderBy('created_at', 'desc')
+        ->select('id','description', 'service_type', 'title',  'created_at')
         ->get();
+        
         return $this->respondWithSuccess([
-            'user' => $user,
             'services' => $user_services,
         ]);
     }
