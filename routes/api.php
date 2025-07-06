@@ -22,6 +22,7 @@ require __DIR__. '/api/userprofiles.route.php';
 require __DIR__. '/api/jobApplication.route.php';
 require __DIR__. '/api/awards.route.php';
 require __DIR__. '/api/certificates.route.php';
+require __DIR__. '/api/statistics.route.php';
 
 use App\Http\Controllers\Auth\PasswordResetController;
 
