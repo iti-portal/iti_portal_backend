@@ -42,8 +42,7 @@ class UserApprovedNotification extends Notification implements ShouldQueue
                 'user' => $notifiable,
             ]);
     }
-
-    public function delay(){
+     public function delay(){
         return now()->addSeconds(5);
     }
 

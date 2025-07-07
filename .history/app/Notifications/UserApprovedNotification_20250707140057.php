@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class UserApprovedNotification extends Notification implements ShouldQueue
+class UserApprovedNotification extends Notification impl
 {
     use Queueable;
 
@@ -41,10 +41,6 @@ class UserApprovedNotification extends Notification implements ShouldQueue
             ->view('emails.user_approved', [
                 'user' => $notifiable,
             ]);
-    }
-
-    public function delay(){
-        return now()->addSeconds(5);
     }
 
     /**

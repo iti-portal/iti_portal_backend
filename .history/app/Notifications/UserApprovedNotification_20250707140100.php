@@ -43,10 +43,6 @@ class UserApprovedNotification extends Notification implements ShouldQueue
             ]);
     }
 
-    public function delay(){
-        return now()->addSeconds(5);
-    }
-
     /**
      * Get the array representation of the notification.
      *
