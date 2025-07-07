@@ -154,12 +154,18 @@ class ServicesController extends Controller
             return $this->respondWithError('Unauthorized or Forbidden', 401);
         }
 
-        $services = AlumniService::where('evaluation', null)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
+        $services = AlumniService::where('evaluation', null)
+            ->with(['user.workExperiences', 'user.educations']) // Eager load workExperiences and educations
+            ->join('users', 'alumni_services.alumni_id', '=', 'users.id')
             ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select(
                 'alumni_services.*',
                 'user_profiles.first_name',
                 'user_profiles.last_name',
+                'user_profiles.phone',
+                'user_profiles.whatsapp',
+                'user_profiles.linkedin',
+                'user_profiles.portfolio',
                 'user_profiles.track',
                 'user_profiles.intake',
             )
