@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
 use App\Mail\VerifyNewEmail;
+use App\Models\Connection;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Services\UserProfileService;
@@ -135,11 +136,21 @@ class UserProfileController extends Controller
         $intake = $user->profile->intake ?? null;
         $track = $user->profile->track ?? null;
 
+        $connections = Connection::where('requester_id', $user->id)
+            ->orWhere('addressee_id', $user->id)
+            ->where('status', 'accepted')
+            ->get()
+            ->map(function ($connection) use($user) {
+                return $connection->addressee_id ==$user->id ? $connection->requester_id : $connection->addressee_id;
+            })->unique()->all();
+
+        
         $users = User::with('profile')
             ->where('id', '!=', $request->user()->id)
+            ->whereNotIn('id', $connections)
             ->whereHas('roles', function ($query) {
                 $query->whereIn('name', ['student', 'alumni']);
-            })
+            })->whereNotIn('id', $connections)
             ->when($branch && $intake && $track, function ($query) use ($branch, $intake, $track) {
                 $query->orderByRaw("CASE 
                     WHEN EXISTS (
