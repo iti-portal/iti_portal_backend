@@ -155,7 +155,6 @@ class ServicesController extends Controller
         }
 
         $services = AlumniService::where('evaluation', null)
-            ->with(['alumni.workExperiences', 'alumni.educations']) // Eager load workExperiences and educations
             ->join('users', 'alumni_services.alumni_id', '=', 'users.id')
             ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select(
@@ -182,6 +181,7 @@ class ServicesController extends Controller
         }
 
         $service = AlumniService::where('alumni_services.id', $id)
+        ->with(['alumni.workExperiences', 'alumni.educations']) // Eager load workExperiences and educations
         ->join('users', 'alumni_services.alumni_id', '=', 'users.id')
         ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
         ->select(
