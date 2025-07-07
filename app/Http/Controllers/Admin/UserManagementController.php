@@ -81,6 +81,13 @@ class UserManagementController extends Controller
 
     public function rejectUser(User $user)
     {
+        if ($user->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => "Admin users cannot be rejected.",
+            ], 403); // Forbidden
+        }
+
         if ($user->status === 'rejected') {
             return response()->json([
                 'success' => false,
@@ -118,6 +125,13 @@ class UserManagementController extends Controller
      */
     public function suspendUser(User $user)
     {
+        if ($user->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => "Admin users cannot be suspended.",
+            ], 403); // Forbidden
+        }
+
         if ($user->status === 'suspended') {
             return response()->json([
                 'success' => false,
@@ -194,6 +208,13 @@ class UserManagementController extends Controller
      */
     public function deleteStaff(Request $request, User $user)
     {
+        if ($user->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => "Admin users cannot be deleted.",
+            ], 403); // Forbidden
+        }
+
         // Check if the authenticated user is an admin
         if (!$request->user()->hasRole('admin')) {
             return response()->json([
