@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Achievement;
 use App\Models\AchievementComment;
+use App\Services\FirebaseNotificationService;
 use Dom\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,12 @@ use Illuminate\Support\Facades\DB;
 class AchievementCommentController extends Controller
 {
     //
+    protected $firebase;
+
+    public function __construct(FirebaseNotificationService $firebase)
+    {
+        $this->firebase = $firebase;
+    }
     public function Store(Request $request){
         $user = auth()->user();
         if(!$user){
@@ -34,6 +41,15 @@ class AchievementCommentController extends Controller
             $achievement->increment('comment_count');
             $achievement->save();
             DB::commit();
+
+            // Send notification to the achievement owner
+            $this->firebase->send(
+                $achievement->user_id,[
+                    'title' => 'Achievement Comments',
+                    'body' => $user->name . ' commented on your achievement: ' . $achievement->title,
+                    'sender_id' => $user->id,
+                    'type' => 'achievement_comment',
+                ]);
             return $this->respondWithSuccess('Comment added successfully', $comment);
         }catch(\Exception $e){
             DB::rollBack();

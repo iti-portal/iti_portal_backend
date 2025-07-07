@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\JobApplicationRequest;
 use App\Http\Requests\BatchUpdateStatusRequest;
 use App\Services\ApplicationService;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +15,12 @@ class JobApplicationController extends Controller
 {
     protected ApplicationService $applicationService;
 
-    public function __construct(ApplicationService $applicationService)
+    protected $firebase;
+
+    public function __construct(ApplicationService $applicationService, FirebaseNotificationService $firebase)
     {
+        $this->firebase = $firebase;
+    
         $this->applicationService = $applicationService;
     }
     /**
