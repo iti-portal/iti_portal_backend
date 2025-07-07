@@ -9,22 +9,46 @@ class ContactUsService
 {
     public function getAll($perPage = 15)
     {
-        return ContactUs::paginate($perPage);
+        try {
+            $contacts = ContactUs::paginate($perPage);
+            return ['success' => true, 'message' => 'Contact us submissions retrieved successfully.', 'data' => $contacts];
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => 'Failed to retrieve contact us submissions: ' . $e->getMessage()];
+        }
     }
 
     public function getById($id)
     {
-        return ContactUs::findOrFail($id);
+        try {
+            $contact = ContactUs::findOrFail($id);
+            return ['success' => true, 'message' => 'Contact us submission retrieved successfully.', 'data' => $contact];
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return ['success' => false, 'message' => 'Contact us submission not found.'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => 'Failed to retrieve contact us submission: ' . $e->getMessage()];
+        }
     }
 
     public function create(Request $request)
     {
-        return ContactUs::create($request->all());
+        try {
+            $contact = ContactUs::create($request->all());
+            return ['success' => true, 'message' => 'Contact us submission created successfully.', 'data' => $contact];
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => 'Failed to create contact us submission: ' . $e->getMessage()];
+        }
     }
 
     public function delete($id)
     {
-        $contact = ContactUs::findOrFail($id);
-        $contact->delete();
+        try {
+            $contact = ContactUs::findOrFail($id);
+            $contact->delete();
+            return ['success' => true, 'message' => 'Contact us submission deleted successfully.'];
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return ['success' => false, 'message' => 'Contact us submission not found.'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => 'Failed to delete contact us submission: ' . $e->getMessage()];
+        }
     }
 }
