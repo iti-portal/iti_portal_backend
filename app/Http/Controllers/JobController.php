@@ -133,8 +133,8 @@ class JobController extends Controller
     public function availableJobs(Request $request)
     {
         try {
-            $query = AvailableJob::with('company.companyProfile')
-                ->where('status', 'active');
+            $query = AvailableJob::with('company.companyProfile', 'job_skills.skill')
+                ->where('status', 'active')->orderBy('created_at', 'desc');
             if ($request->filled('title')) {
                 $query->where('title', 'like', '%' . $request->title . '%');
             }
@@ -145,6 +145,19 @@ class JobController extends Controller
             }
 
             $jobs = $query->simplePaginate((int) $request->get('per_page', 10));
+
+            // Transform the skills to only include the required skill names
+            $jobs->getCollection()->transform(function ($job) {
+                $job->skills = $job->job_skills
+                    ->filter(fn($jobSkill) => $jobSkill->is_required)
+                    ->pluck('skill.name')
+                    ->toArray();
+
+                $job->makeHidden('job_skills');
+
+                return $job;
+            });
+
             return $this->respondWithSuccess($jobs, 'Available jobs retrieved successfully');
         } catch (Exception $e) {
             return $this->respondWithError('Failed to load available jobs.' . $e->getMessage(), 500);

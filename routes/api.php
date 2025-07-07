@@ -22,14 +22,19 @@ require __DIR__. '/api/userprofiles.route.php';
 require __DIR__. '/api/jobApplication.route.php';
 require __DIR__. '/api/awards.route.php';
 require __DIR__. '/api/certificates.route.php';
-require __DIR__. '/api/statistics.route.php';
+require __DIR__ . '/api/chat.route.php';
 
+require __DIR__. '/api/statistics.route.php';
+require __DIR__ . '/api/contactus.route.php';
 use App\Http\Controllers\Auth\PasswordResetController;
 
 // Public API routes
 Route::post('auth/register', [RegistrationController::class, 'registerIndividual']);
 Route::post('auth/register-company', [RegistrationController::class, 'registerCompany']);
 Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('auth/external-login', [AuthController::class, 'externalLogin'])
+    ->middleware(['guest', 'throttle:5,1'])
+    ->name('external.login');
 
 // Email verification routes
 Route::get('auth/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
@@ -72,11 +77,15 @@ Route::middleware('auth:sanctum', 'account.approved')->group(function () {
     // User Management routes
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         Route::get('pending-users', [UserManagementController::class, 'pendingUsers']);
+        Route::get('retrieve-staff', [UserManagementController::class, 'getStaff']);
         Route::post('approve-user/{user}', [UserManagementController::class, 'approveUser']);
         Route::post('reject-user/{user}', [UserManagementController::class, 'rejectUser']);
         Route::post('create-staff', [UserManagementController::class, 'createStaff']);
+        Route::post('suspend-user/{user}', [UserManagementController::class, 'suspendUser']);
+        Route::post('unsuspend-user/{user}', [UserManagementController::class, 'unsuspendUser']);
+        Route::delete('delete-staff/{user}', [UserManagementController::class, 'deleteStaff']);
+    }); 
         Route::post('mark-student-as-graduate/{user}', [UserManagementController::class, 'markStudentAsGraduate']);
-    });
 });
 
 

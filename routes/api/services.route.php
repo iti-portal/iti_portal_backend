@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Route;
 
 
 // This route for adding a new service
-Route::middleware(['auth:sanctum', 'permission:offer alumni services'])->post('/service', 
+Route::middleware(['auth:sanctum', 'role:alumni'])->post('/service', 
 [ServicesController::class, 'createService'])->name('services.add');
 
 // adding service and manage it for alunmini
-Route::middleware(['auth:sanctum', 'permission:manage alumni services'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:alumni'])->group(function () {
     // this route for listing all user services
     Route::get('/service', [ServicesController::class, 'listUserServices'])
     ->name('services.list');
@@ -36,5 +36,8 @@ Route::middleware(['auth:sanctum', 'role:admin|staff'])->group(function () {
     // this route for updating service
     Route::put('/evaluate-service/{id}', [ServicesController::class, 'evaluateService'])->name('services.admin.update');
     //route for deleting service can be as for alumini above
+
+    Route::delete('/delete-service/{id}', [ServicesController::class, 'deleteService'])->name('services.delete');
+
 
 });

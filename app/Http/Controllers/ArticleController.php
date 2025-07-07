@@ -127,6 +127,10 @@ class ArticleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Article liked successfully.',
+                'data' => [
+                    'article_id' => $article->id,
+                    'like_count' => $article->like_count,
+                ]
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

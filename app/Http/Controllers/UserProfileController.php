@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
 use App\Mail\VerifyNewEmail;
+use App\Models\Connection;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Services\UserProfileService;
@@ -135,8 +136,18 @@ class UserProfileController extends Controller
         $intake = $user->profile->intake ?? null;
         $track = $user->profile->track ?? null;
 
+        $connections = Connection::where('requester_id', $user->id)
+            ->orWhere('addressee_id', $user->id)
+            ->where('status', 'accepted')
+            ->get()
+            ->map(function ($connection) use($user) {
+                return $connection->addressee_id ==$user->id ? $connection->requester_id : $connection->addressee_id;
+            })->unique()->all();
+
+        
         $users = User::with('profile')
             ->where('id', '!=', $request->user()->id)
+            ->whereNotIn('id', $connections)
             ->whereHas('roles', function ($query) {
                 $query->whereIn('name', ['student', 'alumni']);
             })
@@ -176,6 +187,22 @@ class UserProfileController extends Controller
             $this->respondWithError("Something went wrong", 500);
         }
    }
+
+   public function getItiansForAi(Request $request)
+{
+    try {
+        $users = User::with(['profile', 'skills', 'educations', 'workExperiences'])
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['student', 'alumni']);
+            })
+            ->get();
+
+        return response()->json(['data' => $users], 200);
+
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
+    }
+}
     private function getProfileData(User $user){
         if(!$user){
             return $this->respondWithError('User not found', 404);
@@ -279,25 +306,7 @@ class UserProfileController extends Controller
             return $this->respondWithError($e->getMessage(), 500);
         }
     }
-    public function verifyNewEmail(Request $request, $user){
-        if(!$request->hasValidSignature()){
-            return $this->respondWithError('Invalid or expired verification link', 400);
-        }
-        
-        try{
-            $user = User::findOrFail($user);
-            if(!$user->new_email){
-                return $this->respondWithError('No pending email found', 404);
-            }
-        $user->email = $user->new_email;
-        $user->new_email = null;
-        $user->save();
-        return $this->respondWithSuccess([], 'Email verified successfully');
     
-        }catch (\Exception $e) {
-            return $this->respondWithError("Something went wrong", 500);
-        }
-    }
     public function deleteUserProfile(Request $request)
     {
         $user = $request->user();

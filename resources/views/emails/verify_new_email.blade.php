@@ -6,7 +6,7 @@
 
 @section('content')
 
-<p>Hello,{{ $notifiable->getFullNameAttribute() ?? 'there' }}</p>
+<p>Hello,{{ $user->getFullNameAttribute() ?? 'there' }}</p>
 
 <p>We received a request to update your email address on ITI Portal. To complete this change, please confirm your new email address by clicking the button below:</p>
 
