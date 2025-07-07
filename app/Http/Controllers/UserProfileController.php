@@ -150,7 +150,7 @@ class UserProfileController extends Controller
             ->whereNotIn('id', $connections)
             ->whereHas('roles', function ($query) {
                 $query->whereIn('name', ['student', 'alumni']);
-            })->whereNotIn('id', $connections)
+            })
             ->when($branch && $intake && $track, function ($query) use ($branch, $intake, $track) {
                 $query->orderByRaw("CASE 
                     WHEN EXISTS (
