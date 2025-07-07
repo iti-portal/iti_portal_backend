@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum', 'account.approved')->group(function () {
         Route::post('create-staff', [UserManagementController::class, 'createStaff']);
         Route::post('suspend-user/{user}', [UserManagementController::class, 'suspendUser']);
         Route::post('unsuspend-user/{user}', [UserManagementController::class, 'unsuspendUser']);
+        Route::post('delete-staff/{user}', [UserManagementController::class, 'deleteStaff']);
     }); 
         Route::post('mark-student-as-graduate/{user}', [UserManagementController::class, 'markStudentAsGraduate']);
 });
