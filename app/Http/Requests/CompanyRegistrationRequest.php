@@ -35,7 +35,7 @@ class CompanyRegistrationRequest extends FormRequest
             'industry' => 'nullable|string|max:255',
             'company_size' => 'nullable|string|max:50',
             'website' => 'nullable|url',
-            'established_at' => 'nullable|date',
+            'established_at' => 'nullable|date|before_or_equal:today',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ];
     }
@@ -49,6 +49,11 @@ class CompanyRegistrationRequest extends FormRequest
             'description.required' => 'Company description is required.',
             'location.required' => 'Company location is required.',
             'website.url' => 'Please enter a valid website URL.',
+            'established_at.date' => 'Established date must be a valid date.',
+            'established_at.before_or_equal' => 'Established date must be today or earlier.',
+            'logo.image' => 'Logo must be an image file.',
+            'logo.mimes' => 'Logo must be a JPEG, PNG, or JPG file.',
+            'logo.max' => 'Logo image size must not exceed 2MB.',
         ];
     }
 }
