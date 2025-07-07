@@ -158,17 +158,18 @@ class UserManagementController extends Controller
     public function unsuspendUser(User $user)
     {
         try{
-            if (!$user->status === 'suspended') {
+            if ($user->status !== 'suspended') {
                 return response()->json([
                     'success' => false,
                     'message' => "User '{$user->getFullNameAttribute()}' already isn't suspended.",
                 ], 409); // Conflict
             }
+
             $user->update(['status' => 'approved']);
 
             return response()->json([
                 'success' => true,
-                'message' => "User '{$user->getFullNameAttribute()}' has been suspended successfully.",
+                'message' => "User '{$user->getFullNameAttribute()}' has been unsuspended successfully.",
                 'data' => [
                     'user' => [
                         'id' => $user->id,
