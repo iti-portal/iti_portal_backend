@@ -45,6 +45,13 @@ class UserManagementController extends Controller
 
     public function approveUser(User $user)
     {
+        if ($user->status === 'approved') {
+            return response()->json([
+                'success' => false,
+                'message' => "User '{$user->getFullNameAttribute()}' is already approved.",
+            ], 409); // Conflict
+        }
+
         try{
             $user->update(['status' => 'approved']);
             // send email notification to the user
@@ -74,6 +81,13 @@ class UserManagementController extends Controller
 
     public function rejectUser(User $user)
     {
+        if ($user->status === 'rejected') {
+            return response()->json([
+                'success' => false,
+                'message' => "User '{$user->getFullNameAttribute()}' is already rejected.",
+            ], 409); // Conflict
+        }
+
         try{
             $user->update(['status' => 'rejected']);
 
@@ -98,11 +112,59 @@ class UserManagementController extends Controller
             ], 500);
         }
     }
-
+    
+    /**
+     * Suspend a user.
+     */
     public function suspendUser(User $user)
     {
+        if ($user->status === 'suspended') {
+            return response()->json([
+                'success' => false,
+                'message' => "User '{$user->getFullNameAttribute()}' is already suspended.",
+            ], 409); // Conflict
+        }
+
+        DB::beginTransaction();
         try{
             $user->update(['status' => 'suspended']);
+            $user->tokens()->delete(); // Delete all previous tokens for the user
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "User '{$user->getFullNameAttribute()}' has been suspended successfully.",
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'full_name' => $user->getFullNameAttribute(),
+                        'email' => $user->email,
+                        'status' => $user->status,
+                        'role' => $user->getRoleNames()->first(),
+                    ]
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'User suspension failed.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    
+    public function unsuspendUser(User $user)
+    {
+        try{
+            if (!$user->status === 'suspended') {
+                return response()->json([
+                    'success' => false,
+                    'message' => "User '{$user->getFullNameAttribute()}' already isn't suspended.",
+                ], 409); // Conflict
+            }
+            $user->update(['status' => 'approved']);
 
             return response()->json([
                 'success' => true,
@@ -125,8 +187,52 @@ class UserManagementController extends Controller
             ], 500);
         }
     }
+    
+    /**
+     * Delete staff member.
+     */
+    public function deleteStaff(Request $request, User $user)
+    {
+        // Check if the authenticated user is an admin
+        if (!$request->user()->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only administrators can delete staff members.',
+            ], 403);
+        }
 
+        // Check if the user to be deleted is a staff member
+        if (!$user->hasRole('staff')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete: The specified user is not a staff member.',
+            ], 400);
+        }
 
+        $staffName = $user->getFullNameAttribute();
+
+        DB::beginTransaction();
+        try {
+            $user->delete();
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Staff member '{$staffName}' deleted successfully.",
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete staff member.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    /**
+     * Create a new staff member.
+     */
     public function createStaff(StaffRegistrationRequest $request)
     {
         $validatedData = $request->validated();
