@@ -40,5 +40,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
+
+    })->withSchedule(function ($schedule) {
+    $schedule->command('app:delete-unverified-emails')
+        ->everyMinute()
+        ->description('Delete users with unverified emails after 24 hours from registration');
+})->create();
