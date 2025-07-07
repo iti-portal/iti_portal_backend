@@ -57,6 +57,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('account.email.update');
 
     Route::put('/account-password', [AccountController::class, 'updatePassword']);
+
+    Route::get('/itians-for-ai', [UserProfileController::class, 'getItiansForAi'])
+        ->name('itians.for.ai');
     });
 
     
