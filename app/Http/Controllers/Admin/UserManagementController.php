@@ -31,9 +31,10 @@ class UserManagementController extends Controller
 
     public function getStaff()
     {
-        $staffUsers = User::role('staff')
-            ->with(['roles', 'staffProfile'])
-            ->paginate(15);
+        $staffUsers = User::with('staffProfile')
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', '=', 'staff');
+                })->paginate(15);
     
         return response()->json([
             'success' => true,
