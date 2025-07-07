@@ -181,41 +181,103 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::with('profile', 'companyProfile', 'staffProfile')->where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Invalid credentials.',
+                'success' => false,
+                'message' => 'Invalid credentials. Please check your email and password. If you are a new user, please register first.',
             ], 401);
         }
 
-        if ($user->isRejected()) {
-            return response()->json(['message' => 'Your registration request has been rejected.'], 403);
+        // Check if the user is rejected, suspended, or verified and pending approval
+        $accountStatusResponse = $this->checkAccountStatus($user);
+        if ($accountStatusResponse) {
+            return $accountStatusResponse;
+        }
+        // return response
+        return $this->buildExternalLoginResponse($user);
+    }
+
+    private function checkAccountStatus(User $user)
+    {
+        if (! $user->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please check your email to verify your account.',
+            ], 403);
+        } elseif ($user->isRejected()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your registration request has been rejected. You are not eligible for registration.',
+            ], 403);
+        } elseif ($user->isSuspended()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account is currently suspended. Contact ITI support for more information.',
+            ], 403);
+        } elseif (! $user->isApproved()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account is not approved yet. You will receive an email once it is approved.',
+            ], 403);
+        }
+    }
+
+    private function buildExternalLoginResponse(User $user)
+    {
+        $baseData = [
+            'id'    => $user->id,
+            'email' => $user->email,
+            'role'  => $user->getRoleNames()->first(),
+        ];
+        if ($user->hasRole('admin') || $user->hasRole('staff')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Admin/Staff login successful.',
+                'data'    => array_merge($baseData, [
+                    'full_name'  => $user->staffProfile->full_name ?? '',
+                    'position'   => $user->staffProfile->position ?? '',
+                    'department' => $user->staffProfile->department ?? '',
+                ]),
+            ]);
         }
 
-        if ($user->isSuspended()) {
-            return response()->json(['message' => 'Your account is suspended.'], 403);
-        }
-        if (! $user->isApproved()) {
-            return response()->json(['message' => 'Your account is not approved yet.'], 403);
+        if ($user->isCompany()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Company login successful.',
+                'data'    => array_merge($baseData, [
+                    'company_name'           => $user->companyProfile->company_name ?? '',
+                    'company_description'    => $user->companyProfile->description ?? '',
+                    'company_location'       => $user->companyProfile->location ?? '',
+                    'company_established_at' => $user->companyProfile->established_at ?? '',
+                    'company_industry'       => $user->companyProfile->industry ?? '',
+                    'company_size'           => $user->companyProfile->company_size ?? '',
+                    'company_logo'           => $user->companyProfile->logo ?? '',
+                    'company_website'        => $user->companyProfile->website ?? '',
+                ]),
+            ]);
         }
 
         return response()->json([
-            'message' => 'Login successful.',
-            'data'    => [
-                'id'         => $user->id,
-                'email'      => $user->email,
-                'name'       => $user->profile->full_name,
-                'role'       => $user->getRoleNames()->first(),
-                'first_name' => $user->profile->first_name,
-                'last_name'  => $user->profile->last_name,
-                'phone'      => $user->profile->phone,
-                'track'      => $user->profile->track,
-                'intake'     => $user->profile->intake,
-                'github'     => $user->profile->github,
-                'linkedin'   => $user->profile->linkedin,
-            ],
+            'success' => true,
+            'message' => 'Student login successful.',
+            'data'    => array_merge($baseData, [
+                'first_name'      => $user->profile->first_name ?? '',
+                'last_name'       => $user->profile->last_name ?? '',
+                'phone'           => $user->profile->phone ?? '',
+                'track'           => $user->profile->track ?? '',
+                'intake'          => $user->profile->intake ?? '',
+                'github'          => $user->profile->github ?? '',
+                'linkedin'        => $user->profile->linkedin ?? '',
+                'summary'         => $user->profile->summary ?? '',
+                'portfolio'       => $user->profile->portfolio ?? '',
+                'program'         => $user->profile->program ?? '',
+                'whatsapp'        => $user->profile->whatsapp ?? '',
+                'profile_picture' => $user->profile->profile_picture ?? '',
+            ]),
         ]);
-    }
 
+    }
 }
