@@ -133,7 +133,7 @@ class ServicesController extends Controller
             return $this->respondWithError('Unauthorized or Forbidden', 401);
         }
 
-        $services = AlumniService::whereNotNull('service_type')->join('users', 'alumni_services.alumni_id', '=', 'users.id')
+        $services = AlumniService::whereNotNull('evaluation')->join('users', 'alumni_services.alumni_id', '=', 'users.id')
             ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select(
                 'alumni_services.*',
@@ -154,7 +154,7 @@ class ServicesController extends Controller
             return $this->respondWithError('Unauthorized or Forbidden', 401);
         }
 
-        $services = AlumniService::where('service_type', null)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
+        $services = AlumniService::where('evaluation', null)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
             ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select(
                 'alumni_services.*',
