@@ -187,6 +187,22 @@ class UserProfileController extends Controller
             $this->respondWithError("Something went wrong", 500);
         }
    }
+
+   public function getItiansForAi(Request $request)
+{
+    try {
+        $users = User::with(['profile', 'skills', 'educations', 'workExperiences'])
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['student', 'alumni']);
+            })
+            ->get();
+
+        return response()->json(['data' => $users], 200);
+
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
+    }
+}
     private function getProfileData(User $user){
         if(!$user){
             return $this->respondWithError('User not found', 404);
