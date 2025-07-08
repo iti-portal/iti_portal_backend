@@ -40,9 +40,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         ]);
     })
-    // ->withSchedule(function(Schedule $schedule) {
-    //     $schedule->command('users:delete-expired')
-    //         ->everyMinute();
+    ->withSchedule(function(Schedule $schedule) {
+        $schedule->command('users:delete-expired')
+            ->everyMinute();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
