@@ -319,12 +319,31 @@ class UserProfileController extends Controller
             if(!$profile){
                 return $this->respondWithError('User profile not found', 404);
             }
-            $user->delete();
-            return $this->respondWithSuccess([], 'User profile deleted successfully');
+            // $user->marked_for_deletion_at = now()->addDays(30);
+            // $user->save();
+        
+            return $this->respondWithSuccess([], 'Your will be deleted after 30 days.');
         }catch (\Exception $e) {
             return $this->respondWithError($e->getMessage(), 500);
         }
     }
+
+    // public function cancelDeletion(Request $request){
+    //     $user = $request->user();
+    //     try {
+    //         if(!$user){
+    //             return $this->respondWithError('User not found', 404);
+    //         }
+    //         if(!$user->marked_for_deletion_at){
+    //             return $this->respondWithError('User is not marked for deletion', 400);
+    //         }
+    //         $user->marked_for_deletion_at = null;
+    //         $user->save();
+    //         return $this->respondWithSuccess([], 'User deletion cancelled successfully');
+    //     } catch (\Exception $e) {
+    //         return $this->respondWithError($e->getMessage(), 500);
+    //     }
+    // }
     public function deleteUserProfileById(Request $request, $id){
         try {
             $user = User::findOrFail($id);
