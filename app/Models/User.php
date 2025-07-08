@@ -80,6 +80,8 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
 
     // Relationships
 
+
+    
     public function alumniServices()
     {
         return $this->hasMany(AlumniService::class, 'alumni_id');
@@ -101,12 +103,14 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
 
     public function educations()
     {
-        return $this->hasMany(Education::class);
+        return $this->hasMany(Education::class)->orderBy('end_date', 'desc');
     }
 
     public function workExperiences()
     {
-        return $this->hasMany(WorkExperience::class);
+        return $this->hasMany(WorkExperience::class)
+                    ->orderBy('is_current', 'desc') // Ensures current experiences come first
+                    ->orderBy('start_date', 'desc'); // Then sort by start_date descending
     }
 
     public function projects()

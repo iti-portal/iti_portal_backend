@@ -153,6 +153,13 @@ class ComprehensiveTestDataSeeder extends Seeder
         }
         $users = $users->merge($studentUsers);
         
+
+        $studentUsers = User::factory(30)->create();
+        foreach ($studentUsers as $user) {
+            $user->assignRole('alumni');
+        }
+        $users = $users->merge($studentUsers);
+
         // Create companies (25%)
         $companyUsers = User::factory(12)->create();
         foreach ($companyUsers as $user) {

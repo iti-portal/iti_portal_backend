@@ -18,7 +18,8 @@ class AchievementCommentController extends Controller
     {
         $this->firebase = $firebase;
     }
-    public function Store(Request $request){
+   
+    public function store(Request $request){
         $user = auth()->user();
         if(!$user){
             return $this->respondWithError('User not found', 404);
@@ -38,6 +39,10 @@ class AchievementCommentController extends Controller
             $comment->achievement_id = $request->achievement_id;
             $comment->content = $request->content;
             $comment->save();
+            
+            // Load the user profile relationship
+            $comment->load('user.profile:id,user_id,first_name,last_name,profile_picture');
+            
             $achievement->increment('comment_count');
             $achievement->save();
             DB::commit();
@@ -50,7 +55,15 @@ class AchievementCommentController extends Controller
                     'sender_id' => $user->id,
                     'type' => 'achievement_comment',
                 ]);
-            return $this->respondWithSuccess('Comment added successfully', $comment);
+            // Format the response with all necessary fields
+            return $this->respondWithSuccess([
+                'comment' => [
+                    'id' => $comment->id,
+                    'content' => $comment->content,
+                    'created_at' => $comment->created_at,
+                    'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id'])
+                ]
+            ], 'Comment added successfully');
         }catch(\Exception $e){
             DB::rollBack();
             \Log::error($e);
@@ -59,7 +72,7 @@ class AchievementCommentController extends Controller
         }
 
     }
-    public function delete(Request $request, $comment){
+    public function destroy(Request $request, $comment){
         $user = auth()->user();
         if(!$user){
             return $this->respondWithError('User not found', 404);

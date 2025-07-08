@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
 use App\Mail\VerifyNewEmail;
+use App\Models\Connection;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Services\UserProfileService;
@@ -19,6 +20,12 @@ use Illuminate\Http\JsonResponse;
 class UserProfileController extends Controller
 {
     protected $userProfileService;
+
+    public function __construct(UserProfileService $userProfileService)
+    {
+        $this->userProfileService = $userProfileService;
+    }
+    
     public function getStudents(Request $request){
         $user = $request->user();
         if (!$user){
@@ -129,8 +136,19 @@ class UserProfileController extends Controller
         $intake = $user->profile->intake ?? null;
         $track = $user->profile->track ?? null;
 
-        $users = User::with('profile')
+        $connections = Connection::where('requester_id', $user->id)
+            ->orWhere('addressee_id', $user->id)
+            ->where('status', 'accepted')
+            ->get()
+            ->map(function ($connection) use($user) {
+                return $connection->addressee_id ==$user->id ? $connection->requester_id : $connection->addressee_id;
+            })->unique()->all();
+
+        
+        $users = User::with(['profile','roles'])
+
             ->where('id', '!=', $request->user()->id)
+            ->whereNotIn('id', $connections)
             ->whereHas('roles', function ($query) {
                 $query->whereIn('name', ['student', 'alumni']);
             })
@@ -170,6 +188,22 @@ class UserProfileController extends Controller
             $this->respondWithError("Something went wrong", 500);
         }
    }
+
+   public function getItiansForAi(Request $request)
+{
+    try {
+        $users = User::with(['profile', 'skills', 'educations', 'workExperiences'])
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['student', 'alumni']);
+            })
+            ->get();
+
+        return response()->json(['data' => $users], 200);
+
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
+    }
+}
     private function getProfileData(User $user){
         if(!$user){
             return $this->respondWithError('User not found', 404);
@@ -251,13 +285,14 @@ class UserProfileController extends Controller
             if($request->filled('student_status')&& $request->student_status === 'current' && $profile->student_status === 'graduate'){
                 return $this->respondWithError('You are not a current student', 400);
             }
-            $profile->student_status = $request->student_status ?? $profile->student_status;
             $profile->available_for_freelance = $request->available_for_freelance ?? $profile->available_for_freelance;
-            $profile->summary = $request->summery ?? $profile->summary;
+            $profile->summary = $request->summary ?? $profile->summary;
+            $profile->portfolio_url = $request->portfolio_url ?? $profile->portfolio_url;
             $profile->whatsapp = $request->whatsapp ?? $profile->whatsapp;
             $profile->linkedin = $request->linkedin ?? $profile->linkedin;
             $profile->github = $request->github ?? $profile->github;
-        
+            $profile->job_profile = $request->job_profile ?? $profile->job_profile;
+            
             $profile->username = $request->username ?? $profile->username;
             
             $user->save();
@@ -346,11 +381,6 @@ class UserProfileController extends Controller
         }
     }
 
-
-    public function __construct(UserProfileService $userProfileService)
-    {
-        $this->userProfileService = $userProfileService;
-    }
 
     /**
      * Perform advanced search and filtering on User Profiles.

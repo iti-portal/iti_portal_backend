@@ -5,7 +5,7 @@
 @section('header', 'ITI Portal Password Reset')
 
 @section('content')
-    <p>Hello,</p>
+    <p>Hello {{ $user->getFullNameAttribute() ?? 'there' }},</p>
     <p>We received a request to reset the password for your ITI Portal account.</p>
     <p>Click the button below to reset your password:</p>
 
@@ -16,5 +16,5 @@
     <p class="highlight-note">This password reset link will expire in 60 minutes.</p>
 
     <p>If you didn't request this password reset, please ignore this email or contact our <a
-            href="mailto:support@iti.com" class="support-link">support team</a> if you have any concerns.</p>
+            href="mailto:support@iti.gov.eg" class="support-link">support team</a> if you have any concerns.</p>
 @endsection

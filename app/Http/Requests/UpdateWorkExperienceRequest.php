@@ -23,7 +23,7 @@ class UpdateWorkExperienceRequest extends FormRequest
         return [
             'company_name' => 'sometimes|string|max:255',
             'start_date'   => 'sometimes|date',
-            'end_date'     => 'nullable|date|after:start_date',
+            'end_date'     => 'nullable|date|after:start_date|before_or_equal:today',
             'description'  => 'nullable|string',
             'is_current'   => 'sometimes|boolean',
             'position'     => 'sometimes|string|max:255',
@@ -33,6 +33,7 @@ class UpdateWorkExperienceRequest extends FormRequest
     {
         return [
            'end_date.after'     => 'The end date must be after the start date.',
+            'end_date.before_or_equal' => 'The end date must be before or equal to today.',
            'is_current.boolean' => 'Current job flag must be true or false',
         ];
     }

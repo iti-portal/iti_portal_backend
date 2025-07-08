@@ -118,9 +118,10 @@ class ServicesController extends Controller
 
         $user_services = AlumniService::where('alumni_id', $user->id)
         ->orderBy('created_at', 'desc')
+        ->select('id','description', 'service_type', 'title',  'created_at')
         ->get();
+        
         return $this->respondWithSuccess([
-            'user' => $user,
             'services' => $user_services,
         ]);
     }
@@ -132,7 +133,7 @@ class ServicesController extends Controller
             return $this->respondWithError('Unauthorized or Forbidden', 401);
         }
 
-        $services = AlumniService::whereNotNull('service_type')->join('users', 'alumni_services.alumni_id', '=', 'users.id')
+        $services = AlumniService::whereNotNull('evaluation')->join('users', 'alumni_services.alumni_id', '=', 'users.id')
             ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select(
                 'alumni_services.*',
@@ -153,12 +154,16 @@ class ServicesController extends Controller
             return $this->respondWithError('Unauthorized or Forbidden', 401);
         }
 
-        $services = AlumniService::where('service_type', null)->join('users', 'alumni_services.alumni_id', '=', 'users.id')
+        $services = AlumniService::where('evaluation', null)
+            ->join('users', 'alumni_services.alumni_id', '=', 'users.id')
             ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
             ->select(
                 'alumni_services.*',
                 'user_profiles.first_name',
                 'user_profiles.last_name',
+                'user_profiles.phone',
+                'user_profiles.whatsapp',
+                'user_profiles.linkedin',
                 'user_profiles.track',
                 'user_profiles.intake',
             )
@@ -176,6 +181,7 @@ class ServicesController extends Controller
         }
 
         $service = AlumniService::where('alumni_services.id', $id)
+        ->with(['alumni.workExperiences', 'alumni.educations']) // Eager load workExperiences and educations
         ->join('users', 'alumni_services.alumni_id', '=', 'users.id')
         ->join('user_profiles', 'users.id', '=', 'user_profiles.user_id')
         ->select(

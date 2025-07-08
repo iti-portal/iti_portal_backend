@@ -13,6 +13,7 @@
         "google/cloud-firestore": "^1.51",
         "kreait/firebase-php": "^7.10",
         "laravel/framework": "^12.0",
+        "laravel/reverb": "^1.5",
         "laravel/sanctum": "^4.1",
         "laravel/tinker": "^2.10.1",
         "spatie/laravel-permission": "^6.19",

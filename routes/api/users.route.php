@@ -15,7 +15,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware([])->get('/profile', [UserProfileController::class, 'getUserProfile'])
         ->name('profile');
     // This route for updating user profile
-    Route::middleware([])->post('/profile', [UserProfileController::class, 'updateUserProfile']
+    Route::middleware([])->put('/profile', [UserProfileController::class, 'updateUserProfile']
     )->name('profile.update');
     // This route for deleting user profile
     Route::middleware([])->delete('/profile', [UserProfileController::class, 'deleteUserProfile']
@@ -57,6 +57,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->name('account.email.update');
 
     Route::put('/account-password', [AccountController::class, 'updatePassword']);
+
+    Route::get('/itians-for-ai', [UserProfileController::class, 'getItiansForAi'])
+        ->name('itians.for.ai');
     });
 
     

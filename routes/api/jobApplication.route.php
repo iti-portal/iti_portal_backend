@@ -20,11 +20,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // For companies
     Route::middleware(['role:company'])->group(function () {
         Route::get('/company/applications', [JobApplicationController::class, 'companyApplications']);
+        Route::patch('/company/applications/batch/status', [JobApplicationController::class, 'batchUpdateStatus']);
         Route::patch('/company/applications/{id}/status', [JobApplicationController::class, 'updateStatus']);
         Route::patch('/company/applications/{id}/hire', [JobApplicationController::class, 'hire']);
         Route::patch('/company/applications/{id}/reject', [JobApplicationController::class, 'reject']);
         Route::patch('/company/applications/{id}/interview', [JobApplicationController::class, 'interview']);
-        Route::post('/applications/batch-update-status', [JobApplicationController::class, 'batchUpdateStatus']);
         Route::post('/applications/{id}/track-profile-view', [JobApplicationController::class, 'trackProfileView']);
         
         // Skill matching and analytics for companies

@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
 use Carbon\Carbon;
 
-class CustomVerifyEmail extends Notification
+class CustomVerifyEmail extends Notification 
 {
     use Queueable;
 
@@ -51,7 +51,7 @@ class CustomVerifyEmail extends Notification
          ->subject('Verify Your Email Address')
             ->view('emails.verify_email', [
                 'url' => $url,
-                'email' => $notifiable->getEmailForVerification(),
+                'user' => $notifiable,
             ]);
 
     }
