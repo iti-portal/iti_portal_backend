@@ -112,11 +112,33 @@ class CompanyStatisticsController extends Controller
 
         $baseQuery = fn($q) => $q->where('company_id', $companyId);
 
-        $applicationsByStatus = JobApplication::whereHas('job', $baseQuery)
-            ->select('status', DB::raw('count(*) as count'))
+      $applicationsByStatusCount = JobApplication::whereHas('job', $baseQuery)
             ->whereBetween('created_at', [$startDate, $endDate])
+            ->select('status', DB::raw('count(*) as count'))
             ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $applications = JobApplication::with(['user.profile'])
+            ->whereHas('job', $baseQuery)
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
+
+        $applicationsByStatus = $applications->groupBy(function ($application) {
+            return $application->status ?? 'no_status';
+        })->map(function ($apps) {
+            return $apps->map(function ($application) {
+                return [
+                    'id'              => $application->id,
+                    'job_id'          => $application->job_id,
+                    'status'          => $application->status ?? 'no_status',
+                    'applied_at'      => $application->created_at,
+                    'applicant_name'  => optional($application->user)->getFullNameAttribute(),
+                    'applicant_email' => optional($application->user)->email,
+                    'profile_picture' => optional($application->user->profile)->profile_picture,
+
+                ];
+            })->values();
+        });
 
         $cvsDownloaded = JobApplication::whereHas('job', $baseQuery)
             ->whereNotNull('cv_downloaded_at')
@@ -134,6 +156,7 @@ class CompanyStatisticsController extends Controller
             ->count();
 
         return response()->json([
+            'applications_by_status_count' => $applicationsByStatusCount,
             'applications_by_status' => $applicationsByStatus,
             'cvs_downloaded'         => $cvsDownloaded,
             'profiles_viewed'        => $profilesViewed,
@@ -141,7 +164,7 @@ class CompanyStatisticsController extends Controller
         ]);
     }
 
-    public function companyStats(Request $request)
+    public function getStatistics(Request $request)
     {
         $jobPerformance  = $this->jobPerformance($request)->getData(true);
         $applicantStatus = $this->applicantStatus($request)->getData(true);
