@@ -70,6 +70,14 @@ class JobApplicationController extends Controller
                 'cover_letter' => $request->cover_letter,
             ], $request->file('cv'));
 
+            // Notify company of new application
+            $this->firebase->send( $application->job->company_id, [
+                'title' => 'New Job Application Received',
+                'type' => 'new_application',
+                'body' => auth()->user()->profile->full_name . ' has applied for your job: ' . $application->job->title,
+                'sender_id' => Auth::id(),
+            ]);
+
             return $this->respondWithSuccess($application, 'Application submitted successfully.', 201);
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to submit application: ' . $e->getMessage(), 500);
