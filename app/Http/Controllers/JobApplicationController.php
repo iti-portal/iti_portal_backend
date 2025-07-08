@@ -250,6 +250,7 @@ class JobApplicationController extends Controller
 
             $trackingData = $this->applicationService->trackProfileView($application);
 
+            
             return $this->respondWithSuccess($trackingData, 'Profile view tracked successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to track profile view: ' . $e->getMessage(), 500);
