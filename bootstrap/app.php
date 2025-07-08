@@ -10,6 +10,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\JwtAuthMiddleware;
 use App\Http\Middleware\PreventCompletedRegistration;
+use Illuminate\Console\Scheduling\Schedule;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -38,6 +39,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.token.expiry' => CheckTokenExpiry::class,
 
         ]);
+    })
+    ->withSchedule(function(Schedule $schedule) {
+        $schedule->command('users:delete-expired')
+            ->everyMinute();
     })
     ->withExceptions(function (Exceptions $exceptions) {
 

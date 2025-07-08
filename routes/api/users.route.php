@@ -20,6 +20,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // This route for deleting user profile
     Route::middleware([])->delete('/profile', [UserProfileController::class, 'deleteUserProfile']
     )->name('profile.delete');
+
+    // route for cancel deletion user profile
+    Route::middleware([])->put('/profile/cancel-deletion', [UserProfileController::class, 'cancelDeletion']);
     
     // This route for getting user profile details by ID
     Route::middleware([])->get('/profile/{id}', [UserProfileController::class, 'getUserProfileById'])
