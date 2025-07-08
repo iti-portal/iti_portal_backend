@@ -156,7 +156,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     {
         $users = collect();
         
-        // Create students/alumni (60%)
+        // Create students/alumni
         $studentUsers = User::factory(30)->create();
         foreach ($studentUsers as $user) {
             $user->assignRole('student');
@@ -164,20 +164,20 @@ class ComprehensiveTestDataSeeder extends Seeder
         $users = $users->merge($studentUsers);
         
 
-        $studentUsers = User::factory(30)->create();
-        foreach ($studentUsers as $user) {
+        $alumniUsers = User::factory(30)->create();
+        foreach ($alumniUsers as $user) {
             $user->assignRole('alumni');
         }
-        $users = $users->merge($studentUsers);
+        $users = $users->merge($alumniUsers);
 
-        // Create companies (25%)
-        $companyUsers = User::factory(12)->create();
+        // Create companies
+        $companyUsers = User::factory(20)->create();
         foreach ($companyUsers as $user) {
             $user->assignRole('company');
         }
         $users = $users->merge($companyUsers);
         
-        // Create staff (15%)
+        // Create staff
         $staffUsers = User::factory(8)->create();
         foreach ($staffUsers as $user) {
             $user->assignRole('staff');
