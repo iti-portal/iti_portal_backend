@@ -117,6 +117,14 @@ class JobApplicationController extends Controller
 
             $this->applicationService->withdrawApplication($application);
 
+            // Notify company of application withdrawal
+            $this->firebase->send($application->job->company_id, [
+                'title' => 'Job Application Withdrawn',
+                'type' => 'application_withdrawn',
+                'body' => auth()->user()->profile->full_name . ' has withdrawn their application for the job: ' . $application->job->title,
+                'sender_id' => Auth::id(),
+            ]);
+
             return $this->respondWithSuccess([], 'Application withdrawn successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to withdraw application: ' . $e->getMessage(), 500);
@@ -180,6 +188,14 @@ class JobApplicationController extends Controller
                 $request->status,
                 $request->company_notes
             );
+
+            // Notify applicant of status update
+            $this->firebase->send($updatedApplication->user_id, [
+                'title' => 'Application Status Updated',
+                'type' => 'application_status_update',
+                'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "' . $updatedApplication->status . '".',
+                'sender_id' => Auth::id(),
+            ]);
 
             return $this->respondWithSuccess($updatedApplication, 'Application status updated successfully');
         } catch (\Exception $e) {
