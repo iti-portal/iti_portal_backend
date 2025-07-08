@@ -319,8 +319,8 @@ class UserProfileController extends Controller
             if(!$profile){
                 return $this->respondWithError('User profile not found', 404);
             }
-            // $user->marked_for_deletion_at = now()->addDays(30);
-            // $user->save();
+            $user->marked_for_deletion_at = now()->addDays(30);
+            $user->save();
         
             return $this->respondWithSuccess([], 'Your will be deleted after 30 days.');
         }catch (\Exception $e) {
