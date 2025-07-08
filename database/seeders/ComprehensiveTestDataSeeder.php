@@ -132,9 +132,19 @@ class ComprehensiveTestDataSeeder extends Seeder
         $skills = [
             'PHP', 'JavaScript', 'Python', 'Java', 'React', 'Vue.js', 'Laravel', 
             'Node.js', 'MySQL', 'MongoDB', 'Docker', 'AWS', 'Git', 'React Native', 
-            'Flutter', 'UI/UX Design', 'Project Management', 'Communication',
-            'TypeScript', 'Angular', 'Express.js', 'PostgreSQL', 'Redis', 'Linux',
-            'Kubernetes', 'Jenkins', 'Figma', 'Adobe Photoshop', 'Machine Learning'
+            'Flutter', 'UI/UX Design', 'TypeScript', 'Angular', 'Express.js', 
+            'PostgreSQL', 'Redis', 'Linux', 'Kubernetes', 'Jenkins', 'Figma', 
+            'Adobe Photoshop', 'Machine Learning', 'C', 'C++', 'C#', 'Go', 'Rust', 
+            'Ruby', 'Swift', 'Kotlin', 'Scala', 'Haskell', 'Erlang', 'Elixir', 
+            'Clojure', 'Lisp', 'Dart', 'Assembly', 'R', 'Julia', 'Groovy', 
+            'CoffeeScript', 'Visual Basic','Perl', 'Svelte', 'jQuery', 'Bootstrap',
+            'Tailwind CSS', 'Next.js', 'Nuxt.js', 'Gatsby', 'Webpack', 'Babel', 
+            'Vite', 'Django', 'Flask', 'Ruby on Rails', 'Spring Boot', 'ASP.NET', 
+            'Koa.js', 'SQLite', 'Redis', 'Cassandra', 'Neo4j', 'Solr', 'Kafka', 
+            'RabbitMQ', 'GraphQL', 'RESTful APIs', 'SQL', 'DynamoDB', 'BigQuery',
+            'Azure', 'Terraform', 'Ansible', 'Chef', 'Puppet', 'Nagios', 
+            'Prometheus', 'Grafana', 'Splunk', 'OpenShift', 'SVN', 'Mercurial', 
+            'Xamarin', 'Ionic', 'Unity', 'Unreal Engine', 'Godot'
         ];
         
         foreach ($skills as $skillName) {
