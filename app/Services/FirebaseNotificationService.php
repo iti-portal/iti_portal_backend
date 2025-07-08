@@ -3,7 +3,7 @@
 
 namespace App\Services;
 
-
+use Carbon\Carbon;
 use Kreait\Firebase\Factory;
 
 
@@ -25,7 +25,7 @@ class FirebaseNotificationService
         ->add([
             'title' => $data['title'],
             'body' => $data['body']?? '',
-            'timestamp' => now()->toDateTimeString(),
+            'timestamp' => Carbon::now()->addHours(3)->toDateTimeString(),
             'read' => false,
             'sender' => $data['sender_id'],
             'type' => $data['type'],
