@@ -250,7 +250,13 @@ class JobApplicationController extends Controller
 
             $trackingData = $this->applicationService->trackProfileView($application);
 
-            
+            // Notify applicant of profile view
+            $this->firebase->send($application->user_id, [
+                'title' => 'Profile Viewed',
+                'type' => 'profile_view',
+                'body' => 'Your profile has been viewed by ' . $application->job->  company->profile->full_name,
+                'sender_id' => Auth::id(),
+            ]);
             return $this->respondWithSuccess($trackingData, 'Profile view tracked successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to track profile view: ' . $e->getMessage(), 500);
