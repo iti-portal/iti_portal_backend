@@ -10,8 +10,8 @@
 
 <p>We received a request to update your email address on ITI Portal. To complete this change, please confirm your new email address by clicking the button below:</p>
 
-<div style="text-align: center;">
-    <a href="{!! $url !!}" class="button">Verify Email Address</a>
+<div>
+    <a href="{!! $url !!}" class="button-primary">Verify Email Address</a>
 </div>
 
 <p class="highlight-note">This verification link will expire in 24 hours.</p>
