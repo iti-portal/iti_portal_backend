@@ -9,6 +9,7 @@ use App\Http\Requests\Articles\ArticleStatusRequest;
 use App\Models\Article;
 use App\Models\ArticleLike;
 use App\Models\User;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
@@ -17,6 +18,13 @@ use Illuminate\Support\Facades\DB;
 
 class ArticleController extends Controller
 {
+
+    protected $firebase;
+
+    public function __construct(FirebaseNotificationService $firebase)
+    {
+        $this->firebase = $firebase;
+    }
     /**
      * Get published articles, with an indicator if liked by the user (if student/alumni).
      */
@@ -123,6 +131,17 @@ class ArticleController extends Controller
             $article->increment('like_count');
 
             Db::commit();
+
+            // Send notification to the article author
+            $this->firebase->send(
+                $article->author_id,
+                [
+                    'title' => 'Article Likes',
+                    'body' => $user->profile->full_name . ' liked your article: ' . $article->title,
+                    'sender_id' => $user->id,
+                    'type' => 'article_like',
+                ]
+            );
 
             return response()->json([
                 'success' => true,
