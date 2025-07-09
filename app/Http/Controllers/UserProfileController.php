@@ -183,6 +183,23 @@ class UserProfileController extends Controller
 
             ->paginate(10);
 
+         // Calculate mutual connections for each user
+        $users->getCollection()->transform(function ($targetUser) use ($connections) {
+            $targetUserConnections = Connection::where('requester_id', $targetUser->id)
+                ->orWhere('addressee_id', $targetUser->id)
+                ->where('status', 'accepted')
+                ->get()
+                ->map(function ($connection) use($targetUser) {
+                    return $connection->addressee_id == $targetUser->id ? $connection->requester_id : $connection->addressee_id;
+                })->unique()->all();
+
+            $mutualConnections = array_intersect($connections, $targetUserConnections);
+            
+            $targetUser->mutual_connections_count = count($mutualConnections);
+            
+            return $targetUser;
+        });
+
         return $this->respondWithSuccess(['users' => $users]);
         }catch(\Exception $e){
             $this->respondWithError("Something went wrong", 500);
