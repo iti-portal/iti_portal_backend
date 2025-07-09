@@ -173,6 +173,17 @@ class ConnectionController extends Controller
 
             DB::commit();
 
+            // Send Firebase notification to the requester
+            $this->firebase->send(
+                $connection->requester_id,
+                [
+                    'title' => 'Connection Accepted',
+                    'body' => $currentUser->full_name . ' accepted your connection request',
+                    'sender_id' => $currentUser->id,
+                    'type' => 'connection_accepted',
+                ]
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Connection request accepted successfully',
