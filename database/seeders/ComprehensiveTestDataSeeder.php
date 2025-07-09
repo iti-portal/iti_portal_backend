@@ -189,14 +189,33 @@ class ComprehensiveTestDataSeeder extends Seeder
     
     private function createUserProfiles($users)
     {
-        $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+        // Alumni: status = graduate, intake != 45
+        $alumniUsers = $users->filter(function ($user) {
+            return $user->hasRole('alumni');
         });
-        
+    
+        foreach ($alumniUsers as $user) {
+            UserProfile::factory()->state([
+                'user_id' => $user->id,
+                'student_status' => 'graduate',
+                'intake' => fake()->randomElement(['31','32','33','34','35','36','37','38','39','40','41','42','43','44']),
+            ])->create();
+        }
+    
+        // Students: status = current, intake = 45
+        $studentUsers = $users->filter(function ($user) {
+            return $user->hasRole('student');
+        });
+    
         foreach ($studentUsers as $user) {
-            UserProfile::factory()->create(['user_id' => $user->id]);
+            UserProfile::factory()->state([
+                'user_id' => $user->id,
+                'student_status' => 'current',
+                'intake' => '45',
+            ])->create();
         }
     }
+    
     
     private function createCompanyProfiles($users)
     {
