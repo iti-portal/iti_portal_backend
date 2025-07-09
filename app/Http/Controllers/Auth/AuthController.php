@@ -82,7 +82,9 @@ class AuthController extends Controller
                 'data'    => [
                     'role'       => $user->getRoleNames()->first(),
                     'isVerified' => $user->isVerified(),
+                    'marked_for_deletion' => $user->marked_for_deletion,
                     'token'      => $token,
+                    'id'         => $user->id,
                 ],
             ], 200);
         }
