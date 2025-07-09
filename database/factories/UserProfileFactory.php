@@ -15,7 +15,6 @@ class UserProfileFactory extends Factory
         $branches = ['Smart Village', 'Nasr City', 'Alexandria', 'Mansoura', 'Ismailia', 'Assiut', 'Sohag'];
         $programs = ['ptp', 'itp'];
         $intakes = ['31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
-        $statuses = ['current', 'graduate'];
 
         $arabicFirstNames = [
             'Ahmed', 'Mohamed', 'Ali', 'Omar', 'Khaled', 'Youssef', 'Mostafa', 'Ibrahim', 'Abdullah', 'Zainab',
@@ -71,10 +70,20 @@ class UserProfileFactory extends Factory
             'program' => $this->faker->randomElement($programs),
             'available_for_freelance' => $this->faker->boolean(30),
             'track' => $this->faker->randomElement($tracks),
-            'intake' => $this->faker->randomElement($intakes),
-            'student_status' => $this->faker->randomElement($statuses),
+            'intake' => $intake = $this->faker->randomElement($intakes),
+            'student_status' => ($intake == '45') ? 'current' : 'graduate',
             'nid_front_image' => null,
             'nid_back_image' => null,
         ];
+    }
+
+    /**
+     * Indicate that the user profile is for an alumni.
+     */
+    public function alumni(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'student_status' => 'graduate',
+        ]);
     }
 }
