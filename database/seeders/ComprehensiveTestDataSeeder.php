@@ -326,11 +326,50 @@ class ComprehensiveTestDataSeeder extends Seeder
             if (fake()->boolean(80)) {
                 $count = fake()->numberBetween(1, 5);
                 for ($i = 0; $i < $count; $i++) {
+                    $titles = [
+                        'E-commerce Platform for Local Artisans',
+                        'AI-Powered Chatbot for Customer Support',
+                        'Mobile Health Tracking Application',
+                        'Decentralized Voting System (Blockchain)',
+                        'Real-time Collaborative Whiteboard',
+                        'Personal Finance Management Dashboard',
+                        'Smart Home Automation System',
+                        'Online Learning Management System',
+                        'Supply Chain Optimization with IoT',
+                        'Augmented Reality Navigation App',
+                    ];
+
+                    $descriptions = [
+                        'Developed a full-stack e-commerce solution enabling local artisans to sell their products online, featuring secure payment gateways and administrative dashboards.',
+                        'Implemented an AI-driven chatbot using natural language processing to provide instant customer support and answer frequently asked questions, reducing response times significantly.',
+                        'Designed and built a mobile application for tracking health metrics, including heart rate, sleep patterns, and activity levels, with data visualization and personalized insights.',
+                        'Created a secure and transparent decentralized voting system leveraging blockchain technology to ensure integrity and immutability of votes.',
+                        'Built a web-based collaborative whiteboard application allowing multiple users to draw and brainstorm in real-time, with features like undo/redo and session management.',
+                        'Developed an intuitive personal finance management dashboard to help users track income, expenses, and investments, with budgeting tools and financial reporting.',
+                        'Engineered a smart home automation system integrating various IoT devices for lighting, temperature control, and security, accessible via a mobile app.',
+                        'Constructed a comprehensive online learning management system (LMS) with course creation, student enrollment, progress tracking, and quiz functionalities.',
+                        'Implemented an IoT-based solution for optimizing supply chain logistics, providing real-time tracking of goods and predictive analytics for inventory management.',
+                        'Developed an augmented reality (AR) navigation application that overlays directions and points of interest onto the real-world view using device cameras.',
+                    ];
+
+                    $technologies = [
+                        'Laravel, Vue.js, MySQL, Tailwind CSS, Stripe API',
+                        'Python, TensorFlow, Flask, NLTK, Dialogflow',
+                        'React Native, Node.js, MongoDB, Firebase, Redux',
+                        'Solidity, Ethereum, Web3.js, Truffle, Ganache',
+                        'Node.js, Socket.IO, React, Canvas API, Express.js',
+                        'Django, PostgreSQL, React, D3.js, RESTful APIs',
+                        'Raspberry Pi, Python, MQTT, Node-RED, AWS IoT',
+                        'PHP, Moodle, MySQL, SCORM, JavaScript',
+                        'Java, Spring Boot, Kafka, Apache Cassandra, Azure IoT Hub',
+                        'Unity, C#, ARCore, ARKit, GPS',
+                    ];
+
                     Project::create([
                         'user_id' => $user->id,
-                        'title' => fake()->sentence(3),
-                        'description' => fake()->paragraph(3),
-                        'technologies_used' => fake()->words(5, true),
+                        'title' => fake()->randomElement($titles),
+                        'description' => fake()->randomElement($descriptions),
+                        'technologies_used' => fake()->randomElement($technologies),
                         'project_url' => fake()->optional(0.7)->url(),
                         'github_url' => fake()->optional(0.8)->url(),
                         'start_date' => fake()->dateTimeBetween('-2 years', '-6 months'),
