@@ -51,7 +51,7 @@ class AchievementCommentController extends Controller
             $this->firebase->send(
                 $achievement->user_id,[
                     'title' => 'Achievement Comments',
-                    'body' => $user->name . ' commented on your achievement: ' . $achievement->title,
+                    'body' => $user->profile->full_name . ' commented on your achievement: ' . $achievement->title,
                     'sender_id' => $user->id,
                     'type' => 'achievement_comment',
                 ]);
