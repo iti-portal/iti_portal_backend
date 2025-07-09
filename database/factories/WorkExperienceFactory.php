@@ -27,6 +27,19 @@ class WorkExperienceFactory extends Factory
         $employmentTypes = ['full_time', 'part_time', 'contract', 'internship', 'freelance'];
         
         $startDate = $this->faker->dateTimeBetween('-5 years', '-6 months');
+        $descriptions = [
+            'Led a cross-functional team in developing a scalable e-commerce platform, improving conversion rates by 15%.',
+            'Designed and implemented robust backend APIs using Laravel, supporting millions of daily requests.',
+            'Developed user-friendly interfaces for mobile applications, resulting in a 20% increase in user engagement.',
+            'Managed end-to-end project lifecycle for key software initiatives, ensuring on-time and within-budget delivery.',
+            'Optimized database queries and server performance, reducing load times by 30% across critical applications.',
+            'Collaborated with product managers and stakeholders to define project requirements and technical specifications.',
+            'Conducted comprehensive quality assurance testing, identifying and resolving critical bugs before deployment.',
+            'Implemented CI/CD pipelines and automated deployment processes, significantly accelerating release cycles.',
+            'Provided technical leadership and mentorship to junior developers, fostering a culture of continuous learning.',
+            'Analyzed complex datasets to derive actionable insights, guiding strategic business decisions.'
+        ];
+
         $endDate = $this->faker->optional(0.7)->dateTimeBetween($startDate, 'now');
 
         return [
@@ -34,7 +47,7 @@ class WorkExperienceFactory extends Factory
             'company_name' => $this->faker->randomElement($companies),
             'start_date' => $startDate,
             'end_date' => $endDate,
-            'description' => $this->faker->paragraph(3),
+            'description' => $this->faker->randomElement($descriptions),
             'is_current' => $endDate === null,
         ];
     }
