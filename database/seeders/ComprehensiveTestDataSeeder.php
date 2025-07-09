@@ -236,9 +236,32 @@ class ComprehensiveTestDataSeeder extends Seeder
         
         foreach ($staffUsers as $user) {
             $user->update(['status' => 'approved']); // Ensure staff are approved
+            
+            $arabicFirstNames = [
+                'Ahmed', 'Mohamed', 'Ali', 'Omar', 'Khaled', 'Youssef', 'Mostafa', 'Ibrahim', 'Abdullah', 'Zainab',
+                'Fatima', 'Aisha', 'Nour', 'Sara', 'Leila', 'Mariam', 'Hana', 'Jana', 'Salma', 'Yasmin',
+                'Sami', 'Tarek', 'Hassan', 'Hussein', 'Amir', 'Rami', 'Fadi', 'Karim', 'Majed', 'Adel',
+                'Mona', 'Lina', 'Dina', 'Rania', 'Samira', 'Nadia', 'Lamia', 'Huda', 'Souad', 'Farah',
+                'Layla', 'Joud', 'Basma', 'Maya', 'Sama', 'Lara', 'Tala', 'Rima', 'Dana', 'Aya',
+                'Yara', 'Zahra', 'Ola', 'Reem', 'Rawan', 'Dalia', 'Shatha', 'Hajar', 'Malak', 'Noor',
+                'Hamza', 'Anas', 'Badr', 'Bilal', 'Jaber', 'Khalil', 'Luay', 'Mazen', 'Nabil', 'Osama',
+                'Qais', 'Rakan', 'Sufyan', 'Talal', 'Wael', 'Yahya', 'Ziad', 'Amal', 'Batoul', 'Dalal',
+                'Eman', 'Ghada', 'Hanan', 'Israa', 'Khadija', 'Lama', 'Marwa', 'Nada', 'Ola', 'Riham'
+            ];
+
+            $arabicLastNames = [
+                'Mansour', 'El-Sayed', 'Hassan', 'Ali', 'Mohamed', 'Khalifa', 'Ahmed', 'Ibrahim', 'Abdullah', 'Zaki',
+                'Fawzy', 'Salem', 'Amin', 'Gaber', 'Radwan', 'El-Deen', 'El-Gharib', 'El-Masry', 'El-Sharkawy', 'El-Maghraby',
+                'Hamdan', 'Farah', 'Issa', 'Jaber', 'Kamal', 'Mahmoud', 'Nassar', 'Othman', 'Qasem', 'Ramadan',
+                'Saad', 'Taha', 'Wahab', 'Youssef', 'Zahran', 'Bakri', 'Daoud', 'Fahmy', 'Ghazal', 'Haddad',
+                'Jomaa', 'Kazem', 'Lotfy', 'Moussa', 'Naguib', 'Omar', 'Qandil', 'Rizk', 'Salah', 'Tawfik',
+                'Wassef', 'Yassin', 'Zayed', 'Abdelaziz', 'Badawi', 'Darwish', 'Eid', 'Fadel', 'Ghali', 'Habib',
+                'Jamal', 'Khoury', 'Labib', 'Maalouf', 'Naggar', 'Okasha', 'Qureshi', 'Rashid', 'Salloum', 'Tabet'
+            ];
+
             StaffProfile::create([
                 'user_id' => $user->id,
-                'full_name' => fake()->name(),
+                'full_name' => fake()->randomElement($arabicFirstNames) . ' ' . fake()->randomElement($arabicLastNames),
                 'department' => fake()->randomElement(['IT', 'HR', 'Finance', 'Marketing', 'Operations']),
                 'position' => fake()->randomElement(['Manager', 'Coordinator', 'Specialist', 'Director']),
             ]);
