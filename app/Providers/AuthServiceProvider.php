@@ -7,6 +7,7 @@ use App\Models\Message;
 use App\Policies\ConversationPolicy;
 use App\Policies\MessagePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
@@ -28,6 +29,11 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        //
+        Broadcast::routes();
+
+        Broadcast::channel('conversation.{conversationId}', function ($user, $conversationId) {
+            return $user->id === Conversation::find($conversationId)->user_one_id || 
+                   $user->id === Conversation::find($conversationId)->user_two_id;
+        });
     }
 }
