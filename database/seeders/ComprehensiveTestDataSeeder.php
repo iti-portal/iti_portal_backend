@@ -132,9 +132,19 @@ class ComprehensiveTestDataSeeder extends Seeder
         $skills = [
             'PHP', 'JavaScript', 'Python', 'Java', 'React', 'Vue.js', 'Laravel', 
             'Node.js', 'MySQL', 'MongoDB', 'Docker', 'AWS', 'Git', 'React Native', 
-            'Flutter', 'UI/UX Design', 'Project Management', 'Communication',
-            'TypeScript', 'Angular', 'Express.js', 'PostgreSQL', 'Redis', 'Linux',
-            'Kubernetes', 'Jenkins', 'Figma', 'Adobe Photoshop', 'Machine Learning'
+            'Flutter', 'UI/UX Design', 'TypeScript', 'Angular', 'Express.js', 
+            'PostgreSQL', 'Redis', 'Linux', 'Kubernetes', 'Jenkins', 'Figma', 
+            'Adobe Photoshop', 'Machine Learning', 'C', 'C++', 'C#', 'Go', 'Rust', 
+            'Ruby', 'Swift', 'Kotlin', 'Scala', 'Haskell', 'Erlang', 'Elixir', 
+            'Clojure', 'Lisp', 'Dart', 'Assembly', 'R', 'Julia', 'Groovy', 
+            'CoffeeScript', 'Visual Basic','Perl', 'Svelte', 'jQuery', 'Bootstrap',
+            'Tailwind CSS', 'Next.js', 'Nuxt.js', 'Gatsby', 'Webpack', 'Babel', 
+            'Vite', 'Django', 'Flask', 'Ruby on Rails', 'Spring Boot', 'ASP.NET', 
+            'Koa.js', 'SQLite', 'Redis', 'Cassandra', 'Neo4j', 'Solr', 'Kafka', 
+            'RabbitMQ', 'GraphQL', 'RESTful APIs', 'SQL', 'DynamoDB', 'BigQuery',
+            'Azure', 'Terraform', 'Ansible', 'Chef', 'Puppet', 'Nagios', 
+            'Prometheus', 'Grafana', 'Splunk', 'OpenShift', 'SVN', 'Mercurial', 
+            'Xamarin', 'Ionic', 'Unity', 'Unreal Engine', 'Godot'
         ];
         
         foreach ($skills as $skillName) {
@@ -146,7 +156,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     {
         $users = collect();
         
-        // Create students/alumni (60%)
+        // Create students/alumni
         $studentUsers = User::factory(30)->create();
         foreach ($studentUsers as $user) {
             $user->assignRole('student');
@@ -154,20 +164,20 @@ class ComprehensiveTestDataSeeder extends Seeder
         $users = $users->merge($studentUsers);
         
 
-        $studentUsers = User::factory(30)->create();
-        foreach ($studentUsers as $user) {
+        $alumniUsers = User::factory(30)->create();
+        foreach ($alumniUsers as $user) {
             $user->assignRole('alumni');
         }
-        $users = $users->merge($studentUsers);
+        $users = $users->merge($alumniUsers);
 
-        // Create companies (25%)
-        $companyUsers = User::factory(12)->create();
+        // Create companies
+        $companyUsers = User::factory(20)->create();
         foreach ($companyUsers as $user) {
             $user->assignRole('company');
         }
         $users = $users->merge($companyUsers);
         
-        // Create staff (15%)
+        // Create staff
         $staffUsers = User::factory(8)->create();
         foreach ($staffUsers as $user) {
             $user->assignRole('staff');
@@ -179,14 +189,33 @@ class ComprehensiveTestDataSeeder extends Seeder
     
     private function createUserProfiles($users)
     {
-        $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+        // Alumni: status = graduate, intake != 45
+        $alumniUsers = $users->filter(function ($user) {
+            return $user->hasRole('alumni');
         });
-        
+    
+        foreach ($alumniUsers as $user) {
+            UserProfile::factory()->state([
+                'user_id' => $user->id,
+                'student_status' => 'graduate',
+                'intake' => fake()->randomElement(['31','32','33','34','35','36','37','38','39','40','41','42','43','44']),
+            ])->create();
+        }
+    
+        // Students: status = current, intake = 45
+        $studentUsers = $users->filter(function ($user) {
+            return $user->hasRole('student');
+        });
+    
         foreach ($studentUsers as $user) {
-            UserProfile::factory()->create(['user_id' => $user->id]);
+            UserProfile::factory()->state([
+                'user_id' => $user->id,
+                'student_status' => 'current',
+                'intake' => '45',
+            ])->create();
         }
     }
+    
     
     private function createCompanyProfiles($users)
     {
@@ -206,9 +235,33 @@ class ComprehensiveTestDataSeeder extends Seeder
         });
         
         foreach ($staffUsers as $user) {
+            $user->update(['status' => 'approved']); // Ensure staff are approved
+            
+            $arabicFirstNames = [
+                'Ahmed', 'Mohamed', 'Ali', 'Omar', 'Khaled', 'Youssef', 'Mostafa', 'Ibrahim', 'Abdullah', 'Zainab',
+                'Fatima', 'Aisha', 'Nour', 'Sara', 'Leila', 'Mariam', 'Hana', 'Jana', 'Salma', 'Yasmin',
+                'Sami', 'Tarek', 'Hassan', 'Hussein', 'Amir', 'Rami', 'Fadi', 'Karim', 'Majed', 'Adel',
+                'Mona', 'Lina', 'Dina', 'Rania', 'Samira', 'Nadia', 'Lamia', 'Huda', 'Souad', 'Farah',
+                'Layla', 'Joud', 'Basma', 'Maya', 'Sama', 'Lara', 'Tala', 'Rima', 'Dana', 'Aya',
+                'Yara', 'Zahra', 'Ola', 'Reem', 'Rawan', 'Dalia', 'Shatha', 'Hajar', 'Malak', 'Noor',
+                'Hamza', 'Anas', 'Badr', 'Bilal', 'Jaber', 'Khalil', 'Luay', 'Mazen', 'Nabil', 'Osama',
+                'Qais', 'Rakan', 'Sufyan', 'Talal', 'Wael', 'Yahya', 'Ziad', 'Amal', 'Batoul', 'Dalal',
+                'Eman', 'Ghada', 'Hanan', 'Israa', 'Khadija', 'Lama', 'Marwa', 'Nada', 'Ola', 'Riham'
+            ];
+
+            $arabicLastNames = [
+                'Mansour', 'El-Sayed', 'Hassan', 'Ali', 'Mohamed', 'Khalifa', 'Ahmed', 'Ibrahim', 'Abdullah', 'Zaki',
+                'Fawzy', 'Salem', 'Amin', 'Gaber', 'Radwan', 'El-Deen', 'El-Gharib', 'El-Masry', 'El-Sharkawy', 'El-Maghraby',
+                'Hamdan', 'Farah', 'Issa', 'Jaber', 'Kamal', 'Mahmoud', 'Nassar', 'Othman', 'Qasem', 'Ramadan',
+                'Saad', 'Taha', 'Wahab', 'Youssef', 'Zahran', 'Bakri', 'Daoud', 'Fahmy', 'Ghazal', 'Haddad',
+                'Jomaa', 'Kazem', 'Lotfy', 'Moussa', 'Naguib', 'Omar', 'Qandil', 'Rizk', 'Salah', 'Tawfik',
+                'Wassef', 'Yassin', 'Zayed', 'Abdelaziz', 'Badawi', 'Darwish', 'Eid', 'Fadel', 'Ghali', 'Habib',
+                'Jamal', 'Khoury', 'Labib', 'Maalouf', 'Naggar', 'Okasha', 'Qureshi', 'Rashid', 'Salloum', 'Tabet'
+            ];
+
             StaffProfile::create([
                 'user_id' => $user->id,
-                'full_name' => fake()->name(),
+                'full_name' => fake()->randomElement($arabicFirstNames) . ' ' . fake()->randomElement($arabicLastNames),
                 'department' => fake()->randomElement(['IT', 'HR', 'Finance', 'Marketing', 'Operations']),
                 'position' => fake()->randomElement(['Manager', 'Coordinator', 'Specialist', 'Director']),
             ]);
@@ -218,7 +271,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createEducation($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
         });
         
         foreach ($studentUsers as $user) {
@@ -231,7 +284,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createWorkExperience($users)
     {
         $experiencedUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni', 'staff']);
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
         });
         
         foreach ($experiencedUsers as $user) {
@@ -247,7 +300,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     {
         $skills = Skill::all();
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
         });
         
         foreach ($studentUsers as $user) {
@@ -265,7 +318,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createProjects($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
         });
         
         foreach ($studentUsers as $user) {
@@ -273,11 +326,50 @@ class ComprehensiveTestDataSeeder extends Seeder
             if (fake()->boolean(80)) {
                 $count = fake()->numberBetween(1, 5);
                 for ($i = 0; $i < $count; $i++) {
+                    $titles = [
+                        'E-commerce Platform for Local Artisans',
+                        'AI-Powered Chatbot for Customer Support',
+                        'Mobile Health Tracking Application',
+                        'Decentralized Voting System (Blockchain)',
+                        'Real-time Collaborative Whiteboard',
+                        'Personal Finance Management Dashboard',
+                        'Smart Home Automation System',
+                        'Online Learning Management System',
+                        'Supply Chain Optimization with IoT',
+                        'Augmented Reality Navigation App',
+                    ];
+
+                    $descriptions = [
+                        'Developed a full-stack e-commerce solution enabling local artisans to sell their products online, featuring secure payment gateways and administrative dashboards.',
+                        'Implemented an AI-driven chatbot using natural language processing to provide instant customer support and answer frequently asked questions, reducing response times significantly.',
+                        'Designed and built a mobile application for tracking health metrics, including heart rate, sleep patterns, and activity levels, with data visualization and personalized insights.',
+                        'Created a secure and transparent decentralized voting system leveraging blockchain technology to ensure integrity and immutability of votes.',
+                        'Built a web-based collaborative whiteboard application allowing multiple users to draw and brainstorm in real-time, with features like undo/redo and session management.',
+                        'Developed an intuitive personal finance management dashboard to help users track income, expenses, and investments, with budgeting tools and financial reporting.',
+                        'Engineered a smart home automation system integrating various IoT devices for lighting, temperature control, and security, accessible via a mobile app.',
+                        'Constructed a comprehensive online learning management system (LMS) with course creation, student enrollment, progress tracking, and quiz functionalities.',
+                        'Implemented an IoT-based solution for optimizing supply chain logistics, providing real-time tracking of goods and predictive analytics for inventory management.',
+                        'Developed an augmented reality (AR) navigation application that overlays directions and points of interest onto the real-world view using device cameras.',
+                    ];
+
+                    $technologies = [
+                        'Laravel, Vue.js, MySQL, Tailwind CSS, Stripe API',
+                        'Python, TensorFlow, Flask, NLTK, Dialogflow',
+                        'React Native, Node.js, MongoDB, Firebase, Redux',
+                        'Solidity, Ethereum, Web3.js, Truffle, Ganache',
+                        'Node.js, Socket.IO, React, Canvas API, Express.js',
+                        'Django, PostgreSQL, React, D3.js, RESTful APIs',
+                        'Raspberry Pi, Python, MQTT, Node-RED, AWS IoT',
+                        'PHP, Moodle, MySQL, SCORM, JavaScript',
+                        'Java, Spring Boot, Kafka, Apache Cassandra, Azure IoT Hub',
+                        'Unity, C#, ARCore, ARKit, GPS',
+                    ];
+
                     Project::create([
                         'user_id' => $user->id,
-                        'title' => fake()->sentence(3),
-                        'description' => fake()->paragraph(3),
-                        'technologies_used' => fake()->words(5, true),
+                        'title' => fake()->randomElement($titles),
+                        'description' => fake()->randomElement($descriptions),
+                        'technologies_used' => fake()->randomElement($technologies),
                         'project_url' => fake()->optional(0.7)->url(),
                         'github_url' => fake()->optional(0.8)->url(),
                         'start_date' => fake()->dateTimeBetween('-2 years', '-6 months'),
@@ -292,7 +384,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createCertificates($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
         });
         
         foreach ($studentUsers as $user) {
@@ -323,7 +415,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createAwards($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
         });
         
         foreach ($studentUsers as $user) {
@@ -355,7 +447,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     {
         $achievements = collect();
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
         });
         
         foreach ($studentUsers as $user) {
@@ -372,11 +464,14 @@ class ComprehensiveTestDataSeeder extends Seeder
     
     private function createAchievementInteractions($achievements, $users)
     {
+        $studentAlumniUsers = $users->filter(function ($user) {
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+        });
         foreach ($achievements as $achievement) {
             // Random users like achievements (20-80% of users)
-            $likers = $users->random(fake()->numberBetween(
-                (int)($users->count() * 0.1), 
-                (int)($users->count() * 0.4)
+            $likers = $studentAlumniUsers->random(fake()->numberBetween(
+                (int)($studentAlumniUsers->count() * 0.1), 
+                (int)($studentAlumniUsers->count() * 0.4)
             ));
             
             foreach ($likers as $liker) {
@@ -387,13 +482,24 @@ class ComprehensiveTestDataSeeder extends Seeder
             }
             
             // Random users comment on achievements (5-20% of users)
-            $commenters = $users->random(fake()->numberBetween(1, (int)($users->count() * 0.2)));
+            $commenters = $studentAlumniUsers->random(fake()->numberBetween(1, (int)($studentAlumniUsers->count() * 0.2)));
             
             foreach ($commenters as $commenter) {
                 AchievementComment::create([
                     'achievement_id' => $achievement->id,
                     'user_id' => $commenter->id,
-                    'content' => fake()->sentence(fake()->numberBetween(5, 20)),
+                    'content' => fake()->randomElement([
+                        'Congratulations on this amazing achievement!',
+                        'This is truly inspiring, well done!',
+                        'Fantastic work! Keep up the great effort.',
+                        'So proud to see your progress and success!',
+                        'This achievement is a testament to your hard work.',
+                        'Absolutely brilliant! What an accomplishment.',
+                        'You\'ve set a new bar with this, incredible!',
+                        'Remarkable dedication, truly deserved!',
+                        'This motivates me to push harder, thank you!',
+                        'A huge milestone! Celebrate your success!',
+                    ]),
                 ]);
             }
             
@@ -408,14 +514,21 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createAlumniServices($users)
     {
         $alumniUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['alumni']) && !$user->isRejected();
         });
         
         foreach ($alumniUsers as $user) {
-            // 40% chance of providing alumni services, 1-2 services
-            if (fake()->boolean(40)) {
+            // 60% chance of providing alumni services, 1-2 services
+            if (fake()->boolean(60)) {
                 $count = fake()->numberBetween(1, 2);
                 for ($i = 0; $i < $count; $i++) {
+                    $evaluation = fake()->optional(0.4)->randomElement(['positive', 'neutral', 'negative']);
+                    $feedback = null;
+                    
+                    if ($evaluation !== null) {
+                        $feedback = fake()->optional(0.8)->paragraph(2);
+                    }
+
                     AlumniService::create([
                         'alumni_id' => $user->id,
                         'title' => fake()->randomElement([
@@ -427,9 +540,9 @@ class ComprehensiveTestDataSeeder extends Seeder
                             'Career Guidance Workshop'
                         ]),
                         'description' => fake()->paragraph(3),
-                        'service_type' => fake()->randomElement(['freelance', 'business_session', 'course_teaching']),
-                        'feedback' => fake()->optional(0.3)->paragraph(2),
-                        'evaluation' => fake()->optional(0.4)->randomElement(['positive', 'neutral', 'negative']),
+                        'service_type' => fake()->randomElement(['business_session', 'course_teaching']),
+                        'feedback' => $feedback,
+                        'evaluation' => $evaluation,
                     ]);
                 }
             }
@@ -440,7 +553,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     {
         $articles = collect();
         $authors = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni', 'staff']);
+            return $user->hasRole(['admin', 'staff']);
         });
         
         foreach ($authors as $author) {
@@ -459,9 +572,12 @@ class ComprehensiveTestDataSeeder extends Seeder
     
     private function createArticleLikes($articles, $users)
     {
+        $studentAlumniUsers = $users->filter(function ($user) {
+            return $user->hasRole(['student', 'alumni']);
+        });
         foreach ($articles as $article) {
             // Random users like articles
-            $likers = $users->random(fake()->numberBetween(0, (int)($users->count() * 0.3)));
+            $likers = $studentAlumniUsers->random(fake()->numberBetween(0, (int)($studentAlumniUsers->count() * 0.3)));
             
             foreach ($likers as $liker) {
                 ArticleLike::create([
@@ -479,7 +595,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     {
         $jobs = collect();
         $companyUsers = $users->filter(function ($user) {
-            return $user->hasRole('company');
+            return $user->hasRole('company') && !$user->isRejected();
         });
         
         foreach ($companyUsers as $company) {
@@ -514,7 +630,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createJobApplications($jobs, $users)
     {
         $applicants = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
         });
         
         foreach ($jobs as $job) {
@@ -540,7 +656,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createConnections($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
         });
         
         foreach ($studentUsers as $user) {
@@ -573,7 +689,7 @@ class ComprehensiveTestDataSeeder extends Seeder
                         'connection_request',
                         'achievement_liked',
                         'article_published',
-        'job_posted',
+                        'job_posted',
                         'profile_viewed'
                     ]),
                     'title' => fake()->sentence(4),
