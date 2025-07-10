@@ -488,7 +488,18 @@ class ComprehensiveTestDataSeeder extends Seeder
                 AchievementComment::create([
                     'achievement_id' => $achievement->id,
                     'user_id' => $commenter->id,
-                    'content' => fake()->sentence(fake()->numberBetween(5, 20)),
+                    'content' => fake()->randomElement([
+                        'Congratulations on this amazing achievement!',
+                        'This is truly inspiring, well done!',
+                        'Fantastic work! Keep up the great effort.',
+                        'So proud to see your progress and success!',
+                        'This achievement is a testament to your hard work.',
+                        'Absolutely brilliant! What an accomplishment.',
+                        'You\'ve set a new bar with this, incredible!',
+                        'Remarkable dedication, truly deserved!',
+                        'This motivates me to push harder, thank you!',
+                        'A huge milestone! Celebrate your success!',
+                    ]),
                 ]);
             }
             
