@@ -80,6 +80,8 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
 
     // Relationships
 
+
+    
     public function alumniServices()
     {
         return $this->hasMany(AlumniService::class, 'alumni_id');

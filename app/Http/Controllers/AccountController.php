@@ -13,6 +13,11 @@ use Illuminate\Validation\Rules\Password;
 
 class AccountController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
+
     //
  
 
@@ -136,7 +141,6 @@ class AccountController extends Controller
         $request->validate([
             'password' => ['required'],
             'new_password' => ['required','confirmed', Password::defaults()],
-            'new_password_confirmation' => trim($request->new_password_confirmation),
         ],
             [
             'password.required' => 'Please enter your current password.',
@@ -197,4 +201,4 @@ class AccountController extends Controller
         return $this->respondWithSuccess(['user' => $user], 'Email verified successfully! Please login to continue.');
     }
 
-}    
+}

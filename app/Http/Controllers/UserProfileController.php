@@ -145,7 +145,8 @@ class UserProfileController extends Controller
             })->unique()->all();
 
         
-        $users = User::with('profile')
+        $users = User::with(['profile','roles'])
+
             ->where('id', '!=', $request->user()->id)
             ->whereNotIn('id', $connections)
             ->whereHas('roles', function ($query) {
@@ -181,6 +182,24 @@ class UserProfileController extends Controller
             })
 
             ->paginate(10);
+
+
+         // Calculate mutual connections for each user
+        $users->getCollection()->transform(function ($targetUser) use ($connections) {
+            $targetUserConnections = Connection::where('requester_id', $targetUser->id)
+                ->orWhere('addressee_id', $targetUser->id)
+                ->where('status', 'accepted')
+                ->get()
+                ->map(function ($connection) use($targetUser) {
+                    return $connection->addressee_id == $targetUser->id ? $connection->requester_id : $connection->addressee_id;
+                })->unique()->all();
+
+            $mutualConnections = array_intersect($connections, $targetUserConnections);
+            
+            $targetUser->mutual_connections_count = count($mutualConnections);
+            
+            return $targetUser;
+        });
 
         return $this->respondWithSuccess(['users' => $users]);
         }catch(\Exception $e){
@@ -318,9 +337,28 @@ class UserProfileController extends Controller
             if(!$profile){
                 return $this->respondWithError('User profile not found', 404);
             }
-            $user->delete();
-            return $this->respondWithSuccess([], 'User profile deleted successfully');
+            $user->marked_for_deletion_at = now()->addDays(30);
+            $user->save();
+        
+            return $this->respondWithSuccess([], 'Your will be deleted after 30 days.');
         }catch (\Exception $e) {
+            return $this->respondWithError($e->getMessage(), 500);
+        }
+    }
+
+    public function cancelDeletion(Request $request){
+        $user = $request->user();
+        try {
+            if(!$user){
+                return $this->respondWithError('User not found', 404);
+            }
+            if(!$user->marked_for_deletion_at){
+                return $this->respondWithError('User is not marked for deletion', 400);
+            }
+            $user->marked_for_deletion_at = null;
+            $user->save();
+            return $this->respondWithSuccess([], 'User deletion cancelled successfully');
+        } catch (\Exception $e) {
             return $this->respondWithError($e->getMessage(), 500);
         }
     }
