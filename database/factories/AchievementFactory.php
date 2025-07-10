@@ -49,13 +49,26 @@ class AchievementFactory extends Factory
             'IEEE', 'ACM', 'ITI', 'Cairo University', 'Tech Conference Egypt'
         ];
 
+        $descriptions = [
+            'Successfully completed a rigorous training program and earned a highly sought-after certification in cloud architecture.',
+            'Recognized for exceptional performance and significant contributions to the team\'s success, demonstrating strong leadership and technical skills.',
+            'Led the development of a complex e-commerce platform from conception to deployment, resulting in a 30% increase in online sales.',
+            'Played a key role in a major software development project, contributing to design, coding, and testing phases to deliver a robust solution.',
+            'Awarded for innovative problem-solving and dedication to continuous improvement, consistently exceeding project expectations.',
+            'Gained extensive experience in a fast-paced tech environment, specializing in backend development and database management.',
+            'Collaborated with cross-functional teams to deliver high-quality software products, adhering to agile methodologies and best practices.',
+            'Developed and implemented a new data analytics dashboard, providing critical insights that improved decision-making processes.',
+            'Achieved recognition for outstanding customer satisfaction and technical support, resolving complex issues efficiently.',
+            'Contributed to open-source projects, enhancing features and fixing bugs, showcasing strong community engagement and coding skills.'
+        ];
+
         $type = $this->faker->randomElement($types);
         $title = $this->faker->randomElement($achievements[$type]);
 
         return [
             'type' => $type,
             'title' => $title,
-            'description' => $this->faker->paragraph(2),
+            'description' => $this->faker->randomElement($descriptions),
             'organization' => $this->faker->randomElement($organizations),
             'achieved_at' => $this->faker->dateTimeBetween('-2 years', 'now'),
             'image_path' => null,
