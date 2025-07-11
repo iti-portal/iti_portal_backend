@@ -640,7 +640,7 @@ class ComprehensiveTestDataSeeder extends Seeder
         
         foreach ($companyUsers as $company) {
             // Each company posts 2-8 jobs
-            $count = fake()->numberBetween(2, 8);
+            $count = fake()->numberBetween(2, 12);
             for ($i = 0; $i < $count; $i++) {
                 $job = AvailableJob::factory()->create(['company_id' => $company->id]);
                 $jobs->push($job);
