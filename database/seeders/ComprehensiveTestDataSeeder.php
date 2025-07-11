@@ -451,23 +451,40 @@ class ComprehensiveTestDataSeeder extends Seeder
         });
         
         foreach ($studentUsers as $user) {
+            $image = fake()->numberBetween(1,3);
             // 40% chance of having awards, 1-2 awards
-            if (fake()->boolean(40)) {
+            if (fake()->boolean(70)) {
                 $count = fake()->numberBetween(1, 2);
                 for ($i = 0; $i < $count; $i++) {
                     Award::create([
                         'user_id' => $user->id,
                         'title' => fake()->randomElement([
-                            'Employee of the Month',
-                            'Best Innovation Award',
-                            'Excellence in Development',
-                            'Outstanding Performance Award',
-                            'Leadership Recognition'
+                            'Employee of the Year Award',
+                            'Innovation Excellence Award',
+                            'Outstanding Contributor Award',
+                            'Team Leadership Award',
+                            'Customer Service Champion',
+                            'Rising Star Award',
+                            'President\'s Award for Excellence',
+                            'Patent Achievement Award',
+                            'Community Impact Award',
+                            'Sales Achievement Award'
                         ]),
-                        'description' => fake()->paragraph(2),
+                        'description' => fake()->randomElement([
+                            'Awarded for exceptional performance and dedication throughout the year, consistently exceeding expectations and contributing significantly to company goals.',
+                            'Recognized for pioneering a groundbreaking solution or process that significantly improved efficiency, reduced costs, or created new opportunities.',
+                            'Acknowledged for consistent high-quality work, proactive problem-solving, and positive influence on team morale and productivity.',
+                            'Presented to an individual who demonstrated exemplary leadership, fostered a collaborative environment, and guided their team to achieve remarkable results.',
+                            'Honors an individual who consistently provided outstanding service, built strong customer relationships, and went above and beyond to ensure customer satisfaction.',
+                            'Celebrates a new or junior employee who quickly demonstrated significant potential, made substantial contributions, and showed exceptional growth within the organization.',
+                            'A prestigious award given for sustained superior performance, innovation, and leadership that had a profound and lasting positive impact on the organization.',
+                            'Awarded to an inventor or team for securing a new patent, recognizing their significant contribution to intellectual property and technological advancement.',
+                            'Recognizes an individual or team for their exceptional efforts in community service, social responsibility, or making a positive difference beyond their professional duties.',
+                            'Presented to an individual who achieved exceptional sales results, surpassed targets, and demonstrated outstanding client acquisition and retention skills.'
+                        ]),
                         'organization' => fake()->company(),
                         'achieved_at' => fake()->dateTimeBetween('-2 years', 'now'),
-                        'image_path' => null,
+                        'image_path' => 'test/awards/' . $image . '.png',
                         'certificate_url' => fake()->optional(0.6)->url(),
                     ]);
                 }
