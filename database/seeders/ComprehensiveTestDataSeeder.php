@@ -728,6 +728,8 @@ class ComprehensiveTestDataSeeder extends Seeder
             $jobApplicants = $applicants->random(min($applicationCount, $applicants->count()));
             
             foreach ($jobApplicants as $applicant) {
+                $applicants_cv = fake()->randomElement(['resume.pdf', 'cv.pdf']);
+
                 JobApplication::create([
                     'job_id' => $job->id,
                     'user_id' => $applicant->id,
@@ -749,7 +751,8 @@ class ComprehensiveTestDataSeeder extends Seeder
                         'This application is to express my strong interest in the role. My unique blend of technical expertise and interpersonal skills allows me to contribute effectively to both technical and collaborative aspects of a project. I am a team player who can also work independently.'
                     ]) . "\n\n" . fake()->paragraphs(3, true),
                     'status' => fake()->randomElement(['applied', 'reviewed', 'interviewed', 'hired', 'rejected']),
-                    'cv_path' => fake()->optional(0.8)->filePath(),
+                    'cv_path' => 'test/cv/' . $applicants_cv,
+                    'applied_at' => fake()->dateTimeBetween('-2 months', 'now'),
                 ]);
             }
             
