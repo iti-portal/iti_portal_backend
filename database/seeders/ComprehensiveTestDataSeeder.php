@@ -403,6 +403,7 @@ class ComprehensiveTestDataSeeder extends Seeder
         });
         
         foreach ($studentUsers as $user) {
+            $image = fake()->numberBetween(1,6);
             // 60% chance of having certificates, 1-3 certificates
             if (fake()->boolean(60)) {
                 $count = fake()->numberBetween(1, 3);
@@ -420,7 +421,7 @@ class ComprehensiveTestDataSeeder extends Seeder
                         'organization' => fake()->company(),
                         'achieved_at' => fake()->dateTimeBetween('-2 years', 'now'),
                         'certificate_url' => fake()->optional(0.6)->url(),
-                        'image_path' => null,
+                        'image_path' => 'test/certificates/' . $image . '.png',
                     ]);
                 }
             }
