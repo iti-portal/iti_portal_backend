@@ -718,7 +718,9 @@ class ComprehensiveTestDataSeeder extends Seeder
         foreach ($studentUsers as $user) {
             // Each user sends 2-8 connection requests
             $connectionCount = fake()->numberBetween(2, 8);
-            $potentialConnections = $users->where('id', '!=', $user->id)->random(
+            $potentialConnections = $users->filter(function ($user) {
+                    return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+                })->where('id', '!=', $user->id)->random(
                 min($connectionCount, $users->count() - 1)
             );
             
