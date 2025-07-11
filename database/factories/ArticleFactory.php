@@ -57,10 +57,12 @@ class ArticleFactory extends Factory
             "\n\n" . 'Cloud computing provides unparalleled flexibility and scalability. This guide demystifies key cloud service models (IaaS, PaaS, SaaS) and their respective use cases. We provide an overview of the core services offered by leading cloud providers like AWS EC2, Azure App Service, and Google Cloud Functions, helping you choose the right architecture for your needs.'
         ];
 
+        $image = $this->faker->randomNumber(1,15);
+
         return [
             'title' => $this->faker->randomElement($techTopics),
             'content' => $this->faker->randomElement($articleContents) . "\n\n" . $this->faker->paragraphs(4, true),
-            'featured_image' => null,
+            'featured_image' => 'test/articles/a' . $image . '.png',
             'external_link' => $this->faker->optional(0.3)->url(),
             'status' => $this->faker->randomElement(['published', 'draft']),
             'published_at' => $this->faker->optional(0.8)->dateTimeBetween('-6 months', 'now'),

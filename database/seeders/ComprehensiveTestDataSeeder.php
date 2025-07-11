@@ -646,9 +646,9 @@ class ComprehensiveTestDataSeeder extends Seeder
         });
         
         foreach ($authors as $author) {
-            // 60% chance of writing articles, 1-4 articles
+            // 60% chance of writing articles, 1-6 articles
             if (fake()->boolean(60)) {
-                $count = fake()->numberBetween(1, 4);
+                $count = fake()->numberBetween(1, 6);
                 for ($i = 0; $i < $count; $i++) {
                     $article = Article::factory()->create(['author_id' => $author->id]);
                     $articles->push($article);
