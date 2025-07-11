@@ -411,13 +411,29 @@ class ComprehensiveTestDataSeeder extends Seeder
                     Certificate::create([
                         'user_id' => $user->id,
                         'title' => fake()->randomElement([
-                            'AWS Certified Solutions Architect',
-                            'Google Cloud Professional',
-                            'Microsoft Azure Fundamentals',
-                            'Oracle Certified Professional',
-                            'Cisco Certified Network Associate'
+                            'AWS Certified Solutions Architect - Associate',
+                            'Google Cloud Professional Data Engineer',
+                            'Microsoft Certified: Azure Developer Associate',
+                            'Certified ScrumMaster (CSM)',
+                            'Cisco Certified Network Associate (CCNA)',
+                            'Project Management Professional (PMP)',
+                            'Certified Information Systems Security Professional (CISSP)',
+                            'CompTIA Security+',
+                            'Certified Kubernetes Administrator (CKA)',
+                            'Certified Ethical Hacker (CEH)'
                         ]),
-                        'description' => fake()->paragraph(2),
+                        'description' => fake()->randomElement([
+                            'Validated expertise in designing distributed systems and applications on the AWS platform, covering architectural principles and best practices.',
+                            'Demonstrated proficiency in designing and building data processing systems on Google Cloud Platform, including data pipelines, machine learning models, and data warehousing solutions.',
+                            'Proven ability to design, build, test, and maintain cloud applications and services on Microsoft Azure, with a focus on scalable and resilient solutions.',
+                            'Recognized for understanding Scrum framework, including roles, events, and artifacts, enabling effective team facilitation and project delivery in agile environments.',
+                            'Certified in foundational networking skills, including network access, IP connectivity, IP services, security fundamentals, and automation and programmability.',
+                            'Globally recognized certification for project managers demonstrating experience, education, and competence in leading and directing projects.',
+                            'Validated advanced knowledge and hands-on experience in information security, covering areas such as security architecture, risk management, and software development security.',
+                            'Certified in core cybersecurity skills, including network security, threats, vulnerabilities, and data and application security.',
+                            'Demonstrated proficiency in deploying, configuring, and managing Kubernetes clusters, essential for orchestrating containerized applications.',
+                            'Certified in ethical hacking methodologies, including penetration testing and vulnerability assessment, to identify and mitigate security risks.'
+                        ]),
                         'organization' => fake()->company(),
                         'achieved_at' => fake()->dateTimeBetween('-2 years', 'now'),
                         'certificate_url' => fake()->optional(0.6)->url(),
