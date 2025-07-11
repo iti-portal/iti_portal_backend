@@ -365,7 +365,7 @@ class ComprehensiveTestDataSeeder extends Seeder
                         'Unity, C#, ARCore, ARKit, GPS',
                     ];
 
-                    Project::create([
+                    $project = Project::create([
                         'user_id' => $user->id,
                         'title' => fake()->randomElement($titles),
                         'description' => fake()->randomElement($descriptions),
@@ -376,6 +376,21 @@ class ComprehensiveTestDataSeeder extends Seeder
                         'end_date' => fake()->optional(0.6)->dateTimeBetween('-6 months', 'now'),
                         'is_featured' => fake()->boolean(20),
                     ]);
+
+                    // Create 1-2 images for each project
+                    $imageCount = fake()->numberBetween(1, 2);
+                    $availableImageNumbers = range(1, 5); // Assuming images 1.png to 5.png exist
+                    shuffle($availableImageNumbers); // Shuffle to pick unique numbers for this project
+
+                    for ($j = 0; $j < $imageCount; $j++) {
+                        $imageNumber = $availableImageNumbers[$j]; // Get a unique number for this image
+                        \App\Models\ProjectImage::create([
+                            'project_id' => $project->id,
+                            'image_path' => 'test/project_images/' . $imageNumber . '.png',
+                            'alt_text' => fake()->sentence(3),
+                            'order' => $j + 1,
+                        ]);
+                    }
                 }
             }
         }
