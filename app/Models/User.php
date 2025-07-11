@@ -163,6 +163,11 @@ class User extends Authenticatable implements JWTSubject , MustVerifyEmail
         return $this->status === 'approved';
     }
 
+    public function isApprovedOrSuspended()
+    {
+        return $this->status === 'approved' || $this->status === 'suspended';
+    }
+
     public function isPending()
     {
         return $this->status === 'pending';

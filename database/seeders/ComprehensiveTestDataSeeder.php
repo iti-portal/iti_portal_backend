@@ -157,21 +157,21 @@ class ComprehensiveTestDataSeeder extends Seeder
         $users = collect();
         
         // Create students/alumni
-        $studentUsers = User::factory(30)->create();
+        $studentUsers = User::factory(40)->create();
         foreach ($studentUsers as $user) {
             $user->assignRole('student');
         }
         $users = $users->merge($studentUsers);
         
 
-        $alumniUsers = User::factory(30)->create();
+        $alumniUsers = User::factory(40)->create();
         foreach ($alumniUsers as $user) {
             $user->assignRole('alumni');
         }
         $users = $users->merge($alumniUsers);
 
         // Create companies
-        $companyUsers = User::factory(20)->create();
+        $companyUsers = User::factory(30)->create();
         foreach ($companyUsers as $user) {
             $user->assignRole('company');
         }
@@ -271,7 +271,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createEducation($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($studentUsers as $user) {
@@ -284,7 +284,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createWorkExperience($users)
     {
         $experiencedUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($experiencedUsers as $user) {
@@ -300,7 +300,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     {
         $skills = Skill::all();
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($studentUsers as $user) {
@@ -318,7 +318,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createProjects($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($studentUsers as $user) {
@@ -399,7 +399,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createCertificates($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($studentUsers as $user) {
@@ -447,7 +447,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createAwards($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($studentUsers as $user) {
@@ -496,7 +496,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     {
         $achievements = collect();
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($studentUsers as $user) {
@@ -514,7 +514,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createAchievementInteractions($achievements, $users)
     {
         $studentAlumniUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         foreach ($achievements as $achievement) {
             // Random users like achievements (20-80% of users)
@@ -563,7 +563,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createAlumniServices($users)
     {
         $alumniUsers = $users->filter(function ($user) {
-            return $user->hasRole(['alumni']) && !$user->isRejected();
+            return $user->hasRole(['alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($alumniUsers as $user) {
@@ -662,7 +662,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createArticleLikes($articles, $users)
     {
         $studentAlumniUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']);
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         foreach ($articles as $article) {
             // Random users like articles
@@ -684,7 +684,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     {
         $jobs = collect();
         $companyUsers = $users->filter(function ($user) {
-            return $user->hasRole('company') && !$user->isRejected();
+            return $user->hasRole('company') && $user->isApprovedOrSuspended();
         });
         
         foreach ($companyUsers as $company) {
@@ -719,7 +719,7 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createJobApplications($jobs, $users)
     {
         $applicants = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($jobs as $job) {
@@ -764,14 +764,14 @@ class ComprehensiveTestDataSeeder extends Seeder
     private function createConnections($users)
     {
         $studentUsers = $users->filter(function ($user) {
-            return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+            return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
         });
         
         foreach ($studentUsers as $user) {
             // Each user sends 2-8 connection requests
             $connectionCount = fake()->numberBetween(2, 8);
             $potentialConnections = $users->filter(function ($user) {
-                    return $user->hasRole(['student', 'alumni']) && !$user->isRejected();
+                    return $user->hasRole(['student', 'alumni']) && $user->isApprovedOrSuspended();
                 })->where('id', '!=', $user->id)->random(
                 min($connectionCount, $users->count() - 1)
             );
