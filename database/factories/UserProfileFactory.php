@@ -64,16 +64,16 @@ class UserProfileFactory extends Factory
             'linkedin' => 'https://linkedin.com/in/' . $this->faker->userName(),
             'github' => 'https://github.com/' . $this->faker->userName(),
             'portfolio_url' => $this->faker->optional(0.7)->url(),
-            'profile_picture' => null,
-            'cover_photo' => null,
+            'profile_picture' => 'test/profile_pictures/' . $this->faker->numberBetween(1, 9) . '.png',
+            'cover_photo' => 'test/cover_images/' . $this->faker->numberBetween(1, 1) . '.png',
             'branch' => $this->faker->randomElement($branches),
             'program' => $this->faker->randomElement($programs),
             'available_for_freelance' => $this->faker->boolean(30),
             'track' => $this->faker->randomElement($tracks),
             'intake' => $intake = $this->faker->randomElement($intakes),
             'student_status' => ($intake == '45') ? 'current' : 'graduate',
-            'nid_front_image' => null,
-            'nid_back_image' => null,
+            'nid_front_image' => 'test/nid_images/' . $this->faker->numberBetween(1, 1) . '.png',
+            'nid_back_image' => 'test/nid_images/' . $this->faker->numberBetween(1, 1) . '.png'
         ];
     }
 
