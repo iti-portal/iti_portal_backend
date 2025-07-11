@@ -526,20 +526,34 @@ class ComprehensiveTestDataSeeder extends Seeder
                     $feedback = null;
                     
                     if ($evaluation !== null) {
-                        $feedback = fake()->optional(0.8)->paragraph(2);
+                        $feedback = fake()->randomElement([
+                            'The service provided was excellent and highly beneficial. I gained valuable insights.',
+                            'Very helpful session. The mentor was knowledgeable and supportive.',
+                            'I found the career guidance workshop incredibly useful for my job search.',
+                            'The web development course was well-structured and easy to follow. Highly recommend!',
+                            'Good advice, but I would have preferred more specific examples related to my field.',
+                            'The consultation session was informative, though it ran a bit short.',
+                            'Neutral experience. Some parts were helpful, others less relevant to my needs.',
+                            'The technical mentoring was great, very hands-on and practical.',
+                            'I appreciate the effort, but the content of the course was too basic for my level.',
+                            'The service did not meet my expectations. I hoped for more in-depth support.',
+                        ]);
                     }
 
                     AlumniService::create([
                         'alumni_id' => $user->id,
                         'title' => fake()->randomElement([
-                            'Freelance Web Development',
-                            'Mobile App Development',
-                            'Business Consultation Session',
-                            'Programming Course Teaching',
-                            'Technical Mentoring',
-                            'Career Guidance Workshop'
+
                         ]),
-                        'description' => fake()->paragraph(3),
+                        'description' => fake()->randomElement([
+                            'In-depth consultations for alumni seeking expert advice on business strategies, market analysis, and growth opportunities.',
+                            'Hands-on workshop guiding aspiring entrepreneurs through the process of developing business ideas, creating a solid business plan, and securing initial funding.',
+                            'A comprehensive seminar focused on enhancing leadership capabilities and effective team management techniques for alumni in managerial roles.',
+                            'Practical sessions on financial management, investment strategies, and securing capital for new and existing ventures, tailored for alumni entrepreneurs.',
+                            'An intensive course covering modern web development frameworks and best practices, designed for alumni looking to upgrade their technical skills.',
+                            'A rigorous bootcamp introducing alumni to data science concepts, machine learning algorithms, and practical applications using Python.',
+                            'An advanced masterclass focusing on the end-to-end process of mobile application development, from UI/UX design to deployment on app stores.'
+                        ]),
                         'service_type' => fake()->randomElement(['business_session', 'course_teaching']),
                         'feedback' => $feedback,
                         'evaluation' => $evaluation,
