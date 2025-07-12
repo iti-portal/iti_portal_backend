@@ -15,7 +15,7 @@
 /node_modules
 /public/build
 /public/hot
-/public/storage
+# /public/storage
 !public/storage/test/
 !public/storage/test/**
 /storage/*.key
