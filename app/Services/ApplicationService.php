@@ -230,18 +230,18 @@ class ApplicationService
     }
 
     private function updateJobStatusCounter(AvailableJob $job, string $status, int $change): void
-{
-    $columnMap = [
-        'reviewed' => 'review_applications',
-        'interviewed' => 'interview_applications', 
-        'hired' => 'hired_applications',
-        'rejected' => 'rejected_applications'
-    ];
+    {
+        $columnMap = [
+            'reviewed' => 'review_applications',
+            'interviewed' => 'interview_applications', 
+            'hired' => 'hired_applications',
+            'rejected' => 'rejected_applications'
+        ];
 
-    if (isset($columnMap[$status])) {
-        $job->increment($columnMap[$status], $change);
+        if (isset($columnMap[$status])) {
+            $job->increment($columnMap[$status], $change);
+        }
     }
-}
 
     /**
      * Get application for CV download with role-based access
