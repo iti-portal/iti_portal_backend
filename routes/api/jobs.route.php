@@ -20,21 +20,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return response()->json(['message' => "Applied for job with ID: $id successfully"]);
     })->name('jobs.apply');
 });
-// routes for managent job application from the user
-Route::middleware([])->group(function () {
-    // get user's jobs applications
-    Route::get('/applications', function (Request $request) {
-        return response()->json(['message' => 'List of user job applications']);
-    })->name('jobs.applications');
-    // update job application
-    Route::put('/applications/{id}', function (Request $request) {
-        return response()->json(['message' => 'update application']);
-    })->name('application.update');
-    // delete job application
-    Route::delete('/applications/{id}', function (Request $request) {
-        return response()->json(['message' => 'application was deleted']);
-    })->name('application.delete');
-});
+// // routes for managent job application from the user
+// Route::middleware([])->group(function () {
+//     // get user's jobs applications
+//     Route::get('/applications', function (Request $request) {
+//         return response()->json(['message' => 'List of user job applications']);
+//     })->name('jobs.applications');
+//     // update job application
+//     Route::put('/applications/{id}', function (Request $request) {
+//         return response()->json(['message' => 'update application']);
+//     })->name('application.update');
+//     // delete job application
+//     Route::delete('/applications/{id}', function (Request $request) {
+//         return response()->json(['message' => 'application was deleted']);
+//     })->name('application.delete');
+// });
 
 // routes for jobs management by company
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -50,22 +50,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
      Route::patch('/company/jobs/{id}/status', [JobController::class, 'changeStatus'])->name('company.jobs.changeStatus');
      // Admin can view all jobs
   Route::get('/admin/jobs', [JobController::class, 'adminJobs']);
-    // route for getting job applications by company
-    Route::get('/company/jobs/{id}/applications', function (Request $request, $id) {
-        return response()->json(['message' => "List of applications for job with ID: $id"]);
-    })->name('company.jobs.applications');
-    // route for reviewing job application
-    Route::put('/company/applications/{id}', function (Request $request, $id) {
-        return response()->json(['message' => "Application with ID: $id reviewed successfully"]);
-    })->name('company.applications.review');
-    // route for accept application
-    Route::post('/company/applications/{id}/accept', function (Request $request, $id) {
-        return response()->json(['message' => "Application with ID: $id accepted successfully"]);
-    })->name('company.applications.accept');
-    // route for reject application
-    Route::post('/company/applications/{id}/reject', function (Request $request, $id) {
-        return response()->json(['message' => "Application with ID: $id rejected successfully"]);
-    })->name('company.applications.reject');
+    // // route for getting job applications by company
+    // Route::get('/company/jobs/{id}/applications', function (Request $request, $id) {
+    //     return response()->json(['message' => "List of applications for job with ID: $id"]);
+    // })->name('company.jobs.applications');
+    // // route for reviewing job application
+    // Route::put('/company/applications/{id}', function (Request $request, $id) {
+    //     return response()->json(['message' => "Application with ID: $id reviewed successfully"]);
+    // })->name('company.applications.review');
+    // // route for accept application
+    // Route::post('/company/applications/{id}/accept', function (Request $request, $id) {
+    //     return response()->json(['message' => "Application with ID: $id accepted successfully"]);
+    // })->name('company.applications.accept');
+    // // route for reject application
+    // Route::post('/company/applications/{id}/reject', function (Request $request, $id) {
+    //     return response()->json(['message' => "Application with ID: $id rejected successfully"]);
+    // })->name('company.applications.reject');
 
 });
 
