@@ -40,6 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'sanctum' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
+        'jwt' => [
+            'driver' => 'jwt',
+            'provider' => 'users',
+        ],
     ],
 
     /*
@@ -98,7 +106,6 @@ return [
             'throttle' => 60,
         ],
     ],
-
     /*
     |--------------------------------------------------------------------------
     | Password Confirmation Timeout
