@@ -26,6 +26,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::patch('/company/applications/{id}/reject', [JobApplicationController::class, 'reject']);
         Route::patch('/company/applications/{id}/interview', [JobApplicationController::class, 'interview']);
         Route::post('/applications/{id}/track-profile-view', [JobApplicationController::class, 'trackProfileView']);
+        Route::get('/company/applications/{id}', [JobApplicationController::class, 'showCompanyApplication']);
         
         // Skill matching and analytics for companies
         Route::get('/jobs/{jobId}/applications/matched', [JobApplicationController::class, 'getMatchedApplications']);
