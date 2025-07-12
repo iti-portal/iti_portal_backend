@@ -18,7 +18,7 @@ class JobApplicationController extends Controller
     {
         $this->applicationService = $applicationService;
     }
-    /**
+    /**ل
      * Display a listing of the user's job applications.
      */
     public function index(Request $request): JsonResponse
@@ -88,6 +88,8 @@ class JobApplicationController extends Controller
             return $this->respondWithError('Failed to retrieve job application: ' . $e->getMessage(), 500);
         }
     }
+
+    
 
     /**
      * Remove the specified application from storage.
