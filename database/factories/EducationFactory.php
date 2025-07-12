@@ -33,7 +33,18 @@ class EducationFactory extends Factory
             'institution' => $this->faker->randomElement($institutions),
             'start_date' => $startDate,
             'end_date' => $endDate,
-            'description' => $this->faker->optional(0.6)->paragraph(2),
+            'description' => $this->faker->randomElement([
+                'Graduated with honors, specializing in advanced algorithms and data structures.',
+                'Completed a comprehensive curriculum covering software development life cycles and agile methodologies.',
+                'Focused on practical applications of theoretical knowledge in real-world engineering projects.',
+                'Achieved high academic standing while participating in various research initiatives.',
+                'Developed strong analytical and problem-solving skills through rigorous coursework.',
+                'Gained expertise in database management and system design.',
+                'Participated in a capstone project involving the development of a scalable web application.',
+                'Explored cutting-edge topics in artificial intelligence and machine learning.',
+                'Honed critical thinking and communication skills through collaborative projects and presentations.',
+                'Successfully completed all requirements for the degree, demonstrating proficiency in chosen field.'
+            ]),
         ];
     }
 }
