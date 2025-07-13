@@ -39,7 +39,7 @@ class CompanyProfileFactory extends Factory
             'website' => $this->faker->optional(0.8)->url(),
             'industry' => $this->faker->randomElement($industries),
             'company_size' => $this->faker->randomElement($companySizes),
-            'logo' => null,
+            'logo' => 'test/company_logos/' . $this->faker->numberBetween(1, 8) . '.png',
         ];
     }
 }

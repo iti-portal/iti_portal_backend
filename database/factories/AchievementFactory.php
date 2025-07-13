@@ -64,6 +64,20 @@ class AchievementFactory extends Factory
 
         $type = $this->faker->randomElement($types);
         $title = $this->faker->randomElement($achievements[$type]);
+        // Ensure the title is unique within the type
+
+        if ($type === 'certification') {
+            $image = $this->faker->numberBetween(1, 6);
+            $imagePath = 'test/certificates/' . $image . '.png';
+        } elseif ($type === 'award') {
+            $image = $this->faker->numberBetween(1, 3);
+            $imagePath = 'test/awards/' . $image . '.png';
+        } elseif ($type === 'project') {
+            $image = $this->faker->numberBetween(1, 5);
+            $imagePath = 'test/project_images/' . $image . '.png';
+        } else {
+            $imagePath = null; // No image for job achievements
+        }
 
         return [
             'type' => $type,
@@ -71,7 +85,7 @@ class AchievementFactory extends Factory
             'description' => $this->faker->randomElement($descriptions),
             'organization' => $this->faker->randomElement($organizations),
             'achieved_at' => $this->faker->dateTimeBetween('-2 years', 'now'),
-            'image_path' => null,
+            'image_path' => $imagePath,
             'certificate_url' => $this->faker->optional(0.6)->url(),
             'project_url' => $type === 'project' ? $this->faker->optional(0.8)->url() : null,
             'like_count' => $this->faker->numberBetween(0, 100),
