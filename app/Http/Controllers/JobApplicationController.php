@@ -18,7 +18,7 @@ class JobApplicationController extends Controller
     {
         $this->applicationService = $applicationService;
     }
-    /**
+    /**ل
      * Display a listing of the user's job applications.
      */
     public function index(Request $request): JsonResponse
@@ -83,6 +83,20 @@ class JobApplicationController extends Controller
                 return $this->respondWithError('Job application not found', 404);
             }
 
+            return $this->respondWithSuccess($application, 'Job application retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to retrieve job application: ' . $e->getMessage(), 500);
+        }
+    }
+
+    // display a specific application for a company
+    public function showCompanyApplication(string $id): JsonResponse
+    {
+        try {
+            $application = $this->applicationService->getCompanyApplication($id, Auth::id());
+            if (!$application) {
+                return $this->respondWithError('Job application not found or not accessible', 404);
+            }
             return $this->respondWithSuccess($application, 'Job application retrieved successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to retrieve job application: ' . $e->getMessage(), 500);
