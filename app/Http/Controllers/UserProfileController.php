@@ -146,7 +146,6 @@ class UserProfileController extends Controller
 
         
         $users = User::with(['profile','roles'])
-
             ->where('id', '!=', $request->user()->id)
             ->whereNotIn('id', $connections)
             ->whereHas('roles', function ($query) {

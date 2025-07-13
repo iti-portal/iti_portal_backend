@@ -23,7 +23,7 @@ class JobApplicationController extends Controller
     
         $this->applicationService = $applicationService;
     }
-    /**
+    /**ل
      * Display a listing of the user's job applications.
      */
     public function index(Request $request): JsonResponse
