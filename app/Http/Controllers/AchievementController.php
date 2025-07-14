@@ -306,7 +306,10 @@ class AchievementController extends Controller
                 'user.profile:id,user_id,first_name,last_name,profile_picture',
                 'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
                 'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
-            ])->findOrFail($achievement);
+            ])->find($achievement);
+            if(!$achievement){
+                return $this->respondWithError('Achievement not found', 404);
+            }
             $likedByUser = $achievement->likes->contains('user_id', $user->id);
             return $this->respondWithSuccess([
                 'achievement' => [
