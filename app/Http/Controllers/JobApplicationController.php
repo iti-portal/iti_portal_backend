@@ -365,6 +365,14 @@ class JobApplicationController extends Controller
                 'hired',
                 $request->company_notes ?? null
             );
+            // Notify applicant of hire status
+            $this->firebase->send($updatedApplication->user_id, [
+                'title' => 'Application Status Updated',
+                'type' => 'application_user',
+                'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "hired".',
+                'sender_id' => Auth::id(),
+                'target_id' => $updatedApplication->id,
+            ]);
 
             return $this->respondWithSuccess($updatedApplication, 'Application status updated to hired');
         } catch (\Exception $e) {
@@ -393,6 +401,14 @@ class JobApplicationController extends Controller
                 'rejected',
                 $request->company_notes ?? null
             );
+            // Notify applicant of rejection
+            $this->firebase->send($updatedApplication->user_id, [
+                'title' => 'Application Status Updated',
+                'type' => 'application_user',
+                'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "rejected".',
+                'sender_id' => Auth::id(),
+                'target_id' => $updatedApplication->id,
+            ]);
 
             return $this->respondWithSuccess($updatedApplication, 'Application status updated to rejected');
         } catch (\Exception $e) {
@@ -421,6 +437,14 @@ class JobApplicationController extends Controller
                 'interviewed',
                 $request->company_notes ?? null
             );
+            // Notify applicant of interview status
+            $this->firebase->send($updatedApplication->user_id, [
+                'title' => 'Application Status Updated',
+                'type' => 'application_user',
+                'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "interviewed".',
+                'sender_id' => Auth::id(),
+                'target_id' => $updatedApplication->id,
+            ]);
 
             return $this->respondWithSuccess($updatedApplication, 'Application status updated to interviewed');
         } catch (\Exception $e) {
