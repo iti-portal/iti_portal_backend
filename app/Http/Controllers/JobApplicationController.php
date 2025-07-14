@@ -273,6 +273,7 @@ class JobApplicationController extends Controller
                 'type' => 'profile_view',
                 'body' => 'Your profile has been viewed by ' . $application->job->  company->profile->full_name,
                 'sender_id' => Auth::id(),
+                'target_id' => $application->id,
             ]);
             return $this->respondWithSuccess($trackingData, 'Profile view tracked successfully');
         } catch (\Exception $e) {
