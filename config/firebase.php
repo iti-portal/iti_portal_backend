@@ -2,5 +2,5 @@
 
 
 return [
-    'credentials' => storage_path('firebase/firebase_credentials.json')
+    'credentials' => json_decode(env('FIREBASE_CREDENTIALS_JSON'),true)
 ];
