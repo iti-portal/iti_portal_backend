@@ -54,7 +54,7 @@ class AchievementCommentController extends Controller
                     'body' => $user->profile->full_name . ' commented on your achievement: ' . $achievement->title,
                     'sender_id' => $user->id,
                     'type' => 'achievement_comment',
-                    
+                    'target_id' => $achievement->id
                 ]);
             // Format the response with all necessary fields
             return $this->respondWithSuccess([
