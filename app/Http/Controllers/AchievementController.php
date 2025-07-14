@@ -292,6 +292,61 @@ class AchievementController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(string $achievement)
+    {
+        //
+        $user = auth()->user();
+        if(!$user){
+            return $this->respondWithError('User not found', 404);
+        }
+        try{
+            $achievement = Achievement::with([
+                'user.profile:id,user_id,first_name,last_name,profile_picture',
+                'comments.user.profile:id,user_id,first_name,last_name,profile_picture',
+                'likes.user.profile:id,user_id,first_name,last_name,profile_picture',
+            ])->findOrFail($achievement);
+            $likedByUser = $achievement->likes->contains('user_id', $user->id);
+            return $this->respondWithSuccess([
+                'achievement' => [
+                    'id' => $achievement->id,
+                    'user_id' => $achievement->user_id,
+                    'type' => $achievement->type,
+                    'title' => $achievement->title,
+                    'description' => $achievement->description,
+                    'like_count' => $achievement->like_count,
+                    'is_liked' => $likedByUser,
+                    'comment_count' => $achievement->comment_count,
+                    'created_at' => $achievement->created_at,
+                    'user_profile' => optional($achievement->user->profile)->only(['first_name', 'last_name', 'profile_picture']),
+                    'comments' => $achievement->comments
+                                ->sortByDesc(function ($comment) use ($user) {
+                                    return [$comment->user_id === $user->id ? 1 : 0, $comment->created_at];
+                                })
+                                ->values()
+                                ->map(function ($comment) {
+                                    return [
+                                        'id' => $comment->id,
+                                        'content' => $comment->content,
+                                        'created_at' => $comment->created_at,
+                                        'user_profile' => optional($comment->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                                    ];
+                                }),
+                    'likes' => $achievement->likes->map(function ($like) {
+                        return [
+                            'user_profile' => optional($like->user->profile)->only(['first_name', 'last_name', 'profile_picture', 'user_id']),
+                        ];
+                    }),
+                ]
+            ]);
+        }catch(\Exception $e){
+            return $this->respondWithError($e->getMessage(), 500);
+        }
+    }
+
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreAchievementRequest $request)
