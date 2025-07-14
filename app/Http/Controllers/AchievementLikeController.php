@@ -53,6 +53,7 @@ class AchievementLikeController extends Controller
                 $action = 'liked';
                 $is_liked = true;
 
+                if ($achievement->user_id != $user->id) {
                 // Send notification to the achievement owner
                 $this->firebase->send(
                     $achievement->user_id,
@@ -64,6 +65,7 @@ class AchievementLikeController extends Controller
                         'target_id' => $achievement->id
                     ]
                     );
+                }
                 
             }
             

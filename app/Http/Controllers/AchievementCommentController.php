@@ -47,6 +47,18 @@ class AchievementCommentController extends Controller
             $achievement->save();
             DB::commit();
 
+            if($achievement->user_id != $user->id){
+                  // Send notification to the achievement owner
+            $this->firebase->send(
+                $achievement->user_id,[
+                    'title' => 'Achievement Comments',
+                    'body' => $user->profile->full_name . ' commented on your achievement: ' . $achievement->title,
+                    'sender_id' => $user->id,
+                    'type' => 'achievement',
+                    'target_id' => $achievement->id
+                ]);
+            }
+            if($achievement->user_id != $user->id){
             // Send notification to the achievement owner
             $this->firebase->send(
                 $achievement->user_id,[
@@ -56,6 +68,7 @@ class AchievementCommentController extends Controller
                     'type' => 'achievement',
                     'target_id' => $achievement->id
                 ]);
+            }
             // Format the response with all necessary fields
             return $this->respondWithSuccess([
                 'comment' => [
