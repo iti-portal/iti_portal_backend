@@ -76,7 +76,7 @@ class JobApplicationController extends Controller
                 'type' => 'application_company',
                 'body' => auth()->user()->profile->full_name . ' has applied for your job: ' . $application->job->title,
                 'sender_id' => Auth::id(),
-                'target_id' => $application->id,
+                'target_id' => $application->job_id,
             ]);
 
             return $this->respondWithSuccess($application, 'Application submitted successfully.', 201);
@@ -138,7 +138,7 @@ class JobApplicationController extends Controller
                 'type' => 'application_company',
                 'body' => auth()->user()->profile->full_name . ' has withdrawn their application for the job: ' . $application->job->title,
                 'sender_id' => Auth::id(),
-                'target_id' => $application->id,
+                'target_id' => $application->job_id,
             ]);
 
             return $this->respondWithSuccess([], 'Application withdrawn successfully');
