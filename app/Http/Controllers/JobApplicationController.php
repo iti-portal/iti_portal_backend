@@ -76,6 +76,7 @@ class JobApplicationController extends Controller
                 'type' => 'new_application',
                 'body' => auth()->user()->profile->full_name . ' has applied for your job: ' . $application->job->title,
                 'sender_id' => Auth::id(),
+                'target_id' => $application->id,
             ]);
 
             return $this->respondWithSuccess($application, 'Application submitted successfully.', 201);
