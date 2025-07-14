@@ -60,7 +60,8 @@ class AchievementLikeController extends Controller
                         'title' => 'Achievement Likes',
                         'body' => "{$user->profile->full_name} liked your achievement {$achievement->title}.",
                         'sender_id' => $user->id,
-                        'type' => 'achievement_like'
+                        'type' => 'achievement_like',
+                        'target_id' => $achievement->id
                     ]
                     );
                 
