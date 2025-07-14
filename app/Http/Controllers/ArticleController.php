@@ -139,7 +139,7 @@ class ArticleController extends Controller
                     'title' => 'Article Likes',
                     'body' => $user->profile->full_name . ' liked your article: ' . $article->title,
                     'sender_id' => $user->id,
-                    'type' => 'article_like',
+                    'type' => 'article',
                     'target_id' => $article->id
                 ]
             );
@@ -301,7 +301,7 @@ class ArticleController extends Controller
                 'status' => 'published',
                 'published_at' => now(),
             ]);
-]
+
             return response()->json([
                 'success' => true,
                 'message' => 'Article published successfully.',
