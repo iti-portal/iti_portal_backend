@@ -196,7 +196,7 @@ class ApplicationService
      */
     public function getCompanyApplication(string $applicationId, int $companyId): ?JobApplication
     {
-        return JobApplication::with(['job', 'user'])
+        return JobApplication::with(['job', 'user', 'user.profile'])
             ->whereHas('job', function($query) use ($companyId) {
                 $query->where('company_id', $companyId);
             })
