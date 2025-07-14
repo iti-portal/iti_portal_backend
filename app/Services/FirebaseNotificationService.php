@@ -29,6 +29,7 @@ class FirebaseNotificationService
             'read' => false,
             'sender' => $data['sender_id'],
             'type' => $data['type'],
+            'target_id' => $data['target_id'] ?? null,
         ]);
     }
 }
