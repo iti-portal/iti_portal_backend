@@ -212,6 +212,7 @@ class JobApplicationController extends Controller
                 'type' => 'application_status_update',
                 'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "' . $updatedApplication->status . '".',
                 'sender_id' => Auth::id(),
+                'target_id' => $updatedApplication->id,
             ]);
 
             return $this->respondWithSuccess($updatedApplication, 'Application status updated successfully');
