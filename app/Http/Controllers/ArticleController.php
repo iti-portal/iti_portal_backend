@@ -132,18 +132,6 @@ class ArticleController extends Controller
 
             Db::commit();
 
-            // Send notification to the article author
-            $this->firebase->send(
-                $article->author_id,
-                [
-                    'title' => 'Article Likes',
-                    'body' => $user->profile->full_name . ' liked your article: ' . $article->title,
-                    'sender_id' => $user->id,
-                    'type' => 'article',
-                    'target_id' => $article->id
-                ]
-            );
-
             return response()->json([
                 'success' => true,
                 'message' => 'Article liked successfully.',
