@@ -73,7 +73,7 @@ class JobApplicationController extends Controller
             // Notify company of new application
             $this->firebase->send( $application->job->company_id, [
                 'title' => 'New Job Application Received',
-                'type' => 'new_application',
+                'type' => 'application',
                 'body' => auth()->user()->profile->full_name . ' has applied for your job: ' . $application->job->title,
                 'sender_id' => Auth::id(),
                 'target_id' => $application->id,
@@ -135,7 +135,7 @@ class JobApplicationController extends Controller
             // Notify company of application withdrawal
             $this->firebase->send($application->job->company_id, [
                 'title' => 'Job Application Withdrawn',
-                'type' => 'application_withdrawn',
+                'type' => 'application',
                 'body' => auth()->user()->profile->full_name . ' has withdrawn their application for the job: ' . $application->job->title,
                 'sender_id' => Auth::id(),
                 'target_id' => $application->id,
@@ -209,7 +209,7 @@ class JobApplicationController extends Controller
             // Notify applicant of status update
             $this->firebase->send($updatedApplication->user_id, [
                 'title' => 'Application Status Updated',
-                'type' => 'application_status_update',
+                'type' => 'application',
                 'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "' . $updatedApplication->status . '".',
                 'sender_id' => Auth::id(),
                 'target_id' => $updatedApplication->id,
@@ -270,7 +270,7 @@ class JobApplicationController extends Controller
             // Notify applicant of profile view
             $this->firebase->send($application->user_id, [
                 'title' => 'Profile Viewed',
-                'type' => 'profile_view',
+                'type' => 'application',
                 'body' => 'Your profile has been viewed by ' . $application->job->  company->profile->full_name,
                 'sender_id' => Auth::id(),
                 'target_id' => $application->id,
