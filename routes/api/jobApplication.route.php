@@ -3,6 +3,7 @@
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\Admin\JobApplicationController as AdminJobApplicationController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // Job application routes - all routes require authentication
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -12,10 +13,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/job-applications', [JobApplicationController::class, 'store']);
         Route::get('/job-applications/{id}', [JobApplicationController::class, 'show']);
         Route::delete('/job-applications/{id}', [JobApplicationController::class, 'destroy']); // Withdraw application
-        
+
         // Skill matching for users
         Route::get('/jobs/{jobId}/skill-match', [JobApplicationController::class, 'getJobSkillMatch']);
     });
+
 
     // For companies
     Route::middleware(['role:company'])->group(function () {
@@ -26,7 +28,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::patch('/company/applications/{id}/reject', [JobApplicationController::class, 'reject']);
         Route::patch('/company/applications/{id}/interview', [JobApplicationController::class, 'interview']);
         Route::post('/applications/{id}/track-profile-view', [JobApplicationController::class, 'trackProfileView']);
-        
+        Route::get('/company/applications/{id}', [JobApplicationController::class, 'showCompanyApplication']);
+
         // Skill matching and analytics for companies
         Route::get('/jobs/{jobId}/applications/matched', [JobApplicationController::class, 'getMatchedApplications']);
         Route::get('/jobs/{jobId}/applications/stats', [JobApplicationController::class, 'getJobApplicationStats']);

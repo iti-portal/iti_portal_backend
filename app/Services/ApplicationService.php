@@ -78,7 +78,7 @@ class ApplicationService
     public function isJobAcceptingApplications(int $jobId): array
     {
         $job = AvailableJob::find($jobId);
-        
+
         if (!$job) {
             return ['valid' => false, 'message' => 'Job not found'];
         }
@@ -206,24 +206,53 @@ class ApplicationService
     /**
      * Update application status
      */
-    public function updateApplicationStatus(JobApplication $application, string $newStatus, ?string $companyNotes = null): JobApplication
-    {
-        return DB::transaction(function () use ($application, $newStatus, $companyNotes) {
-            $oldStatus = $application->status;
+/**
+     * Update application status
+     */
+/**
+     * Update application status
+     */
+ public function updateApplicationStatus(JobApplication $application, string $newStatus, ?string $companyNotes = null): JobApplication
+{
+    return DB::transaction(function () use ($application, $newStatus, $companyNotes) {
+        $oldStatus = $application->status;
+        $job = $application->job;
 
-            $application->update([
-                'status' => $newStatus,
-                'company_notes' => $companyNotes,
-            ]);
+        // Update application status
+        $application->update([
+            'status' => $newStatus,
+            'company_notes' => $companyNotes,
+        ]);
+
+        // Update job-level counters if status changed
+        if ($oldStatus !== $newStatus) {
+            // Decrement old status counter
+            $this->updateJobStatusCounter($job, $oldStatus, -1);
+
+            // Increment new status counter
+            $this->updateJobStatusCounter($job, $newStatus, 1);
 
             // Send notification to applicant about status change
-            if ($oldStatus !== $newStatus) {
-                $this->notificationService->notifyApplicantOfStatusChange($application, $oldStatus);
-            }
+            $this->notificationService->notifyApplicantOfStatusChange($application, $oldStatus);
+        }
 
-            return $application->fresh();
-        });
+        return $application->fresh();
+    });
+}
+
+private function updateJobStatusCounter(AvailableJob $job, string $status, int $change): void
+{
+    $columnMap = [
+        'reviewed' => 'review_applications',
+        'interviewed' => 'interview_applications',
+        'hired' => 'hired_applications',
+        'rejected' => 'rejected_applications'
+    ];
+
+    if (isset($columnMap[$status])) {
+        $job->increment($columnMap[$status], $change);
     }
+}
 
     /**
      * Get application for CV download with role-based access
@@ -388,13 +417,13 @@ class ApplicationService
         $results = [];
         $successCount = 0;
         $failedCount = 0;
-        
+
         DB::beginTransaction();
-        
+
         try {
             foreach ($applicationIds as $applicationId) {
                 $application = $this->getCompanyApplication($applicationId, $companyId);
-                
+
                 if (!$application) {
                     $results[$applicationId] = [
                         'success' => false,
@@ -403,28 +432,28 @@ class ApplicationService
                     $failedCount++;
                     continue;
                 }
-                
+
                 $oldStatus = $application->status;
-                
+
                 $application->update([
                     'status' => $newStatus,
                     'company_notes' => $companyNotes,
                 ]);
-                
+
                 // Send notification to applicant about status change
                 if ($oldStatus !== $newStatus) {
                     $this->notificationService->notifyApplicantOfStatusChange($application, $oldStatus);
                 }
-                
+
                 $results[$applicationId] = [
                     'success' => true,
                     'application' => $application->fresh()
                 ];
                 $successCount++;
             }
-            
+
             DB::commit();
-            
+
             return [
                 'results' => $results,
                 'summary' => [
