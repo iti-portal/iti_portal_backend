@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
     build-essential libssl-dev \
     && docker-php-ext-install pdo pdo_mysql zip mbstring gd
 
-# Install and enable gRPC extension
-RUN pecl install grpc && docker-php-ext-enable grpc
+# Install and enable a specific, stable gRPC extension version
+RUN pecl install grpc-1.42.0 && docker-php-ext-enable grpc
 
 # Enable sodium
 RUN docker-php-ext-install sodium || true
