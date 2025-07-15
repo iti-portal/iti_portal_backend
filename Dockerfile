@@ -3,8 +3,14 @@ FROM php:8.2-apache
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    git zip unzip libzip-dev libpng-dev libonig-dev libxml2-dev curl \
+    git zip unzip libzip-dev libpng-dev libonig-dev libxml2-dev curl autoconf g++ make \
     && docker-php-ext-install pdo pdo_mysql zip mbstring gd
+
+# Install and enable gRPC extension
+RUN pecl install grpc && docker-php-ext-enable grpc
+
+# Enable sodium
+RUN docker-php-ext-install sodium || true
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
