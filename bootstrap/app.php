@@ -42,7 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withSchedule(function(Schedule $schedule) {
         $schedule->command('users:delete-expired')
-            ->everyMinute();
+            ->daily();
     })
     ->withExceptions(function (Exceptions $exceptions) {
 
@@ -51,3 +51,4 @@ return Application::configure(basePath: dirname(__DIR__))
         ->everyMinute()
         ->description('Delete users with unverified emails after 24 hours from registration');
 })->create();
+

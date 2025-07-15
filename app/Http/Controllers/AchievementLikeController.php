@@ -4,12 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Achievement;
 use App\Models\AchievementLike;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AchievementLikeController extends Controller
 {
     //
+    protected $firebase;
+
+    public function __construct(FirebaseNotificationService $firebase)
+    {
+        $this->firebase = $firebase;
+    }
     public function toggleLike(Request $request)
     {
         $user = auth()->user();
@@ -45,6 +52,21 @@ class AchievementLikeController extends Controller
                 $achievement->increment('like_count');
                 $action = 'liked';
                 $is_liked = true;
+
+                if ($achievement->user_id != $user->id) {
+                // Send notification to the achievement owner
+                $this->firebase->send(
+                    $achievement->user_id,
+                    [
+                        'title' => 'Achievement Likes',
+                        'body' => "{$user->profile->full_name} liked your achievement {$achievement->title}.",
+                        'sender_id' => $user->id,
+                        'type' => 'achievement',
+                        'target_id' => $achievement->id
+                    ]
+                    );
+                }
+                
             }
             
             DB::commit();

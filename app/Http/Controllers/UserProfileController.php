@@ -146,7 +146,6 @@ class UserProfileController extends Controller
 
         
         $users = User::with(['profile','roles'])
-
             ->where('id', '!=', $request->user()->id)
             ->whereNotIn('id', $connections)
             ->whereHas('roles', function ($query) {
@@ -182,7 +181,6 @@ class UserProfileController extends Controller
             })
 
             ->paginate(10);
-
 
          // Calculate mutual connections for each user
         $users->getCollection()->transform(function ($targetUser) use ($connections) {

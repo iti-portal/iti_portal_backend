@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\JobApplicationRequest;
 use App\Http\Requests\BatchUpdateStatusRequest;
 use App\Services\ApplicationService;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -14,11 +15,15 @@ class JobApplicationController extends Controller
 {
     protected ApplicationService $applicationService;
 
-    public function __construct(ApplicationService $applicationService)
+    protected $firebase;
+
+    public function __construct(ApplicationService $applicationService, FirebaseNotificationService $firebase)
     {
+        $this->firebase = $firebase;
+    
         $this->applicationService = $applicationService;
     }
-    /**
+    /**ل
      * Display a listing of the user's job applications.
      */
     public function index(Request $request): JsonResponse
@@ -65,6 +70,15 @@ class JobApplicationController extends Controller
                 'cover_letter' => $request->cover_letter,
             ], $request->file('cv'));
 
+            // Notify company of new application
+            $this->firebase->send( $application->job->company_id, [
+                'title' => 'New Job Application Received',
+                'type' => 'application_company',
+                'body' => auth()->user()->profile->full_name . ' has applied for your job: ' . $application->job->title,
+                'sender_id' => Auth::id(),
+                'target_id' => $application->job_id,
+            ]);
+
             return $this->respondWithSuccess($application, 'Application submitted successfully.', 201);
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to submit application: ' . $e->getMessage(), 500);
@@ -89,6 +103,20 @@ class JobApplicationController extends Controller
         }
     }
 
+    // display a specific application for a company
+    public function showCompanyApplication(string $id): JsonResponse
+    {
+        try {
+            $application = $this->applicationService->getCompanyApplication($id, Auth::id());
+            if (!$application) {
+                return $this->respondWithError('Job application not found or not accessible', 404);
+            }
+            return $this->respondWithSuccess($application, 'Job application retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->respondWithError('Failed to retrieve job application: ' . $e->getMessage(), 500);
+        }
+    }
+
     /**
      * Remove the specified application from storage.
      * Only allows withdrawal if status is still 'applied'
@@ -103,6 +131,15 @@ class JobApplicationController extends Controller
             }
 
             $this->applicationService->withdrawApplication($application);
+
+            // Notify company of application withdrawal
+            $this->firebase->send($application->job->company_id, [
+                'title' => 'Job Application Withdrawn',
+                'type' => 'application_company',
+                'body' => auth()->user()->profile->full_name . ' has withdrawn their application for the job: ' . $application->job->title,
+                'sender_id' => Auth::id(),
+                'target_id' => $application->job_id,
+            ]);
 
             return $this->respondWithSuccess([], 'Application withdrawn successfully');
         } catch (\Exception $e) {
@@ -169,6 +206,15 @@ class JobApplicationController extends Controller
                 $request->company_notes
             );
 
+            // Notify applicant of status update
+            $this->firebase->send($updatedApplication->user_id, [
+                'title' => 'Application Status Updated',
+                'type' => 'application_user',
+                'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "' . $updatedApplication->status . '".',
+                'sender_id' => Auth::id(),
+                'target_id' => $updatedApplication->id,
+            ]);
+
             return $this->respondWithSuccess($updatedApplication, 'Application status updated successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to update application status: ' . $e->getMessage(), 500);
@@ -221,6 +267,14 @@ class JobApplicationController extends Controller
 
             $trackingData = $this->applicationService->trackProfileView($application);
 
+            // Notify applicant of profile view
+            $this->firebase->send($application->user_id, [
+                'title' => 'Profile Viewed',
+                'type' => 'application_user',
+                'body' => 'Your profile has been viewed by ' . $application->job->  company->profile->full_name,
+                'sender_id' => Auth::id(),
+                'target_id' => $application->id,
+            ]);
             return $this->respondWithSuccess($trackingData, 'Profile view tracked successfully');
         } catch (\Exception $e) {
             return $this->respondWithError('Failed to track profile view: ' . $e->getMessage(), 500);
@@ -311,6 +365,14 @@ class JobApplicationController extends Controller
                 'hired',
                 $request->company_notes ?? null
             );
+            // Notify applicant of hire status
+            $this->firebase->send($updatedApplication->user_id, [
+                'title' => 'Application Status Updated',
+                'type' => 'application_user',
+                'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "hired".',
+                'sender_id' => Auth::id(),
+                'target_id' => $updatedApplication->id,
+            ]);
 
             return $this->respondWithSuccess($updatedApplication, 'Application status updated to hired');
         } catch (\Exception $e) {
@@ -339,6 +401,14 @@ class JobApplicationController extends Controller
                 'rejected',
                 $request->company_notes ?? null
             );
+            // Notify applicant of rejection
+            $this->firebase->send($updatedApplication->user_id, [
+                'title' => 'Application Status Updated',
+                'type' => 'application_user',
+                'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "rejected".',
+                'sender_id' => Auth::id(),
+                'target_id' => $updatedApplication->id,
+            ]);
 
             return $this->respondWithSuccess($updatedApplication, 'Application status updated to rejected');
         } catch (\Exception $e) {
@@ -367,6 +437,14 @@ class JobApplicationController extends Controller
                 'interviewed',
                 $request->company_notes ?? null
             );
+            // Notify applicant of interview status
+            $this->firebase->send($updatedApplication->user_id, [
+                'title' => 'Application Status Updated',
+                'type' => 'application_user',
+                'body' => 'Your application for the job "' . $updatedApplication->job->title . '" has been updated to "interviewed".',
+                'sender_id' => Auth::id(),
+                'target_id' => $updatedApplication->id,
+            ]);
 
             return $this->respondWithSuccess($updatedApplication, 'Application status updated to interviewed');
         } catch (\Exception $e) {

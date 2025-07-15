@@ -29,7 +29,9 @@ Route::middleware(['auth:sanctum'])->group(function(){
     // This route for adding a new achievement
     Route::post('/achievements', [AchievementController::class, 'store'])->name('achievements.add');
 
-
+    
+    // route for getting a specific achievement
+    Route::get('/achievements/{achievement}', [AchievementController::class, 'show']);
     
 
     // route for like and unlike an achievement

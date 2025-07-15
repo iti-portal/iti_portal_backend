@@ -15,12 +15,16 @@
 /node_modules
 /public/build
 /public/hot
-/public/storage
+# /public/storage
+!public/storage/test/
+!public/storage/test/**
 /storage/*.key
 /storage/pail
+/storage/firebase/*.json
 /vendor
 Homestead.json
 Homestead.yaml
 npm-debug.log
 Thumbs.db
 yarn-error.log
+storage/firebase/firebase_credentials.json

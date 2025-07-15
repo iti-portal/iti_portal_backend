@@ -196,7 +196,7 @@ class ApplicationService
      */
     public function getCompanyApplication(string $applicationId, int $companyId): ?JobApplication
     {
-        return JobApplication::with(['job', 'user'])
+        return JobApplication::with(['job', 'user', 'user.profile'])
             ->whereHas('job', function($query) use ($companyId) {
                 $query->where('company_id', $companyId);
             })
@@ -210,19 +210,37 @@ class ApplicationService
     {
         return DB::transaction(function () use ($application, $newStatus, $companyNotes) {
             $oldStatus = $application->status;
-
+            $job = $application->job;
+    
             $application->update([
                 'status' => $newStatus,
                 'company_notes' => $companyNotes,
             ]);
-
-            // Send notification to applicant about status change
+    
             if ($oldStatus !== $newStatus) {
+                $this->updateJobStatusCounter($job, $oldStatus, -1);
+                
+                $this->updateJobStatusCounter($job, $newStatus, 1);
+                
                 $this->notificationService->notifyApplicantOfStatusChange($application, $oldStatus);
             }
-
+    
             return $application->fresh();
         });
+    }
+
+    private function updateJobStatusCounter(AvailableJob $job, string $status, int $change): void
+    {
+        $columnMap = [
+            'reviewed' => 'review_applications',
+            'interviewed' => 'interview_applications', 
+            'hired' => 'hired_applications',
+            'rejected' => 'rejected_applications'
+        ];
+
+        if (isset($columnMap[$status])) {
+            $job->increment($columnMap[$status], $change);
+        }
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Connection;
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,13 @@ use Illuminate\Validation\Rule;
 
 class ConnectionController extends Controller
 {
+
+    protected $firebase;
+
+    public function __construct(FirebaseNotificationService $firebase)
+    {
+        $this->firebase = $firebase;
+    }
     /**
      * Send a connection request to another user
      */
@@ -87,6 +95,17 @@ class ConnectionController extends Controller
 
             DB::commit();
 
+            // Send Firebase notification
+            $this->firebase->send(
+                $targetUserId,
+                [
+                    'title' => 'Connection Request',
+                    'body' => $currentUser->full_name . ' wants to connect with you',
+                    'sender_id' => $currentUser->id,
+                    'type' => 'connection_request',
+                ]
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Connection request sent successfully',
@@ -153,6 +172,17 @@ class ConnectionController extends Controller
             ]);
 
             DB::commit();
+
+            // Send Firebase notification to the requester
+            $this->firebase->send(
+                $connection->requester_id,
+                [
+                    'title' => 'Connection Accepted',
+                    'body' => $currentUser->full_name . ' accepted your connection request',
+                    'sender_id' => $currentUser->id,
+                    'type' => 'connection_accepted',
+                ]
+            );
 
             return response()->json([
                 'success' => true,

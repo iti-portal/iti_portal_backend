@@ -69,8 +69,10 @@ class AuthController extends Controller
                     'success' => true,
                     'message' => ucfirst($user->getRoleNames()->first()) . ' login successfully.',
                     'data'    => [
+                        'id'    => $user->id,
                         'role'  => $user->getRoleNames()->first(),
                         'token' => $token,
+                        
                     ],
                 ], 200);
             }
@@ -82,7 +84,9 @@ class AuthController extends Controller
                 'data'    => [
                     'role'       => $user->getRoleNames()->first(),
                     'isVerified' => $user->isVerified(),
+                    'marked_for_deletion' => $user->marked_for_deletion,
                     'token'      => $token,
+                    'id'         => $user->id,
                 ],
             ], 200);
         }
