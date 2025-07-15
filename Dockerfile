@@ -35,15 +35,5 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 # Copy .env.production later in Render
 
-# Copy the entrypoint script into the container and make it executable
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Set the entrypoint to your script
-ENTRYPOINT ["docker-entrypoint.sh"]
-
-# Define the default command that will be executed by the entrypoint
-CMD ["apache2-foreground"]
-
 # Expose port 80
 EXPOSE 80
